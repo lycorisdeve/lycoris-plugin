@@ -1,0 +1,24 @@
+{
+  "name": "lycoris-plugin",
+  "version": "0.0.1",
+  "description": "Yunzai-Bot彼岸花插件",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/yeyang52/yenai-plugin.git"
+  },
+  "keywords": [
+    "Yunzai-Bot",
+    "yenai-plguin"
+  ],
+  "author": "lycoris",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "cheerio": "1.0.0-rc.12"
+  },
+  "devDependencies": {}
+}

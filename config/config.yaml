@@ -1,0 +1,10 @@
+epicGames:
+  schedule:
+    month: '*' # 每个月都执行
+    dayOfWeek: '5,0' # 在周五和周日执行（星期天是 0）
+    hour: '12' # 在中午12:00:00执行
+    minute: '0'
+    second: '0'
+  #配置定时发送群组和需要私聊发送的人
+  group_ids: ['604324089']
+  private_ids: ['1678527416','1638225884']  
