@@ -21,7 +21,7 @@ export class update extends plugin {
       priority: 1000,
       rule: [
         {
-          reg: "^#ap(插件)?(强制)?更新$",
+          reg: "^#彼岸花(插件)?(强制)?更新$",
           fnc: "update",
         },
       ],
