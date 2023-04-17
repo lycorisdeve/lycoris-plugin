@@ -1,3 +1,4 @@
+#epic
 epicGames:
   schedule:
     month: '*' # 每个月都执行
@@ -8,3 +9,10 @@ epicGames:
   #配置定时发送群组和需要私聊发送的人
   group_ids: ['604324089']
   private_ids: ['1678527416','1638225884']  
+#翻译
+baidu_translate:
+  id: null
+  key: null
+youdao_translate:
+  id: null
+  key: null
