@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import Translate from '../../utils/translate.js'
+
 
 export async function getRandomLinkId() {
   const page = Math.floor(Math.random() * 11000);

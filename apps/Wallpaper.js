@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { pluginResources } from '../components/lib/Path.js';
 import { getRandomLinkId, getHDWallpaper, searchImage } from '../model/services/WallpaperService.js'
-import { segment } from 'icqq';
+import Translate from '../utils/translate.js'
 
 export class Wallpaper extends plugin {
     constructor() {
