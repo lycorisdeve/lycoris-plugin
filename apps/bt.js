@@ -5,7 +5,7 @@
  */
 import plugin from '../../../lib/plugins/plugin.js'
 import axios from 'axios'
-import cheerio from 'cheerio'
+import * as cheerio from 'cheerio';
 
 /* 
     免责声明
