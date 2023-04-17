@@ -16,31 +16,24 @@ export class Wallpaper extends plugin {
                 },
                 {
                     reg: "^#?壁纸搜索(*)$",
-                    fnc: 'versionInfo'
+                    fnc: 'searchWp'
                 }
             ]
         })
     }
 
     async getWallpaper(e) {
-        let link = await getRandomLinkId()
-        logger.mark(link)
-        getHDWallpaper(link)
-        let img = `${pluginResources}/wallpaper/${link}`
-        if (fs.existsSync(img)) {
-            e.reply(segment.image(`file://${img}`))
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-            });
-        } else {
-            e.reply('查询出错，请重试！')
+        const link = await getRandomLinkId()
+        if(!link){
+            return false
         }
-
-
+        const imgInfo= await getHDWallpaper(link)
+        if(imgInfo){
+            e.reply(segment.image(`base64://${imgInfo}`))
+        }
+     
     }
-
-
+   async searchWp(e){
+       
+   }
 }
