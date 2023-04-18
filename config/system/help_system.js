@@ -38,7 +38,7 @@ export const helpCfg = {
     themeExclude: ['default'],
 
     // 是否启用背景毛玻璃效果，若渲染遇到问题可设置为false关闭
-    bgBlur: true,
+    bgBlur: false,
     style: {
         fontColor: '#ceb78b',
         descColor: '#eee',
@@ -47,7 +47,7 @@ export const helpCfg = {
         headerBgColor: 'rgba(6, 21, 31, .4)',
         rowBgColor1: 'rgba(6, 21, 31, .2)',
         rowBgColor2: 'rgba(6, 21, 31, .35)'
-      }
+    }
 }
 
 // 帮助菜单内容
@@ -92,11 +92,10 @@ export const helpList = [{
         title: '#彼岸花(强制)更新',
         desc: '更新插件'
     }, {
-            icon: 93,
-            title: '#彼岸花帮助',
-            desc: '查看本页面'
-        }
-    ]
+        icon: 93,
+        title: '#彼岸花帮助',
+        desc: '查看本页面'
+        }]
 }]
 
 
