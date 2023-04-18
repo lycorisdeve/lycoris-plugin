@@ -15,7 +15,6 @@ import crypto from 'crypto'
 import config from '../model/config.js'
 import md5 from 'md5'
 import lodash from 'lodash'
-import { sleep } from './utils.js'
 
 let cfg = await config.getConfig('config')
 const BAIDU = cfg.baidu_translate
