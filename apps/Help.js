@@ -24,7 +24,8 @@ export class Help extends plugin {
 
     async help(e) {
 
-        let data = HelpService.help(e)
+        let data =await HelpService.help(e)
+
         return Common.render(
             'help/index',
             data,

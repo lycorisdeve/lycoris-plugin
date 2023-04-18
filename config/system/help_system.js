@@ -92,7 +92,7 @@ export const helpList = [{
         title: '#彼岸花(强制)更新',
         desc: '更新插件'
     }, {
-        icon: 93,
+        icon: 95,
         title: '#彼岸花帮助',
         desc: '查看本页面'
         }]
