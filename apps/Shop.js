@@ -13,7 +13,7 @@ export class Shop extends plugin {
                     fnc: 'shop'
                 },
                 {
-                    reg: "/^#?购买商品\s+(.+)\s+(\d+)$/",
+                    reg: "^#?购买商品\s+(.+)\s+(\d+)$",
                     fnc: 'buy'
                 },
 
@@ -103,6 +103,7 @@ export class Shop extends plugin {
             }
 
         } else {
+            e.reply('请输入购买数量,如：#购买纠缠之缘10个')
             return false;
         }
 
