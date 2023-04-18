@@ -63,13 +63,13 @@ export class Wallpaper extends plugin {
         const imgInfos = await searchImage(keyword, pageNum)
         if (!imgInfos) {
             e.reply('没有找到任何图片')
+            return false
         }
         let msgs = []
         imgInfos.forEach(img => {
             const prefix = img.imgName.substring(0, 2);
             const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${img.imgName}`;
             let msg = `[CQ:image,file=${img.imgUrl}]\n原图:${url}`
-            logger.mark(msg)
             msgs.push(msg);
         })
         e.reply(msgs);
