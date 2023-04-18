@@ -1,0 +1,7 @@
+#warframe
+#模式设置国服or国际服  true 国服 / false 国际服
+isNationalService: true
+#Api地址建议自己搭建，地址：https://github.com/WsureWarframe/warframe-info-api.git
+#默认Api:http://nymph.rbq.life:3000/
+#国际服自己搭建的api
+internationalApi: null
