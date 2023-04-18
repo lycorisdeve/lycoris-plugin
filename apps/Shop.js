@@ -70,7 +70,7 @@ export class Shop extends plugin {
             } else if (keyword === '纠缠之缘') {
                 let money = 160 * quantity
                 let mySignInInfo = await redis.get("Lycoris:checkIn:" + e.user_id)
-                mySignInInfo=JSON.parse(mySignInInfo)
+                mySignInInfo = JSON.parse(mySignInInfo)
                 let primogems = parseInt(mySignInInfo.primogems)
 
                 if (primogems < money) {
@@ -82,13 +82,18 @@ export class Shop extends plugin {
                         coin.pink += quantity
 
                         await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
+                        mySignInInfo.primogems = primogems - money
+
+                        await redis.set("Lycoris:checkIn:" + e.user_id, JSON.stringify(mySignInInfo), { EX: 3600 * 24 * 90 })
                     } else {
                         let coin = {
                             "pink": quantity,
                             "blue": 0,
                             "expire": 1681847999
                         }
+                        mySignInInfo.primogems = primogems - money
 
+                        await redis.set("Lycoris:checkIn:" + e.user_id, JSON.stringify(mySignInInfo), { EX: 3600 * 24 * 90 })
                         await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     }
 

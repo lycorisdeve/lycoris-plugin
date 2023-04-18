@@ -116,7 +116,7 @@ export class dailycheckin extends plugin {
 
         let qqInfo = await qqInfoJson.json()
         let data = {
-            tplFile: `./plugins/${pluginName}/resources/signin/signin.html`,
+            tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             dz: _path,
             userInfo: checkInInformation,
             qqInfo: qqInfo,
