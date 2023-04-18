@@ -66,8 +66,8 @@ export async function getHDWallpaper(name) {
   return false;
 }
 
-export async function searchImage(keyword) {
-  const url = `https://wallhaven.cc/search?q=${keyword}&categories=111&purity=010&sorting=relevance&order=desc&ai_art_filter=0`
+export async function searchImage(keyword, pageNum) {
+  const url = `https://wallhaven.cc/search?q=${keyword}&categories=111&purity=010&sorting=relevance&order=desc&ai_art_filter=0&page=${pageNum}`
   try {
     // 发送 HTTP 请求获取 HTML 内容
     const response = await axios.get(url, {

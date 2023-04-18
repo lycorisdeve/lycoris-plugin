@@ -3,6 +3,9 @@ import { pluginResources } from '../components/lib/Path.js';
 import { getRandomLinkId, getHDWallpaper, searchImage } from '../model/services/WallpaperService.js'
 import Translate from '../utils/Translate.js'
 
+let keyword = ''
+let pageNum = 1
+
 export class Wallpaper extends plugin {
     constructor() {
         super({
@@ -16,7 +19,7 @@ export class Wallpaper extends plugin {
                     fnc: 'getWallpaper'
                 },
                 {
-                    reg: "^#?壁纸搜索(.*)$",
+                    reg: "^#?壁纸搜索(.*)$|#下一页壁纸|#上一页壁纸",
                     fnc: 'searchWp'
                 }
             ]
@@ -35,7 +38,19 @@ export class Wallpaper extends plugin {
 
     }
     async searchWp(e) {
-        let keyword = e.msg.replace(/#壁纸搜索/g, "").trim()
+        if (e.msg == '#下一页壁纸') {
+            pageNum += 1
+        } else if (e.msg == '#上一页壁纸' & pageNum != 1) {
+            pageNum -= 1
+        } else {
+            pageNum = 1
+            keyword = e.msg.replace(/#壁纸搜索/g, "").trim()
+        }
+        if (!keyword) {
+            e.reply('搜索出错~~~')
+            return false
+        }
+
         // 翻译中文
         let chReg = /(?:[\u3400-\u4DB5\u4E00-\u9FEA\uFA0E\uFA0F\uFA11\uFA13\uFA14\uFA1F\uFA21\uFA23\uFA24\uFA27-\uFA29]|[\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879][\uDC00-\uDFFF]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0])+/
         if (chReg.test(keyword)) {
@@ -45,7 +60,10 @@ export class Wallpaper extends plugin {
                 return await e.reply("翻译接口寄了，请尝试避免使用中文字符")
             }
         }
-        const imgInfos =await searchImage(keyword)
+        const imgInfos = await searchImage(keyword, pageNum)
+        if (!imgInfos) {
+            e.reply('没有找到任何图片')
+        }
         let msgs = []
         imgInfos.forEach(img => {
             const prefix = img.imgName.substring(0, 2);
@@ -57,6 +75,8 @@ export class Wallpaper extends plugin {
         e.reply(msgs);
     }
 }
+
+
 async function trans(tg) {
     let chReg = /([\u3400-\u4DB5\u4E00-\u9FEA\uFA0E\uFA0F\uFA11\uFA13\uFA14\uFA1F\uFA21\uFA23\uFA24\uFA27-\uFA29]|[\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879][\uDC00-\uDFFF]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0])+/g
 
