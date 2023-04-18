@@ -16,7 +16,7 @@ import * as cheerio from 'cheerio';
 感谢您的使用。
 */
 
-const url = 'http://www.eclzz.loan/'
+const url = '137.220.137.201'
 const BT_MAX_NUM = 3   // 返回的搜索数量 数字越小，响应速度越快
 const IS_GROUPS = true // 是否开启群聊搜索
 // const IS_PRIVATE = true

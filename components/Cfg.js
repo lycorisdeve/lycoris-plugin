@@ -1,8 +1,4 @@
-/*
- * @description: 
- * @author: 名字
- * @date: Do not edit
- */
+
 import fs from 'fs'
 import lodash from 'lodash'
 import YAML from 'yaml'
@@ -63,7 +59,7 @@ let Cfg = {
     if (Cfg.get(rote, true)) {
       return false
     }
-    return !/^#*土块/.test(e.msg || '')
+    return !/^#*彼岸花/.test(e.msg || '')
   },
   merged() {
     return lodash.merge({}, cfg)

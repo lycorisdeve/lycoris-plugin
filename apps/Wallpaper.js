@@ -19,7 +19,7 @@ export class Wallpaper extends plugin {
                     fnc: 'getWallpaper'
                 },
                 {
-                    reg: "^#?壁纸搜索(.*)$|#下一页壁纸|#上一页壁纸",
+                    reg: "^#壁纸搜索(.*)$|#下一页壁纸|#上一页壁纸",
                     fnc: 'searchWp'
                 }
             ]

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>签到</title>
     <style>
-    /* 偷懒 懒得建css文件*/
+      /* 偷懒 懒得建css文件*/
       @font-face {
         font-family: "宋体";
         src: local("宋体");
@@ -34,7 +34,6 @@
         height: 100px;
         padding-left: 50px;
         padding-top: 20px;
-        
       }
       .informations {
         margin-top: 20px;
@@ -150,59 +149,54 @@
         font-size: 40px;
       }
       .mingyan {
-         font-weight: 500;
-    background: white;
-    margin-top: 0px;
-    max-width: 250px;
-    overflow: hidden;
+        font-weight: 500;
+        margin-top: 0px;
+        max-width: 250px;
+        overflow: hidden;
       }
       .icon-list {
         margin: 90px 20px 20px 20px;
       }
     </style>
-    <script src="{{dz}}/plugins/one-js-plugin/resources/signin/iconfont.js"></script>
-     <script>
+    <script src="{{dz}}/plugins/lycoris-plugin/resources/html/signin/iconfont.js"></script>
+    <script>
       onload = function () {
         // let hiddenBg = document.getElementById("hiddenBg");
         let percent = document.getElementById("percent");
         let days = document.getElementById("days");
         let percentWidth = days.innerHTML;
-        if(percentWidth<=100){
+        if (percentWidth <= 100) {
           percent.style.width = percentWidth + "%";
-        }else{
+        } else {
           percent.style.width = "100%";
         }
-    //   document.body.style.background=hiddenBg.innerHTML
+        //   document.body.style.background=hiddenBg.innerHTML
       };
-      
     </script>
   </head>
 
   <body>
     <div class="container">
-        <!--<div id="hiddenBg" style="display: none;">{{bg}}</div>-->
+      <!--<div id="hiddenBg" style="display: none;">{{bg}}</div>-->
       <div class="title">
         <h1>{{nickname}}</h1>
         <strong>QQ:{{userInfo.user_qq}}</strong>
-        
       </div>
 
       <div class="informations">
         <div class="sign-info">
           <div class="sign-info-up">
             <span
-              >你已经累计签到了<strong style="font-size: 40px; color: red" id="days"
+              >你已经累计签到了<strong
+                style="font-size: 40px; color: red"
+                id="days"
                 >{{userInfo.check_in_days}}</strong
               >天</span
             >
           </div>
           <div class="sign-info-down">
             <div class="avatar">
-              <img
-                src="{{qqInfo.qlogo}}"
-                alt=""
-                class="avatar-img"
-              />
+              <img src="{{qqInfo.qlogo}}" alt="" class="avatar-img" />
             </div>
             <div class="sign-info-details">
               <div style="margin: 100px auto auto 40px">
@@ -223,11 +217,8 @@
           </div>
         </div>
         <div class="grop-info">
-          <strong
-            style="text-align: center; font-size: 25px"
-          >
-            群好感度第<span style="font-size: 40px; color: red">1</span
-            >名
+          <strong style="text-align: center; font-size: 25px">
+            群好感度第<span style="font-size: 40px; color: red">1</span>名
           </strong>
           <div style="margin-left: 20px">
             <p>上次签到日期:{{last_sign_in}}</p>
@@ -249,7 +240,11 @@
               <use xlink:href="#icon-thunder-copy"></use>
             </svg>
             <br />
-            <svg class="icon svg-icon" aria-hidden="true" style="margin-left:20px">
+            <svg
+              class="icon svg-icon"
+              aria-hidden="true"
+              style="margin-left: 20px"
+            >
               <use xlink:href="#icon-grass-copy"></use>
             </svg>
             <svg class="icon svg-icon" aria-hidden="true">
@@ -258,13 +253,10 @@
             <svg class="icon svg-icon" aria-hidden="true">
               <use xlink:href="#icon-rock-copy"></use>
             </svg>
-            <p class="mingyan"
-            >{{mooto}}</p
-          >
+            <p class="mingyan">{{mooto}}</p>
           </div>
         </div>
       </div>
-   
     </div>
   </body>
 </html>

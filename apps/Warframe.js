@@ -110,7 +110,7 @@ export class warframe extends plugin {
             },
             {
                 /** 命令正则匹配 */
-                reg: '#wf火卫二赏金(.*)|wf火卫二平原赏金|#火卫二赏金', //匹配消息正则,命令正则
+                reg: '#wf火卫二赏金|wf火卫二平原赏金|#火卫二赏金', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getEntratiSyndicateBounty'
             },

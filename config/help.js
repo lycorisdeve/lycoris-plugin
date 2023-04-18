@@ -1,7 +1,7 @@
 // 帮助配置
 export const helpCfg = {
     // 帮助标题
-    title: '土块帮助',
+    title: '彼岸花帮助',
 
     // 帮助副标题
     subTitle: 'Yunzai-Bot & Lycoris-Plugin',
@@ -32,131 +32,49 @@ export const helpCfg = {
 
 // 帮助菜单内容
 export const helpList = [{
-    group: '土块小游戏',
+    group: '关联功能',
     list: [{
         icon: 80,
-        title: '#练习记忆力',
-        desc: '记忆力小游戏 我猜+数字回答 #重置分数'
+        title: '签到',
+        desc: '签到/打卡/冒泡'
     }, {
         icon: 46,
-        title: '猜语音 我猜+<角色>',
-        desc: '猜原神语音 命令：猜语音 原神猜语 #我猜'
+        title: '商店',
+        desc: '#商店 #购买商品纠缠之缘'
     }]
 }, {
-    group: '土块功能',
+    group: '小功能',
     list: [{
         icon: 33,
-        title: '点歌xx',
-        desc: '返回图片列表,点歌酷狗xx,点歌qqxx'
+        title: 'Epic',
+        desc: '#epic 或 在config里配置定时发送'
     }, {
         icon: 31,
-        title: '#点视频+<视频名称>',
-        desc: '查找视频返回图片列表 #取消搜索'
+        title: 'Warframe',
+        desc: 'wf警报 wf地球平原'
     }, {
         icon: 22,
-        title: '#点小说+<小说名称>',
-        desc: '查找小说返回图片列表 #取消小说搜索'
-    }, {
-        icon: 52,
-        title: '#点漫画+<漫画名称>',
-        desc: '查找漫画返回图片列表 #取消漫画搜索'
+        title: '壁纸',
+        desc: '#来一张壁纸 #壁纸搜索xxx'
     }]
 }, {
-    group: '土块原史功能',
+    group: '隐藏功能',
     list: [{
         icon: 57,
-        title: '#<角色>语音+数字',
-        desc: '#<角色>语音列表 #角色语音汇总'
-    }, {
-        icon: 58,
-        title: '#了解+<角色>',
-        desc: '#了解刻晴 #了解宵宫'
-    }, {
-        icon: 59,
-        title: '#原史+角色',
-        desc: '了解角色故事'
-    }, {
-        icon: 21,
-        title: '#原史+武器',
-        desc: '了解武器故事'
-    }, {
-        icon: 39,
-        title: '#原史+圣遗物',
-        desc: '了解圣遗物故事'
-    }, {
-        icon: 55,
-        title: '#原史+装备',
-        desc: '了解装备故事'
-    }, {
-        icon: 52,
-        title: '#原史+书籍',
-        desc: '了解书籍故事'
-    }, {
-        icon: 76,
-        title: '#原史+任务',
-        desc: '了解任务故事'
-    }, {
-        icon: 78,
-        title: '#原史+NPC',
-        desc: '了解npc故事'
-    }, {
-        icon: 79,
-        title: '#原史id+数字',
-        desc: 'id范围0~3794'
+        title: '看秀图',
+        desc: '不清楚'
     }]
-}, {
-    group: '土块原史目录列表',
-    list: [{
-        icon: 60,
-        title: '#原史角色目录',
-        desc: '#角色id列表'
     }, {
-        icon: 21,
-        title: '#原史武器目录',
-        desc: '#武器id列表'
-    }, {
-        icon: 38,
-        title: '#原史圣遗物目录',
-        desc: '圣遗物id列表'
-    }, {
-        icon: 43,
-        title: '#原史怪物目录',
-        desc: '怪物id列表'
-    }, {
-        icon: 22,
-        title: '#原史任务目录',
-        desc: '任务id列表'
-    }, {
-        icon: 54,
-        title: '#原史食物目录',
-        desc: '食物id列表'
-    }, {
-        icon: 55,
-        title: '#原史物品目录',
-        desc: '物品id列表'
-    }, {
-        icon: 71,
-        title: '#原史活动目录',
-        desc: '活动id列表'
-    }, {
-        icon: 74,
-        title: '#原史动物目录',
-        desc: '动物id列表'
-    }, {
-        icon: 11,
-        title: '#原史书籍目录',
-        desc: '书籍id列表'
-    }, {
-        icon: 80,
-        title: '#原史npc目录',
-        desc: 'npc id列表'
-    }]
-}, {
-    group: '管理命令，仅管理员可用',
+        group: '管理功能',
     auth: 'master',
     list: [{
         icon: 95,
-        title: '#土块(强制)更新',
-        desc: '更新土块插件'
-    }]
+        title: '#彼岸花(强制)更新',
+        desc: '更新插件'
+    }, {
+            icon: 93,
+            title: '#彼岸花帮助',
+            desc: '查看本页面'
+        }
+    ]
 }]

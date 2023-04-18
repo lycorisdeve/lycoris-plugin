@@ -1,5 +1,4 @@
 
-import plugin from '../../../lib/plugins/plugin.js'
 import axios from 'axios'
 import cheerio from 'cheerio'
 
@@ -17,7 +16,7 @@ export class XiuRenPlugin extends plugin {
       priority: 1000, // 优先级（数值越大，优先级越高）
       rule: [
         {
-          reg: "^#秀人搜索(.*)$|#看秀图(.*)|#选隐藏视频(.*)", // 匹配规则
+          reg: "^#秀人搜索(.*)$|#看秀图(.*)", // 匹配规则
           fnc: 'searchXiuren', // 匹配成功时调用的方法名
         },
       ],
