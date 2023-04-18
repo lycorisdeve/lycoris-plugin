@@ -2,7 +2,7 @@
  * @Author: 渔火Arcadia  https://github.com/yhArcadia
  * @Date: 2023-01-14 01:47:29
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-04-17 23:32:23
+ * @LastEditTime: 2023-04-18 09:54:04
  * @FilePath: \Yunzai-Bot\plugins\ap-plugin\utils\translate.js
  * @Description: 聚合翻译
  * 
@@ -83,22 +83,23 @@ class Translate {
         return false
     }
 
-    /**独角兽翻译
-     * @param {string} text 待翻译文本 
-     * @return {string} 翻译后的文本 
-     */
+    /**桑帛云翻译
+        * @param {string} text 待翻译文本 
+        * @return {string} 翻译后的文本 
+        */
     async ovooa(text) {
-        let res = await fetch(`http://ovooa.com/API/qqfy/api.php?msg=${encodeURI(text)}`)
+        let res = await fetch(`https://api.caonm.net/api/fanyi/f.php?msg=${encodeURI(text)}`)
         res = await res.text()
         // logger.warn(res)                         /*  */
         if (res.includes('请勿频繁请求本站')) {
-            logger.info('【独角兽翻译报错】:', res)
+            logger.info('【桑帛云翻译报错】:', res)
             return false
         }
-        let en = /翻译内容：(.+)$/.exec(res)[1]
+        let en = /结果：(.+)$/.exec(res)[1]
         en = en.split('/')
         return en[0]
     }
+
 
 
     /**椰奶有道翻译 */
