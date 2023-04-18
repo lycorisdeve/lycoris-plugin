@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import fs from 'node:fs'
+import yaml from 'yaml'
 import Config from '../model/config.js'
 import moment from "moment";
 import puppeteer from 'puppeteer'
@@ -80,17 +81,17 @@ export class warframe extends plugin {
             priority: 2000,
             rule: [{
                 /** 命令正则匹配 */
-                reg: '#wf帮助|wfhelp|wf菜单', //匹配消息正则,命令正则
+                reg: '#wf帮助|wfhelp|wf菜单|wf帮助', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'menu'
             }, {
                 /** 命令正则匹配 */
-                reg: '#wf警报信息|警报信息|#wf警报', //匹配消息正则,命令正则
+                reg: '#wf警报信息|警报信息|#wf警报|wf警报', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getAlerts'
             }, {
                 /** 命令正则匹配 */
-                reg: '#wf新闻', //匹配消息正则,命令正则
+                reg: '#wf新闻|wf新闻', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getNews'
             },
@@ -102,7 +103,7 @@ export class warframe extends plugin {
             },
             {
                 /** 命令正则匹配 */
-                reg: '#wf地球时间|#地球外景时间', //匹配消息正则,命令正则
+                reg: '#wf地球时间|#地球外景时间|wf地球时间', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getEarth'
             },
@@ -114,7 +115,7 @@ export class warframe extends plugin {
             },
             {
                 /** 命令正则匹配 */
-                    reg: '#赏金|赏金', //匹配消息正则,命令正则
+                    reg: '#wf赏金|wf赏金', //匹配消息正则,命令正则
                     /** 执行方法 */
                     fnc: 'getBounty'
                 },
@@ -244,12 +245,14 @@ export class warframe extends plugin {
         config.isNationalService = true
         const cfgPath = `${pluginRootPath}/config/warframe.yaml`
         if (fs.existsSync(cfgPath)) {
-            fs.writeFileSync(cfgPath, config)
+            
+            fs.writeFileSync(cfgPath,yaml.stringify(config),'utf-8' )
         } else {
             e.reply("切换出错")
             return
         }
 
+    url = 'https://api.null00.com/world/ZHCN/'
         e.reply("切换成功，当前服务器为 国服")
 
     }
@@ -258,13 +261,14 @@ export class warframe extends plugin {
         config.isNationalService = false
         const cfgPath = `${pluginRootPath}/config/warframe.yaml`
         if (fs.existsSync(cfgPath)) {
-            fs.writeFileSync(cfgPath, config)
+            fs.writeFileSync(cfgPath,yaml.stringify(config),'utf-8')
         } else {
             e.reply("切换出错")
             return
         }
+    url = 'http://nymph.rbq.life:3000/'
 
-        e.reply("切换成功，当前服务器为 国服")
+        e.reply("切换成功，当前服务器为 国际服")
 
     }
     async getWikiInfo(e) {
@@ -296,7 +300,7 @@ export class warframe extends plugin {
 警       报:wf警报信息|警报信息|wf警报
 新       闻:wf新闻
 入       侵:wf入侵|入侵信息
-赏       金:(国服)#赏金/赏金 
+赏       金:(国服)#wf赏金 | wf赏金 
             (国际服)#地球赏金  金星平原赏金/#金星赏金 
              火卫二赏金|火卫二平原赏金|#火卫二赏金
 突       击:wf突击|突击信息|今日突击
@@ -661,7 +665,6 @@ WIKI 信  息:#wfwiki 绿陶
     async getBounty(e) {
         if (isNationalService) {
             let data = await getJsonData("bounty")
-            logger.info(data)
             let temp_bounty = "         赏金        \n=================="
             for (let bounty in data) {
                 let sTime = new Date(moment.unix(data[bounty].expiry).format("YYYY-MM-DD HH:mm:ss"))
@@ -754,8 +757,9 @@ async function getFormatHms(time) {
 async function getJsonData(url_arg) {
 
     let api_url = url + url_arg
-    logger.mark(api_url)
+
     let data1 = await fetch(api_url, {
+        timeout: 10000 ,// 设置5秒超时时间
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
         }
@@ -768,8 +772,9 @@ async function getJsonData(url_arg) {
 async function getTextData(url_arg) {
 
     let api_url = url + url_arg
-    logger.mark(api_url)
+
     let data1 = await fetch(api_url, {
+        timeout: 10000 ,// 设置5秒超时时间
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
         }
