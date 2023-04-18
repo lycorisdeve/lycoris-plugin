@@ -1,0 +1,58 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "113133911",
+      "name": "anemo-copy",
+      "font_class": "wind-copy",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "113133918",
+      "name": "hydro-copy",
+      "font_class": "water-copy",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "113133938",
+      "name": "pyro-copy",
+      "font_class": "fire-copy",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "113133947",
+      "name": "electro-copy",
+      "font_class": "thunder-copy",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "113133987",
+      "name": "dendro-copy",
+      "font_class": "grass-copy",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "113133990",
+      "name": "cryo-copy",
+      "font_class": "ice-copy",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
+      "icon_id": "113133996",
+      "name": "geo-copy",
+      "font_class": "rock-copy",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    }
+  ]
+}

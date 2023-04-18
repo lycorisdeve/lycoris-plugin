@@ -1,5 +1,4 @@
-import fs from 'node:fs';
-import { getRandomLinkId, getHDWallpaper } from '../model/services/WallpaperService.js'
+import { pluginName } from "../components/lib/Path";
 
 export class Shop extends plugin {
     constructor() {
@@ -13,25 +12,97 @@ export class Shop extends plugin {
                     reg: "^#?商店$",
                     fnc: 'shop'
                 },
+                {
+                    reg: "/^#?购买商品\s+(.+)\s+(\d+)$/",
+                    fnc: 'buy'
+                },
 
             ]
         })
     }
 
     async shop(e) {
-        let link = await getRandomLinkId()
-        getHDWallpaper(link)
-        let img = `../../resources/wallpaper/${link}`
-        if (fs.existsSync(img)) {
-            e.reply(segment.image(`file://${img}`))
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    console.error(err);
-                    return;
+        let data = {
+            tplFile: `./plugins/${pluginName}/resources/shop/shop-list.html`,
+        }
+        let img = await puppeteer.screenshot("shop", {
+            ...data,
+        });
+
+        await e.reply(img, false, { at: true })
+
+
+    }
+    async buy(e) {
+        let message = e.msg
+        let keywordAndNum = message.replace(/#购买商品/g, '');
+        // 使用正则表达式匹配关键字和数字
+        const regex = /(.+?)(\d+)/;
+        const match = keywordAndNum.match(regex);
+
+        if (match) {
+            const keyword = match[1];
+            const quantity = parseInt(match[2], 10);
+            if (keyword === '相遇之缘') {
+                let money = 160 * quantity
+                let mySignInInfo = await redis.get("Lycoris:checkIn:" + e.user_id)
+                let primogems = parseInt(mySignInInfo.primogems)
+                if (primogems < money) {
+                    e.reply('原石不足哦~~~~~~~~~~~~~~~~~~~~')
+                } else {
+                    let coinJson = await redis.get(`Yz:flower-plugin:coin:${e.user_id}`)
+                    if (coinJson) {
+                        let coin = JSON.parse(coinJson)
+                        coin.blue += quantity
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                    } else {
+                        let coin = {
+                            "pink": 0,
+                            "blue": quantity,
+                            "expire": 1681847999
+                        }
+
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                    }
+
+                    e.reoly(`购买成功！本次购买 ${quantity}个相遇之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
                 }
-            });
+            } else if (keyword === '纠缠之缘') {
+                let money = 160 * quantity
+                let mySignInInfo = await redis.get("Lycoris:checkIn:" + e.user_id)
+                let primogems = parseInt(mySignInInfo.primogems)
+                if (primogems < money) {
+                    e.reply('原石不足哦~~~~~~~~~~~~~~~~~~~~')
+                } else {
+                    let coinJson = await redis.get(`Yz:flower-plugin:coin:${e.user_id}`)
+                    if (coinJson) {
+                        let coin = JSON.parse(coinJson)
+                        coin.pink += quantity
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                    } else {
+                        let coin = {
+                            "pink": quantity,
+                            "blue": 0,
+                            "expire": 1681847999
+                        }
+
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                    }
+
+                    e.reoly(`购买成功！本次购买 ${quantity}个纠缠之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
+                }
+            } else if (keyword === '一级好感度卡') {
+                e.reply('待开发功能~~~~')
+            } else if (keyword === '二级好感度卡') {
+                e.reply('待开发功能~~~~')
+            } else if (keyword === '三级好感度卡') {
+                e.reply('待开发功能~~~~')
+            } else {
+                e.reply('木得这个商品')
+            }
+
         } else {
-            e.reply('查询出错，请重试！')
+            return false;
         }
 
 
