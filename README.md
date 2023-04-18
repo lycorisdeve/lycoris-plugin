@@ -7,9 +7,12 @@ Lycoris-Plugin是一个Yunzai-Bot的附属插件，主要提供了原史及部�
 请将Lycoris-Plugin放置在Yunzai-Bot的plugins目录下，重启Yunzai-Bot后即可使用。
 
 推荐使用git进行安装，以方便后续升级。在Yunzai根目录夹打开终端，运行
+
 ```
 使用Gitee
 git clone https://gitee.com/aurora-love/lycoris-plugin.git ./plugins/lycoris-plugin/
+使用Github
+git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plugin/
 ```
 进行安装。建议使用上述命令进行安装，以便于后续更新。 管理员发送 #彼岸花更新 即可自动更新
 
