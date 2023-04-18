@@ -46,6 +46,7 @@ export class Shop extends plugin {
             if (keyword === '相遇之缘') {
                 let money = 160 * quantity
                 let mySignInInfo = await redis.get("Lycoris:checkIn:" + e.user_id)
+                mySignInInfo = JSON.parse(mySignInInfo)
                 let primogems = parseInt(mySignInInfo.primogems)
                 if (primogems < money) {
                     e.reply('原石不足哦~~~~~~~~~~~~~~~~~~~~')
@@ -54,7 +55,7 @@ export class Shop extends plugin {
                     if (coinJson) {
                         let coin = JSON.parse(coinJson)
                         coin.blue += quantity
-                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     } else {
                         let coin = {
                             "pink": 0,
@@ -62,7 +63,7 @@ export class Shop extends plugin {
                             "expire": 1681847999
                         }
 
-                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     }
 
                     e.reply(`购买成功！本次购买 ${quantity}个相遇之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
