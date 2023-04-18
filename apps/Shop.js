@@ -56,6 +56,9 @@ export class Shop extends plugin {
                         let coin = JSON.parse(coinJson)
                         coin.blue += quantity
                         await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
+                        mySignInInfo.primogems = primogems - money
+
+                        await redis.set("Lycoris:checkIn:" + e.user_id, JSON.stringify(mySignInInfo), { EX: 3600 * 24 * 90 })
                     } else {
                         let coin = {
                             "pink": 0,
@@ -64,6 +67,9 @@ export class Shop extends plugin {
                         }
 
                         await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
+                        mySignInInfo.primogems = primogems - money
+
+                        await redis.set("Lycoris:checkIn:" + e.user_id, JSON.stringify(mySignInInfo), { EX: 3600 * 24 * 90 })
                     }
 
                     e.reply(`购买成功！本次购买 ${quantity}个相遇之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
