@@ -8,8 +8,8 @@ let _path = process.cwd()
 export class dailycheckin extends plugin {
     constructor() {
         super({
-            name: '签到',
-            dsc: '签到',
+            name: '彼岸花签到',
+            dsc: '彼岸花每日签到功能',
             event: 'message',
             priority: 2000,
             rule: [{
