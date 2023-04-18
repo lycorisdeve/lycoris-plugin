@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
-import puppeteer from "../../lib/puppeteer/puppeteer.js";
 import { pluginName } from '../components/lib/Path.js';
+import puppeteer from "../../../lib/puppeteer/puppeteer.js";
 
 
 let _path = process.cwd()
