@@ -1,6 +1,9 @@
 import fetch from "node-fetch";
 import fs from 'node:fs'
 import Config from '../model/config.js'
+import fetch from "node-fetch";
+import moment from "moment";
+import puppeteer from 'puppeteer'
 import { pluginRootPath } from "../components/lib/Path.js";
 import plugin from '../../../lib/plugins/plugin.js'
 
@@ -205,10 +208,37 @@ export class warframe extends plugin {
                     reg: '#切换为国际服', //匹配消息正则,命令正则
                     /** 执行方法 */
                     fnc: 'changeToInternational'
-            }
+                }, {
+                    /** 命令正则匹配 */
+                    reg: '#国服所有信息', //匹配消息正则,命令正则
+                    /** 执行方法 */
+                    fnc: 'getImg'
+                }
             ]
 
         })
+    }
+    async getImg(e) {
+        const browser = await puppeteer.launch({
+            headless: false,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        const page = await browser.newPage();
+        await page.goto("https://ordis.null00.com/v1/");
+        await page.setViewport({
+            width: 1200,
+            height: 800
+        });
+        await page.screenshot({
+            path: 'resources/wf.png',
+            fullPage: true
+        });
+
+        await browser.close();
+        await e.reply([segment.image('resources/wf.png')])
+
+        fs.unlink('resources/wf.png', () => { });
+
     }
     async changeToNational(e) {
         isNationalService = true
