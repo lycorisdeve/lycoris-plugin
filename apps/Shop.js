@@ -78,7 +78,8 @@ export class Shop extends plugin {
                     if (coinJson) {
                         let coin = JSON.parse(coinJson)
                         coin.pink += quantity
-                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     } else {
                         let coin = {
                             "pink": quantity,
@@ -86,7 +87,7 @@ export class Shop extends plugin {
                             "expire": 1681847999
                         }
 
-                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, coin, { EX: 1681847999 })
+                        await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     }
 
                     e.reoly(`购买成功！本次购买 ${quantity}个纠缠之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
