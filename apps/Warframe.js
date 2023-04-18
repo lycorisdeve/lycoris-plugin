@@ -777,5 +777,26 @@ async function getTextData(url_arg) {
 
 }
 
+async function calculationTimeDifference(timeDifference) {
+    let hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+    hours = hours < 10 ? '0' + hours : hours
+    minutes = minutes < 10 ? '0' + minutes : minutes
+    seconds = seconds < 10 ? '0' + seconds : seconds
+    return hours + "时" + minutes + "分" + seconds + "秒"
+}
+async function getFormatDhms(timeDifference) {
+    let days = Math.floor((timeDifference / (1000 * 60 * 60 * 24)))
+    let hours = Math.floor(timeDifference / (1000 * 60 * 60) % 24);
+    let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+    days = days < 10 ? '0' + days : days
+    hours = hours < 10 ? '0' + hours : hours
+    minutes = minutes < 10 ? '0' + minutes : minutes
+    seconds = seconds < 10 ? '0' + seconds : seconds
+
+    return days + "天" + hours + "时" + minutes + "分" + seconds + "秒"
+}
 
 
