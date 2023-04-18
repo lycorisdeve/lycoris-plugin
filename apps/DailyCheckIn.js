@@ -108,18 +108,19 @@ export class dailycheckin extends plugin {
 
         let checkInInformation = JSON.parse(mySignInInfo)
 
-        let qqInfoJson = await fetch("http://xiaobai.klizi.cn/API/qqgn/qq.php?qq=" + e.user_id)
+        // let qqInfoJson = await fetch("http://xiaobai.klizi.cn/API/qqgn/qq.php?qq=" + e.user_id)
         mooto = await fetch("http://free.klizi.cn/API/other/yy.php").then(res => res.text()).catch((err) => console.error(err))
         // let bgApi = "https://xiaobai.klizi.cn/API/img/game.php"
         // let background = await fetch(bgApi).then(res => res.text()).catch((err) => console.error(err))
         let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
 
-        let qqInfo = await qqInfoJson.json()
+        // let qqInfo = await qqInfoJson.json()
+        let qqAvatar = `https://api.caonm.net/api/qt/index.php?qq=${e.user_id}`
         let data = {
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             dz: _path,
             userInfo: checkInInformation,
-            qqInfo: qqInfo,
+            qqAvatar: qqAvatar,
             tdInfo: today_check_in,
             mooto: mooto,
             last_sign_in: last_sign_in,
