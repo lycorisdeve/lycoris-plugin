@@ -754,7 +754,7 @@ async function getFormatHms(time) {
 async function getJsonData(url_arg) {
 
     let api_url = url + url_arg
-
+    logger.mark(api_url)
     let data1 = await fetch(api_url, {
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
@@ -768,7 +768,7 @@ async function getJsonData(url_arg) {
 async function getTextData(url_arg) {
 
     let api_url = url + url_arg
-
+    logger.mark(api_url)
     let data1 = await fetch(api_url, {
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
