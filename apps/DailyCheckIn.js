@@ -13,7 +13,7 @@ export class dailycheckin extends plugin {
             event: 'message',
             priority: 2000,
             rule: [{
-                reg: "^签到|打卡|daka",
+                reg: "签到|打卡|daka|冒泡",
                 fnc: 'checkIn'
             }]
         })

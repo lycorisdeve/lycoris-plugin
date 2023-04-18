@@ -38,7 +38,16 @@ export const helpCfg = {
     themeExclude: ['default'],
 
     // 是否启用背景毛玻璃效果，若渲染遇到问题可设置为false关闭
-    bgBlur: true
+    bgBlur: true,
+    style: {
+        fontColor: '#ceb78b',
+        descColor: '#eee',
+        contBgColor: 'rgba(6, 21, 31, .5)',
+        contBgBlur: 3,
+        headerBgColor: 'rgba(6, 21, 31, .4)',
+        rowBgColor1: 'rgba(6, 21, 31, .2)',
+        rowBgColor2: 'rgba(6, 21, 31, .35)'
+      }
 }
 
 // 帮助菜单内容

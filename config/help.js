@@ -63,6 +63,10 @@ export const helpList = [{
         icon: 57,
         title: '看秀图',
         desc: '不清楚'
+    },{
+        icon: 57,
+        title: 'bt',
+        desc: '不清楚'
     }]
     }, {
         group: '管理功能',
@@ -72,7 +76,7 @@ export const helpList = [{
         title: '#彼岸花(强制)更新',
         desc: '更新插件'
     }, {
-            icon: 93,
+        icon: 95,
             title: '#彼岸花帮助',
             desc: '查看本页面'
         }
