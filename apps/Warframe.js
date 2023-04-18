@@ -61,7 +61,7 @@ if (typeof isNationalService !== 'boolean') {
 }
 let url
 if (isNationalService) {
-    url = 'https://api.null00.com/world/ZHCN'
+    url = 'https://api.null00.com/world/ZHCN/'
 } else {
     url = 'http://nymph.rbq.life:3000/'
 }
@@ -291,8 +291,8 @@ export class warframe extends plugin {
     async menu(e) {
         let msg = `命令头：wf
 参数： 
-如:wf菜单、wf警报 \n" +
-=================
+如:wf菜单、wf警报
+=================================================================
 警       报:wf警报信息|警报信息|wf警报
 新       闻:wf新闻
 入       侵:wf入侵|入侵信息
@@ -311,6 +311,7 @@ export class warframe extends plugin {
 W  M 市  场:#wm 紫卡
 R  M 市  场:#rm 紫卡
 WIKI 信  息:#wfwiki 绿陶
+==================================================================
 `
         e.reply(msg)
     }
@@ -660,6 +661,7 @@ WIKI 信  息:#wfwiki 绿陶
     async getBounty(e) {
         if (isNationalService) {
             let data = await getJsonData("bounty")
+            logger.info(data)
             let temp_bounty = "         赏金        \n=================="
             for (let bounty in data) {
                 let sTime = new Date(moment.unix(data[bounty].expiry).format("YYYY-MM-DD HH:mm:ss"))
