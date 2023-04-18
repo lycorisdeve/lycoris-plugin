@@ -1,4 +1,4 @@
-import { pluginName } from "../components/lib/Path";
+import { pluginName } from "../components/lib/Path.js";
 
 export class Shop extends plugin {
     constructor() {
