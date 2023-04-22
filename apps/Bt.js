@@ -3,9 +3,9 @@
  * @author lycoris
  * @time 2023-03-31 23:57
  */
-import plugin from '../../../lib/plugins/plugin.js'
 import axios from 'axios'
 import * as cheerio from 'cheerio';
+import { btApi } from '../model/services/btService.js';
 
 /* 
     免责声明
@@ -21,7 +21,7 @@ const BT_MAX_NUM = 3   // 返回的搜索数量 数字越小，响应速度越�
 const IS_GROUPS = true // 是否开启群聊搜索
 // const IS_PRIVATE = true
 
-export class example extends plugin {
+export class bt extends plugin {
     constructor() {
         super({
             /** 功能名称 */
@@ -38,6 +38,12 @@ export class example extends plugin {
                     reg: '^#bt(.*)$',
                     /** 执行方法 */
                     fnc: 'btSearch',
+                },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#bt搜索(.*)$',
+                    /** 执行方法 */
+                    fnc: 'btInfo',
                 }
             ]
         })
@@ -94,8 +100,34 @@ export class example extends plugin {
             }
         }
     }
-}
+    async btInfo(e) {
+        if (e.isGroup) {
+            if (!IS_GROUPS) {
+                e.reply('群聊搜索已关闭，请联系机主开通！')
+                return
+            }
+        }
+        /** e.msg 用户的命令消息 */
+        logger.info('[用户命令]', e.msg)
+        let keyword = e.msg.replace(/#bt搜索/g, "").trim()
+        let myMagnet = await btApi(keyword, 1)
+        let msgs = []
+        if (myMagnet) {
 
+            if (Array.isArray(myMagnet)) {
+                for (let i = 0; i < myMagnet.length; i++) {
+                    let msg = `标题：${myMagnet[i].name}\n类型：${myMagnet[i].type}\n创建时间：${myMagnet[i].time}\n\n种子：${myMagnet[i].magnet}\n`;
+                    msgs.push(msg);
+                }
+            } else {
+                msgs.push(myMagnet)
+            }
+        } else {
+            msgs.push(`没有找到：${keyword}`)
+        }
+        e.reply(msgs)
+    }
+}
 async function getBtInfo(keyword, page) {
     try {
         const response = await axios.get(`${url}/s/${keyword}_rel_${page}.html`, { timeout: 5000 });
