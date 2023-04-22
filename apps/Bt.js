@@ -109,7 +109,7 @@ export class bt extends plugin {
         }
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/#bt搜索/g, "").trim()
+        let keyword = e.msg.replace(/bt搜索/g, "").trim()
         let myMagnet = await btApi(keyword, 1)
         let msgs = []
         if (myMagnet) {
