@@ -41,7 +41,7 @@ export class bt extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '^#bt搜索(.*)$',
+                    reg: '^bt搜索(.*)$',
                     /** 执行方法 */
                     fnc: 'btInfo',
                 }
