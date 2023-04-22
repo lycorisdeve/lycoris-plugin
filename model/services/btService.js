@@ -5,7 +5,9 @@ export async function btApi(keyword, pageNum) {
     const http = `http://`
     try {
         let url = `?w=jie&name=${keyword}&page=${pageNum}`
-        const response = await axios.get(`${http}209.141.34.64:4117/so/clso.php${url}`);
+        const response = await axios.get(`${http}209.141.34.64:4117/so/clso.php${url}`, {
+            timeout: 1500
+        });
         if (response.status !== 200) {
             throw new Error(`API请求失败：${response.statusText}`);
         }
