@@ -5,7 +5,7 @@
  */
 import axios from 'axios'
 import * as cheerio from 'cheerio';
-import { btApi } from '../model/services/BtService.js';
+import { btApi } from '../model/services/btService';
 
 /* 
     免责声明
