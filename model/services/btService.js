@@ -16,7 +16,7 @@ export async function btApi(keyword, pageNum) {
     try {
         let url = `w=jie&name=${keyword}&page=${pageNum}`
         const response = await axios.get(`${http}209.141.34.64:4117/so/clso.php?${url}`, {
-            timeout: 1500,
+            timeout: 5000,
             headers: header
         });
         if (response.status !== 200) {
