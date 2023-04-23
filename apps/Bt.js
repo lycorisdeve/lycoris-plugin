@@ -110,7 +110,7 @@ export class bt extends plugin {
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
         let keyword = e.msg.replace(/bt搜索/g, "").trim()
-        let myMagnet = await btApi(keyword, 1)
+        let myMagnet = await btApi(keyword, 0)
         let msgs = []
         if (myMagnet) {
 
@@ -123,7 +123,7 @@ export class bt extends plugin {
                 msgs.push(myMagnet)
             }
         } else {
-            msgs.push(`没有找到：${keyword}`)
+            msgs.push(`没有找到：${keyword} 哦~~~~`)
         }
         e.reply(msgs)
     }
