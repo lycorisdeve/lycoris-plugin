@@ -130,8 +130,7 @@ export class bt extends plugin {
 }
 async function getBtInfo(keyword, page) {
     try {
-        logger.mark(`${url}/s/${keyword}_rel_${page}.html`)
-        const response = await axios.get(`${url}/s/${keyword}_rel_${page}.html`, { timeout: 5000 });
+        const response = await axios.get(`${url}/s/${keyword}_rel_${page}.html`, { timeout: 7000 });
         const text = response.data;
 
         if (text.includes('大约0条结果')) {
