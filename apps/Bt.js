@@ -136,8 +136,14 @@ async function getBtInfo(keyword, page) {
         if (text.includes('大约0条结果')) {
             return [];
         }
+        let $
+        try {
+            $ = cheerio.load(text);
+        } catch (err) {
+            logger.error('请先安装cheerio：pnpm add cheerio -w')
+            return
+        }
 
-        const $ = cheerio.load(text);
         const itemLst = $('.search-item');
         const btMaxNum = BT_MAX_NUM;
         const maxResults = Math.min(btMaxNum, itemLst.length);
@@ -168,7 +174,7 @@ async function getBtInfo(keyword, page) {
 
         return msgs;
     } catch (err) {
-        logger.error('请先安装cheerio：pnpm add cheerio -w')
+
         logger.error(err);
         return [];
     }
