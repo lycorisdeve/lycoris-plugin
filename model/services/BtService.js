@@ -1,4 +1,4 @@
-import fetch from 'fetch'
+import fetch from "node-fetch";
 
 
 export async function btApi(keyword, pageNum) {
@@ -25,12 +25,12 @@ export async function btApi(keyword, pageNum) {
 
         const data = await response.json();
 
-      // 将每个元素转换为包含所需字段的对象
+        // 将每个元素转换为包含所需字段的对象
         const result = Array.isArray(data)
             ? data.map((item) => ({
                 magnet: "magnet:?xt=urn:btih:" + item.hash,
-            name: item.name,
-            type: item.type,
+                name: item.name,
+                type: item.type,
                 time: item.time,
             }))
             : [];
