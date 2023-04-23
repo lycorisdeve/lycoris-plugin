@@ -16,6 +16,7 @@ export async function btApi(keyword, pageNum) {
     try {
         let url = `w=jie&name=${keyword}&page=${pageNum}`
         const result1 = `${http}209.141.34.64:4117/so/clso.php?${url}`
+        logger.info('2222222233333333333333333333333333' + result1)
         const response = await axios.get(result1, {
             timeout: 5000,
             headers: header
