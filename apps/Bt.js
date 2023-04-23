@@ -130,6 +130,7 @@ export class bt extends plugin {
 }
 async function getBtInfo(keyword, page) {
     try {
+        logger.mark(`${url}/s/${keyword}_rel_${page}.html`)
         const response = await axios.get(`${url}/s/${keyword}_rel_${page}.html`, { timeout: 5000 });
         const text = response.data;
 
@@ -169,7 +170,7 @@ async function getBtInfo(keyword, page) {
         return msgs;
     } catch (err) {
         logger.error('请先安装cheerio：pnpm add cheerio -w')
-        console.log(err);
+        logger.error(err);
         return [];
     }
 }
