@@ -113,10 +113,17 @@ export class bt extends plugin {
         let myMagnet = await btApi(keyword, 0)
         let msgs = []
         if (myMagnet) {
-            msgs.push('你已经长大了，需要学会自己加磁力头了：\n magnet:?xt=urn:btih: \n')
+            msgs.push(`你已经长大了，需要学会自己加磁力头了：
+magnet:?xt=urn:btih: 
+\n`)
             if (Array.isArray(myMagnet)) {
                 for (let i = 0; i < myMagnet.length; i++) {
-                    let msg = `标题：${myMagnet[i].name}\n类型：${myMagnet[i].type}\n创建时间：${myMagnet[i].time}\n种子：${myMagnet[i].magnet}\n`;
+                    let msg = `
+标题：${myMagnet[i].name}\n
+类型：${myMagnet[i].type}\n
+创建时间：${myMagnet[i].time}\n
+种子：${myMagnet[i].magnet}\n
+`;
                     msgs.push(msg);
                 }
             } else {
