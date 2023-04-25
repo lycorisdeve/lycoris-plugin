@@ -119,9 +119,9 @@ magnet:?xt=urn:btih:
             if (Array.isArray(myMagnet)) {
                 for (let i = 0; i < myMagnet.length; i++) {
                     let msg = `
-标题：${myMagnet[i].name}\n
-类型：${myMagnet[i].type}\n
-创建时间：${myMagnet[i].time}\n
+标题：${myMagnet[i].name}
+类型：${myMagnet[i].type}
+创建时间：${myMagnet[i].time}
 种子：${myMagnet[i].magnet}\n
 `;
                     msgs.push(msg);
