@@ -112,6 +112,10 @@ export class bt extends plugin {
 
         let myMagnet = await btApi(keyword, 0)
         let msgs = []
+        let userInfo = {
+            nickname: this.e.sender.card || this.e.user_id,
+            user_id: this.e.user_id,
+        }
         if (myMagnet) {
             msgs.push(`你已经长大了，需要学会自己加磁力头了：
 magnet:?xt=urn:btih: 
@@ -124,15 +128,38 @@ magnet:?xt=urn:btih:
 创建时间：${myMagnet[i].time}
 种子：${myMagnet[i].magnet}\n
 `;
-                    msgs.push(msg);
+                    msgs.push({ ...userInfo, message: msg });
                 }
             } else {
-                msgs.push(myMagnet)
+                msgs.push({ ...userInfo, message: myMagnet })
             }
         } else {
-            msgs.push(`没有找到：${keyword} 哦~~~~`)
+            e.reply(`没有找到：${keyword} 哦~~~~`)
+            return
         }
-        e.reply(msgs)
+        const res = await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
+            recallMsg: -1,
+        });
+        if (!res) {
+            if (!res) {
+                if (this.e.group && this.e.group.is_admin) {
+                    if (
+                        Number(Math.random().toFixed(2)) * 100 <
+                        this.mysterySetData.mute
+                    ) {
+                        let duration = Math.floor(Math.random() * 600) + 1;
+                        this.e.group.muteMember(this.e.sender.user_id, duration);
+                        await this.e.reply(
+                            `不用等了，不用等了，搜索失败，请重试～～ 并随手将你禁锢${duration}秒`
+                        );
+                    } else {
+                        this.reply(`不用等了，搜索失败，请重试～ `);
+                    }
+                } else {
+                    this.reply(`不用等了，搜索失败，请重试～ `);
+                }
+            }
+        }
     }
 }
 async function getBtInfo(keyword, page) {
