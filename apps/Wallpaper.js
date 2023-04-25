@@ -29,12 +29,18 @@ export class Wallpaper extends plugin {
     async getWallpaper(e) {
         const link = await getRandomLinkId()
         if (!link) {
-            return false
+            e.reply("获取失败，请重试！")
+
+        } else {
+            const imgInfo = await getHDWallpaper(link)
+            if (imgInfo) {
+                e.reply(segment.image(`base64://${imgInfo}`))
+            } else {
+                e.reply(`图片太大获取失败！！~~~ \n 原图：${link}`)
+            }
+
         }
-        const imgInfo = await getHDWallpaper(link)
-        if (imgInfo) {
-            e.reply(segment.image(`base64://${imgInfo}`))
-        }
+
 
     }
     async searchWp(e) {

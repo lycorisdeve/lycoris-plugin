@@ -3,7 +3,7 @@ import axios from 'axios';
 
 
 export async function getRandomLinkId() {
-  const page = Math.floor(Math.random() * 11000);
+  const page = Math.floor(Math.random() * 1000);
   let url = `https://wallhaven.cc/search?categories=111&purity=010&sorting=favorites&order=desc&ai_art_filter=0&page=${page}`
 
   try {
