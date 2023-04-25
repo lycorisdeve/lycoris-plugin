@@ -36,7 +36,9 @@ export class Wallpaper extends plugin {
             if (imgInfo) {
                 e.reply(segment.image(`base64://${imgInfo}`))
             } else {
-                e.reply(`图片太大获取失败！！~~~ \n 原图：${link}`)
+                const prefix = link.substring(0, 2);
+                const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${link}`;
+                e.reply(`图片太大获取失败！！~~~ \n 原图：${url}`)
             }
 
         }

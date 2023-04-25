@@ -47,7 +47,6 @@ export async function getHDWallpaper(name) {
     const prefix = name.substring(0, 2);
     const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${name}`;
 
-
     try {
       const response = await axios({
         method: 'get',
