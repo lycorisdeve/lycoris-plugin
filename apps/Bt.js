@@ -37,13 +37,13 @@ export class bt extends plugin {
                     /** 命令正则匹配 */
                     reg: '^#bt(.*)$',
                     /** 执行方法 */
-                    fnc: 'btSearch',
+                    fnc: 'btInfo',
                 },
                 {
                     /** 命令正则匹配 */
                     reg: '^bt搜索(.*)$',
                     /** 执行方法 */
-                    fnc: 'btInfo',
+                    fnc: 'btSearch',
                 }
             ]
         })
@@ -61,8 +61,7 @@ export class bt extends plugin {
         }
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/#bt/g, "").trim()
-
+        let keyword = e.msg.replace(/bt搜索/g, "").trim()
         let msgs = await getBtInfo(keyword, 1)
         let userInfo = {
             nickname: this.e.sender.card || this.e.user_id,
@@ -109,14 +108,15 @@ export class bt extends plugin {
         }
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/bt搜索/g, "").trim()
+        let keyword = e.msg.replace(/#bt/g, "").trim()
+
         let myMagnet = await btApi(keyword, 0)
         let msgs = []
         if (myMagnet) {
-
+            msgs.push('你已经长大了，需要学会自己加磁力头了：\n magnet:?xt=urn:btih: \n')
             if (Array.isArray(myMagnet)) {
                 for (let i = 0; i < myMagnet.length; i++) {
-                    let msg = `标题：${myMagnet[i].name}\n类型：${myMagnet[i].type}\n创建时间：${myMagnet[i].time}\n\n种子：${myMagnet[i].magnet}\n`;
+                    let msg = `标题：${myMagnet[i].name}\n类型：${myMagnet[i].type}\n创建时间：${myMagnet[i].time}\n种子：${myMagnet[i].magnet}\n`;
                     msgs.push(msg);
                 }
             } else {
