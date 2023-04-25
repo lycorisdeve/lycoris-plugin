@@ -117,9 +117,10 @@ export class bt extends plugin {
             user_id: this.e.user_id,
         }
         if (myMagnet) {
-            msgs.push(`你已经长大了，需要学会自己加磁力头了：
+            msgs.push({
+                ...userInfo, message: `你已经长大了，需要学会自己加磁力头了：
 magnet:?xt=urn:btih: 
-\n`)
+\n`})
             if (Array.isArray(myMagnet)) {
                 for (let i = 0; i < myMagnet.length; i++) {
                     let msg = `
