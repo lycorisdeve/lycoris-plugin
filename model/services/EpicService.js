@@ -1,3 +1,8 @@
+/*
+ * @description: 
+ * @author: 名字
+ * @date: Do not edit
+ */
 import fetch from 'node-fetch'
 /**
    * #epic
@@ -71,7 +76,7 @@ async function epicGamesMsg() {
                         break;
                     }
                 }
-                let msg = `[CQ:image,file=${imagePath}]\n游 戏 名：${titleText}\n原     价：${gamePrice}\n结束时间：${formattedEndDate}\n发 行 商：${game.seller.name}\n简     介：${descText}点击下方链接免费入库：\n${gameURL}`
+                let msg = [segment.image(imagePath), `\n游 戏 名：${titleText}\n原     价：${gamePrice}\n结束时间：${formattedEndDate}\n发 行 商：${game.seller.name}\n简     介：${descText}点击下方链接免费入库：\n${gameURL}`]
                 msgList.push(msg)
             } catch (err) {
                 logger.error(err);
