@@ -1,4 +1,4 @@
-import plugin from '../../../lib/plugins/plugin.js'
+import axios from axios
 import Config from '../model/config.js'
 
 /*
