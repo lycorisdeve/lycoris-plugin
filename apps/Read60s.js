@@ -28,7 +28,7 @@ export class EpicGamesPlugin extends plugin {
             rule: [
                 {
                     /** 命令正则匹配 */
-                    reg: '^#news$',
+                    reg: '#news|今日新闻|#新闻|60S新闻',
                     /** 执行方法 */
                     fnc: 'getRead60sNews'
                 }
@@ -47,7 +47,7 @@ export class EpicGamesPlugin extends plugin {
     }
 
     async getRead60sNews(e) {
-        let imgMsg = await getRandomImage()
+        let imgMsg = await getNewsImage()
         if (imgMsg) {
             e.reply(imgMsg)
         } else {
@@ -56,31 +56,11 @@ export class EpicGamesPlugin extends plugin {
 
     }
 
-    async getRandomImage() {
-        try {
-            const url = 'https://api.2xb.cn/zaob'; // 备用网址
-            const response = await axios.get(url);
-            const retdata = response.data;
-            const imageUrl = retdata.imageUrl;
-            // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-            // return picCqCode;
-            let msg = segment.image(imageUrl)
-            return msg;
 
-        } catch {
-            const url = 'https://api.iyk0.com/60s';
-            const response = await axios.get(url);
-            const retdata = response.data;
-            const imageUrl = retdata.imageUrl;
-            // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-            let msg = segment.image(imageUrl)
-            return msg;
-        }
-    }
 
     async sendRandomImage() {
         try {
-            const message = await getRandomImage();
+            const message = await getNewsImage();
             for (const qq of plugin_config.qq_friends) {
                 Bot.sendPrivateMsg(qq, message).catch((err) => {
                     logger.error(err)
@@ -100,6 +80,28 @@ export class EpicGamesPlugin extends plugin {
 
 
 
+}
+
+async function getNewsImage() {
+    try {
+        const url = 'https://api.2xb.cn/zaob'; // 备用网址
+        const response = await axios.get(url);
+        const retdata = response.data;
+        const imageUrl = retdata.imageUrl;
+        // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+        // return picCqCode;
+        let msg = segment.image(imageUrl)
+        return msg;
+
+    } catch {
+        const url = 'https://api.iyk0.com/60s';
+        const response = await axios.get(url);
+        const retdata = response.data;
+        const imageUrl = retdata.imageUrl;
+        // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+        let msg = segment.image(imageUrl)
+        return msg;
+    }
 }
 
 
