@@ -28,17 +28,17 @@ export class EpicGamesPlugin extends plugin {
             rule: [
                 {
                     /** 命令正则匹配 */
-                    reg: '#news|今日新闻|#新闻|60S新闻',
+                    reg: '^#news$|^今日新闻$|^#新闻$|^60S新闻$',
                     /** 执行方法 */
                     fnc: 'getRead60sNews'
                 }, {
                     /** 命令正则匹配 */
-                    reg: '#news1|今日新闻1|#新闻1|60S新闻1',
+                    reg: '^#news1$|^今日新闻1$|^#新闻1$|^60S新闻1$',
                     /** 执行方法 */
                     fnc: 'getRead60sNews1'
                 }, {
                     /** 命令正则匹配 */
-                    reg: '#news2|今日新闻2|#新闻2|60S新闻2',
+                    reg: '^#news2$|^今日新闻2$|^#新闻2$|^60S新闻2$',
                     /** 执行方法 */
                     fnc: 'getRead60sNews2'
                 }
