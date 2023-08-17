@@ -84,23 +84,40 @@ export class EpicGamesPlugin extends plugin {
 
 async function getNewsImage() {
     try {
-        const url = 'https://api.2xb.cn/zaob'; // 备用网址
+        const token = "yTrBjcOSMko6kIEL"
+        const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
         const response = await axios.get(url);
         const retdata = response.data;
-        const imageUrl = retdata.imageUrl;
+        const imageUrl = retdata.image;
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-        // return picCqCode;
         let msg = segment.image(imageUrl)
         return msg;
 
+
+
     } catch {
-        const url = 'https://api.iyk0.com/60s';
-        const response = await axios.get(url);
-        const retdata = response.data;
-        const imageUrl = retdata.imageUrl;
-        // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-        let msg = segment.image(imageUrl)
-        return msg;
+        try {
+
+            const url = 'https://api.2xb.cn/zaob'; // 备用网址
+            const response = await axios.get(url);
+            const retdata = response.data;
+            const imageUrl = retdata.imageUrl;
+            // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+            // return picCqCode;
+            let msg = segment.image(imageUrl)
+            return msg;
+
+        } catch {
+            const url = 'http://bjb.yunwj.top/php/tp/lj.php';
+            const response = await axios.get(url);
+            const retdata = response.data;
+            const imageUrl = retdata.tp1;
+            // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+            let msg = segment.image(imageUrl)
+            return msg;
+
+        }
+
     }
 }
 
