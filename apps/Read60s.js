@@ -84,16 +84,13 @@ export class EpicGamesPlugin extends plugin {
 
 async function getNewsImage() {
     try {
-        const token = "yTrBjcOSMko6kIEL"
-        const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
+        const url = 'http://bjb.yunwj.top/php/tp/lj.php';
         const response = await axios.get(url);
         const retdata = response.data;
-        const imageUrl = retdata.image;
+        const imageUrl = retdata.tp1;
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
         let msg = segment.image(imageUrl)
         return msg;
-
-
 
     } catch {
         try {
@@ -108,13 +105,16 @@ async function getNewsImage() {
             return msg;
 
         } catch {
-            const url = 'http://bjb.yunwj.top/php/tp/lj.php';
+            const token = "yTrBjcOSMko6kIEL"
+            const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
             const response = await axios.get(url);
+            logger.mark(response)
             const retdata = response.data;
-            const imageUrl = retdata.tp1;
+            const imageUrl = retdata.data.image;
             // const picCqCode = `[CQ:image,file=${imageUrl}]`;
             let msg = segment.image(imageUrl)
             return msg;
+
 
         }
 
