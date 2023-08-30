@@ -221,7 +221,7 @@ export class update extends plugin {
     }
 
     /** 处理描述 */
-    logger.info(forwardMsg)
+    logger.info(forwardMsg.data)
     forwardMsg.data = forwardMsg.data
       .replace(/\n/g, "")
       .replace(/<title color="#777777" size="26">(.+?)<\/title>/g, "___")

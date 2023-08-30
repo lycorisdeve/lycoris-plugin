@@ -3,17 +3,17 @@
  * @author lycoris
  * @time 2023-03-31 23:57
  */
-import axios from 'axios'
-import * as cheerio from 'cheerio';
+import fetch from 'node-fetch'
+
 
 
 export class Photo extends plugin {
     constructor() {
         super({
             /** 功能名称 */
-            name: 'bt搜索',
+            name: '图片获取',
             /** 功能描述 */
-            dsc: 'bt搜索',
+            dsc: '图片获取',
             /** https://oicqjs.github.io/oicq/#events */
             event: 'message',
             /** 优先级，数字越小等级越高 */
@@ -43,13 +43,16 @@ export class Photo extends plugin {
 
 
     async mmImage(e) {
-        
-        let url=`https://api.r10086.com/img-api.php?type=`
+
+        let url = `https://api.r10086.com/img-api.php?type=`
     }
     async HDPhoto(e) {
-        
-        let url=`https://xiaobai.klizi.cn/API/img/game.php`
 
+        const url = `https://xiaobai.klizi.cn/API/img/game.php`
+        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
+        logger.info(result)
+        let img = await fetch(imgUrl).then(res => res.text()).catch((err) => console.error(err))
+        e.reply(img)
 
     }
 
