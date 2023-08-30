@@ -62,8 +62,8 @@ export class dailycheckin extends plugin {
                 let sgu = JSON.stringify(sign_group_user)
                 let td_ci_date = await this.formatNowDate()
 
-                await redis.set("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq , tci, { EX: 3600 * 24 })
-                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq , sgu, { EX: 3600 * 24 * 90 })
+                await redis.set("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq, tci, { EX: 3600 * 24 })
+                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq, sgu, { EX: 3600 * 24 * 90 })
                 mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq)
 
             } else {
@@ -100,8 +100,8 @@ export class dailycheckin extends plugin {
                 let td_ci_date = await this.formatNowDate()
 
                 await redis.set("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq, tci, { EX: 3600 * 24 })
-                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq , sgu, { EX: 3600 * 24 * 90 })
-                mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq )
+                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq, sgu, { EX: 3600 * 24 * 90 })
+                mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq)
 
             }
         }
@@ -109,7 +109,8 @@ export class dailycheckin extends plugin {
         let checkInInformation = JSON.parse(mySignInInfo)
 
         // let qqInfoJson = await fetch("http://xiaobai.klizi.cn/API/qqgn/qq.php?qq=" + e.user_id)
-        mooto = await fetch("http://free.klizi.cn/API/other/yy.php").then(res => res.text()).catch((err) => console.error(err))
+        // 一言
+        mooto = await fetch("https://xiaobai.klizi.cn/API/other/yy.php").then(res => res.text()).catch((err) => console.error(err))
         // let bgApi = "https://xiaobai.klizi.cn/API/img/game.php"
         // let background = await fetch(bgApi).then(res => res.text()).catch((err) => console.error(err))
         let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
