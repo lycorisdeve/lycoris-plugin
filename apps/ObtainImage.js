@@ -19,12 +19,12 @@ export class Photo extends plugin {
             /** 优先级，数字越小等级越高 */
             priority: 5000,
             rule: [
-                {
-                    /** 命令正则匹配 */
-                    reg: '^#mm写真$',
-                    /** 执行方法 */
-                    fnc: 'mmImage',
-                },
+                // {
+                //     /** 命令正则匹配 */
+                //     reg: '^#mm写真$',
+                //     /** 执行方法 */
+                //     fnc: 'mmImage',
+                // },
                 {
                     /** 命令正则匹配 */
                     reg: '^#动漫写真$',
@@ -36,18 +36,40 @@ export class Photo extends plugin {
                     reg: '^#高清写真$',
                     /** 执行方法 */
                     fnc: 'HDPhoto',
-                }
+                },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#高清壁纸$',
+                    /** 执行方法 */
+                    fnc: 'HDWallpaper',
+                },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#游戏壁纸$',
+                    /** 执行方法 */
+                    fnc: 'HDGame',
+                },
             ]
         })
     }
 
-
-    async mmImage(e) {
-
-        let url = `https://api.r10086.com/img-api.php?type=`
-    }
+    /*     async mmImage(e) {
+            let url = `https://api.r10086.com/img-api.php?type=`
+    
+        } */
     async HDPhoto(e) {
+        const url = `https://xiaobai.klizi.cn/API/img/beauty.php?data=&`
+        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
+        e.reply(segment.image(imgUrl))
+    }
+    async HDWallpaper(e) {
 
+        const url = `https://xiaobai.klizi.cn/API/img/bizhi.php`
+        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
+        e.reply(segment.image(imgUrl))
+
+    }
+    async HDGame(e) {
         const url = `https://xiaobai.klizi.cn/API/img/game.php`
         let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
         e.reply(segment.image(imgUrl))
