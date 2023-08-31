@@ -50,9 +50,7 @@ export class Photo extends plugin {
 
         const url = `https://xiaobai.klizi.cn/API/img/game.php`
         let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
-        logger.info(imgUrl)
-        let img = await fetch(imgUrl).then(res => res.text()).catch((err) => console.error(err))
-        e.reply(img)
+        e.reply(segement.image(imgUrl))
 
     }
 
