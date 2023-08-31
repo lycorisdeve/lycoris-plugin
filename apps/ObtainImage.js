@@ -33,7 +33,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '^#高清写真$',
+                    reg: '写真',
                     /** 执行方法 */
                     fnc: 'HDPhoto',
                 },
