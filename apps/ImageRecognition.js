@@ -22,7 +22,7 @@ export class Photo extends plugin {
 
                 {
                     /** 命令正则匹配 */
-                    reg: '^#识别',
+                    reg: '^#出处',
                     /** 执行方法 */
                     fnc: 'picRecognition',
                 },

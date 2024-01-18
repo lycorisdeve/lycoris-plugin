@@ -51,7 +51,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '?',
+                    reg: '肝|太强了|带带',
                     /** 执行方法 */
                     fnc: 'pic',
                 },
