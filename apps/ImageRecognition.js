@@ -38,7 +38,7 @@ export class Photo extends plugin {
         let msg = '请描述这张图片，并找到这张图片的出处'
         let imgUrl = url + `?msg=${msg}&img=${e.img}`
         let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
-
+        data = data.data
         e.reply([data.output, segment.image(imgUrl)])
 
 
