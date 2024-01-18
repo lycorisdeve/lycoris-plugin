@@ -39,7 +39,7 @@ export class Photo extends plugin {
         let imgUrl = url + `?msg=${msg}&img=${e.img}`
         let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
         data = data.data
-        e.reply([data.output, segment.image(imgUrl)])
+        e.reply([data.output, segment.image(data.imgUrl)])
 
 
     }
