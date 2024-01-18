@@ -49,6 +49,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'HDGame',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '?',
+                    /** 执行方法 */
+                    fnc: 'pic',
+                },
             ]
         })
     }
@@ -75,6 +81,12 @@ export class Photo extends plugin {
         e.reply(segment.image(imgUrl))
 
     }
+    async pic(e) {
+        const url = `https://api.lolimi.cn/API/tup/xjj.php`
+        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
+        e.reply(segment.image(imgUrl))
+    }
+
 
 
 
