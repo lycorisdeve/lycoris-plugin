@@ -4,6 +4,7 @@
  * @time 2023-03-31 23:57
  */
 import fetch from 'node-fetch'
+import { parseImg } from '../utils/ImgUtils'
 
 
 
@@ -32,6 +33,8 @@ export class Photo extends plugin {
     }
 
     async picRecognition(e) {
+        e = await parseImg(e);
+
         console.log(e.msg)
         console.log(e.img)
 
