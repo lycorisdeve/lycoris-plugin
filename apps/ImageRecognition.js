@@ -4,7 +4,7 @@
  * @time 2023-03-31 23:57
  */
 import fetch from 'node-fetch'
-import { parseImg } from '../utils/ImgUtils'
+import { parseImg } from '../utils/ImgUtils.js'
 
 
 
