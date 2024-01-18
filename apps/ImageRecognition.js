@@ -34,9 +34,13 @@ export class Photo extends plugin {
 
     async picRecognition(e) {
         e = await parseImg(e);
+        let url = 'https://api.lolimi.cn/API/AI/gemini.php'
 
-        console.log(e.msg)
-        console.log(e.img)
+        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
+
+        console.log(data.image)
+        console.log(data.output)
+        e.reply(data.output)
 
     }
 
