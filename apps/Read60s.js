@@ -104,14 +104,14 @@ export class EpicGamesPlugin extends plugin {
     async sendRandomImage() {
         try {
             const message = await getNewsImage();
-            for (const qq of plugin_config.qq_friends) {
+            for (const qq of plugin_config.private_ids) {
                 Bot.sendPrivateMsg(qq, message).catch((err) => {
                     logger.error(err)
                 })
                 await nonebot.get_bot().sendPrivateMsg(qq, message);
             }
 
-            for (const qqGroup of plugin_config.qq_groups) {
+            for (const qqGroup of plugin_config.group_ids) {
                 Bot.sendGroupMsg(qqGroup, message).catch((err) => {
                     logger.error(err)
                 })
