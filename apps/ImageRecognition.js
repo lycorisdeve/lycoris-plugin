@@ -33,6 +33,7 @@ export class Photo extends plugin {
 
     async picRecognition(e) {
         console.log(e.msg)
+        console.log(e.img)
 
     }
 
