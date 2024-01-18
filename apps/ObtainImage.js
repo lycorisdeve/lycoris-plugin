@@ -83,9 +83,9 @@ export class Photo extends plugin {
     }
     async pic(e) {
         const url = `https://api.lolimi.cn/API/tup/xjj.php`
-        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
-        console.log(imgUrl)
-        e.reply(segment.image(imgUrl))
+        // let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
+        // console.log(imgUrl)
+        e.reply(segment.image(url))
     }
 
 
