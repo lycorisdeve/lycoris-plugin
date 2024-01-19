@@ -59,6 +59,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'pic',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '酒仙|井空|老猫|猫佬|羊总',
+                    /** 执行方法 */
+                    fnc: 'pic1',
+                },
             ]
         })
     }
@@ -153,6 +159,11 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
             return !1
         }
 
+    }
+    async pic1(e) {
+        const url1 = `https://api.lolimi.cn/API/meinv/api.php?type=text`
+        let imgUrl1 = await fetch(url1).then(res => res.text()).catch(err => console.error(err));
+        e.reply(segment.image(imgUrl1));
     }
 
 
