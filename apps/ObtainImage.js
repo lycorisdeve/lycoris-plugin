@@ -107,7 +107,11 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         }, */
                     // msg = [segment.image(e.url), e.tag]
                     msg = segment.image(e.url)
-                    msgs.push(msg)
+                    msgs.push({
+                        nickname: this.e.sender.card || this.e.user_id,
+                        user_id: this.e.user_id,
+                        message: msg,
+                    })
                 });
             }
             const res = await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
