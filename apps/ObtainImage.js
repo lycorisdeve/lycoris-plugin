@@ -67,7 +67,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '^酒仙cos$|^井空cos$|^老猫cos$|^猫佬cos$|^羊总cos$|^猫哥cos$',
+                    reg: '^#xzcos$',
                     /** 执行方法 */
                     fnc: 'pic2',
                 },
