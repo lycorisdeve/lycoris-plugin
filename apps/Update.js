@@ -221,7 +221,7 @@ export class update extends plugin {
     }
     console.log(forwardMsg);
     /** 处理描述 */
-    forwardMsg.data.desc = forwardMsg.data.desc
+    forwardMsg.data = forwardMsg.data
       .replace(/\n/g, "")
       .replace(/<title color="#777777" size="26">(.+?)<\/title>/g, "___")
       .replace(/___+/, `<title color="#777777" size="26">${title}</title>`);
