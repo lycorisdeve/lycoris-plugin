@@ -95,7 +95,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         if (imgInfo.code === 1) {
             let data = imgInfo.data
             let msgs = []
-            if (data.isArray()) {
+            if (Array.isArray(data)) {
                 let msg
                 data.forEach(e => {
                     /* {
@@ -117,7 +117,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
                 console.log('Error ObtainImage pic() 出错啦！')
             }
 
-        }else{
+        } else {
             return !1
         }
 
