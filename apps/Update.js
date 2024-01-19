@@ -131,6 +131,7 @@ export class update extends plugin {
       log.push(str[1]);
     }
     let line = log.length;
+
     log = log.join("\n\n");
 
     if (log.length <= 0) return "";
@@ -139,7 +140,9 @@ export class update extends plugin {
     end =
       "更多详细信息，请前往gitee查看\nhttps://gitee.com/aurora-love/lycoris-plugin/blob/master/CHANGELOG.md";
 
-    log = await this.makeForwardMsg(`lycoris-plugin更新日志，共${line}条`, log, end);
+    log.unshift(`lycoris-plugin更新日志，共${line}条`);
+    // log = await this.makeForwardMsg(`lycoris-plugin更新日志，共${line}条`, log, end);
+    log.push(end)
 
     return log;
   }
