@@ -61,7 +61,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '酒仙|井空|老猫|猫佬|羊总',
+                    reg: '酒仙|井空|老猫|猫佬|羊总|猫哥',
                     /** 执行方法 */
                     fnc: 'pic1',
                 },
