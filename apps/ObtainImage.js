@@ -116,7 +116,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
 
                     msg = segment.image(e.url)
                     if (isPrivate) {
-                        await e.reply(msg, false, {
+                        await this.e.reply(msg, false, {
                             recallMsg: false,
                         });
                         sleep(600)
