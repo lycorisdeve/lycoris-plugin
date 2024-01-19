@@ -138,15 +138,14 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
             if (!res) {
 
                 console.log('Error ObtainImage pic() 合并消息消息发送出错啦！')
-                let l = msgs.length > 3 ? 3 : msgs.length
+                let l = msgs.length > 3 ? 2 : msgs.length
                 for (let msg1 = 0; msg1 < l; msg1++) {
-                    await e.reply(msg1, false, {
+                    await this.e.reply(msg1, false, {
                         recallMsg: false,
                     });
-                    sleep(600)
-                    e.reply('被风控啦，先给你发三张吧！')
-
+                    sleep(3000)
                 }
+                await this.e.reply('被风控啦，先给你发三张吧！')
 
             }
 
