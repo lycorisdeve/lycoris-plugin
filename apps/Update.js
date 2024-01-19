@@ -219,7 +219,7 @@ export class update extends plugin {
     } else {
       forwardMsg = await this.e.friend.makeForwardMsg(forwardMsg);
     }
-
+    console.log(forwardMsg);
     /** 处理描述 */
     forwardMsg.data.desc = forwardMsg.data.desc
       .replace(/\n/g, "")
