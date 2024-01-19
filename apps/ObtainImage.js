@@ -5,6 +5,10 @@
  */
 import fetch from 'node-fetch'
 
+const sleep = time => {
+    return new Promise(resolve => setTimeout(resolve, time));
+};
+
 
 
 export class Photo extends plugin {
@@ -82,6 +86,7 @@ export class Photo extends plugin {
 
     }
     async pic(e) {
+        const isPrivate = this.e.isPrivate;
         /* 
         参数名称	参数类型	是否必填	备注内容
 screen	int	否	默认是3。1是横屏，2是视频，3是竖屏
@@ -101,28 +106,48 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
             }
             if (Array.isArray(data)) {
                 let msg
-                data.forEach(e => {
+                data.forEach(async e => {
                     /* {"width": 1440,
                         "height": 3040,
                         "size": 327020,
                         "url": "",
                         "tag": ""}, */
                     // msg = [segment.image(e.url), e.tag]
-                    msg = segment.image(e.url)
 
-                    msgs.push({
-                        ...forwarder,
-                        message: msg,
-                    })
+                    msg = segment.image(e.url)
+                    if (isPrivate) {
+                        await e.reply(msg, false, {
+                            recallMsg: false,
+                        });
+                        sleep(600)
+                    } else {
+                        msgs.push({
+                            ...forwarder,
+                            message: msg,
+                        })
+                    }
                 });
             }
+            if (isPrivate) {
+                return;
+            }
             let msgList = await Bot.makeForwardMsg(msgs)
-            const res = await this.e.reply(await Bot.makeForwardMsg({ msgList, ...forwarder }), false, {
+            const res = await this.e.reply(msgList, false, {
                 recallMsg: -1,
             });
             if (!res) {
 
-                console.log('Error ObtainImage pic() 消息发送出错啦！')
+                console.log('Error ObtainImage pic() 合并消息消息发送出错啦！')
+                let l = msgs.length > 3 ? 3 : msgs.length
+                for (let msg1 = 0; msg1 < l; msg1++) {
+                    await e.reply(msg1, false, {
+                        recallMsg: false,
+                    });
+                    sleep(600)
+                    e.reply('被风控啦，先给你发三张吧！')
+
+                }
+
             }
 
         } else {
