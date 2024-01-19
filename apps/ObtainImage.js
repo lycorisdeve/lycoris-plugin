@@ -65,6 +65,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'pic1',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^酒仙cos$|^井空cos$|^老猫cos$|^猫佬cos$|^羊总cos$|^猫哥cos$',
+                    /** 执行方法 */
+                    fnc: 'pic2',
+                },
             ]
         })
     }
@@ -112,7 +118,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
             }
             if (Array.isArray(data)) {
                 let msg
-                data.forEach(async e => {
+                data.forEach(async el1 => {
                     /* {"width": 1440,
                         "height": 3040,
                         "size": 327020,
@@ -120,7 +126,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
                         "tag": ""}, */
                     // msg = [segment.image(e.url), e.tag]
 
-                    msg = segment.image(e.url)
+                    msg = segment.image(el1.url)
                     if (isPrivate) {
                         await this.e.reply(msg, false, {
                             recallMsg: false,
@@ -164,6 +170,61 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         const url1 = `https://api.lolimi.cn/API/meinv/api.php?type=text`
         let imgUrl1 = await fetch(url1).then(res => res.text()).catch(err => console.error(err));
         e.reply(segment.image(imgUrl1));
+    }
+    async pic2(e) {
+        const url1 = `https://api.lolimi.cn/API/cosplay/api.php?type=all`
+        let imgInfo = await fetch(url1).then(res => res.json()).catch(err => console.error(err));
+
+        if (imgInfo.code === 1) {
+            let data = imgInfo.data.data
+            let msgs = []
+            let forwarder = {
+                nickname: this.e.sender.card || this.e.user_id,
+                user_id: this.e.user_id,
+            }
+            if (Array.isArray(data)) {
+                let msg
+                for (let i = 0; i < data.length; i++) {
+                    msg = segment.image(data[i])
+                    if (isPrivate) {
+                        await this.e.reply(msg, false, {
+                            recallMsg: false,
+                        });
+                        sleep(600)
+                    } else {
+                        msgs.push({
+                            ...forwarder,
+                            message: msg,
+                        })
+                    }
+                }
+            }
+            if (isPrivate) {
+                return;
+            }
+            msgs = [`${imgInfo.data.Title}`, ...msgs]
+            let msgList = await Bot.makeForwardMsg(msgs)
+            const res = await this.e.reply(msgList, false, {
+                recallMsg: -1,
+            });
+            if (!res) {
+
+                console.log('Error ObtainImage pic2() 合并消息消息发送出错啦！')
+                let l = msgs.length > 4 ? 4 : msgs.length
+                await this.e.reply(`被风控啦，发不出来,给你${l}张吧！！！`)
+                for (let i = 0; i < l; i++) {
+                    await this.e.reply(msgs[i].message, false, {
+                        recallMsg: false,
+                    });
+                    sleep(3000)
+                }
+
+
+            }
+
+        } else {
+            return !1
+        }
     }
 
 
