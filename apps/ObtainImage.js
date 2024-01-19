@@ -95,30 +95,34 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         if (imgInfo.code === 1) {
             let data = imgInfo.data
             let msgs = []
+            let forwarder = {
+                nickname: this.e.sender.card || this.e.user_id,
+                user_id: this.e.user_id,
+            }
             if (Array.isArray(data)) {
                 let msg
                 data.forEach(e => {
-                    /* {
-            "width": 1440,
-            "height": 3040,
-            "size": 327020,
-            "url": "",
-            "tag": ""
-        }, */
+                    /* {"width": 1440,
+                        "height": 3040,
+                        "size": 327020,
+                        "url": "",
+                        "tag": ""}, */
                     // msg = [segment.image(e.url), e.tag]
                     msg = segment.image(e.url)
+
                     msgs.push({
-                        nickname: this.e.sender.card || this.e.user_id,
-                        user_id: this.e.user_id,
+                        ...forwarder,
                         message: msg,
                     })
                 });
             }
-            const res = await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
+            let msgList = await Bot.makeForwardMsg(msgs)
+            const res = await this.e.reply(await Bot.makeForwardMsg({ msgList, ...forwarder }), false, {
                 recallMsg: -1,
             });
             if (!res) {
-                console.log('Error ObtainImage pic() 出错啦！')
+
+                console.log('Error ObtainImage pic() 消息发送出错啦！')
             }
 
         } else {
