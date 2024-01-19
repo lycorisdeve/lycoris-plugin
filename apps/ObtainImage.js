@@ -82,10 +82,45 @@ export class Photo extends plugin {
 
     }
     async pic(e) {
-        const url = `https://api.lolimi.cn/API/tup/xjj.php`
-        // let imgInfo = await fetch(url).then(res => res.text()).catch((err) => console.log(err))
-        
-        e.reply(segment.image(url))
+        /* 
+        参数名称	参数类型	是否必填	备注内容
+screen	int	否	默认是3。1是横屏，2是视频，3是竖屏
+format	int	否	类型，竖屏以及横屏时：(1：美女，2：动漫，3：风景，4：游戏，5：明星，6：机械，7：动物，8：文字，9：城市，10：视觉，11：物语，：12：情感，13：设计，14：男人)，视频时：(1：动漫，2：网红，3：游戏，4：热门，5：风景，6：其他，7：热舞，8：娱乐，9：影视，10：动物)。默认1
+page	int	否	页码，默认是1，可以翻页
+limit	int	否	每页显示数量，默认24个。
+type	String	否	返回输出格式，默认json可选text/url。text为SQ类型词库，url为纯url输出
+        */
+        const url = `https://api.lolimi.cn/API/loveanimer/?screen=&format=1&page=1&limit=24`
+        let imgInfo = await fetch(url).then(res => res.json()).catch((err) => console.log(err))
+        if (imgInfo.code === 1) {
+            let data = imgInfo.data
+            let msgs = []
+            if (data.isArray()) {
+                let msg
+                data.forEach(e => {
+                    /* {
+            "width": 1440,
+            "height": 3040,
+            "size": 327020,
+            "url": "",
+            "tag": ""
+        }, */
+                    // msg = [segment.image(e.url), e.tag]
+                    msg = segment.image(e.url)
+                    msgs.push(msg)
+                });
+            }
+            const res = await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
+                recallMsg: -1,
+            });
+            if (!res) {
+                console.log('Error ObtainImage pic() 出错啦！')
+            }
+
+        }else{
+            return !1
+        }
+
     }
 
 
