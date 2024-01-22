@@ -157,7 +157,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
                     });
                     sleep(3000)
                 }
-                await this.e.reply(`被风控啦，发不出来,给你${l}张吧！！！`)
+                // await this.e.reply(`被风控啦，发不出来,给你${l}张吧！！！`)
 
             }
 
@@ -211,7 +211,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
 
                 console.log('Error ObtainImage pic2() 合并消息消息发送出错啦！')
                 let l = msgs.length > 4 ? 4 : msgs.length
-                await this.e.reply(`被风控啦，发不出来,给你${l}张吧！！！`)
+                // await this.e.reply(`被风控啦，发不出来,给你${l}张吧！！！`)
                 for (let i = 0; i < l; i++) {
                     await this.e.reply(msgs[i].message, false, {
                         recallMsg: false,
