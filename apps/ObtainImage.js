@@ -107,7 +107,9 @@ page	int	否	页码，默认是1，可以翻页
 limit	int	否	每页显示数量，默认24个。
 type	String	否	返回输出格式，默认json可选text/url。text为SQ类型词库，url为纯url输出
         */
-        const url = `https://api.lolimi.cn/API/loveanimer/?screen=&format=1&page=1&limit=24`
+        let page = Math.floor(Math.random() * 50) + 1;
+        let screen = Math.floor(Math.random() * 3) + 1;
+        const url = `https://api.lolimi.cn/API/loveanimer/?screen=${screen}&format=1&page=${page}&limit=24`
         let imgInfo = await fetch(url).then(res => res.json()).catch((err) => console.log(err))
         if (imgInfo.code === 1) {
             let data = imgInfo.data
