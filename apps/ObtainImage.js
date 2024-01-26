@@ -109,7 +109,15 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         */
         let page = Math.floor(Math.random() * 50) + 1;
         let screen = Math.floor(Math.random() * 3) + 1;
-        const url = `https://api.lolimi.cn/API/loveanimer/?screen=${screen}&format=1&page=${page}&limit=24`
+        let format
+        if (screen === 2) {
+            let r1 = Math.floor(Math.random() * 2) + 1;
+            format = r1 === 1 ? 2 : 7
+
+        } else {
+            format = 1
+        }
+        const url = `https://api.lolimi.cn/API/loveanimer/?screen=${screen}&format=${format}&page=${page}&limit=24`
         let imgInfo = await fetch(url).then(res => res.json()).catch((err) => console.log(err))
         if (imgInfo.code === 1) {
             let data = imgInfo.data
@@ -128,7 +136,7 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
                         "tag": ""}, */
                     // msg = [segment.image(e.url), e.tag]
 
-                    msg = segment.image(el1.url)
+                    msg = screen === 2 ? segment.video(el1.url) : segment.image(el1.url)
                     if (isPrivate) {
                         await this.e.reply(msg, false, {
                             recallMsg: false,
