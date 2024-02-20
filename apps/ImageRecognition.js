@@ -27,6 +27,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'picRecognition',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#生成:(.*)$',
+                    /** 执行方法 */
+                    fnc: 'genImg',
+                },
 
             ]
         })
@@ -40,7 +46,21 @@ export class Photo extends plugin {
         let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
         data = data.data
         e.reply([data.output, segment.image(data.image)])
+    }
 
+    async genImg(e) {
+        let tag = e.msg.replace(/#生成:/g, "").trim()
+        let url = `https://api.linhun.vip/api/huitu?text=${tag}&prompt=水印,最差质量，低质量，裁剪&ratio=宽&apiKey=4865ef5f552de39195d2c033e71ed44b`
+        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
+        /* 
+        {
+    "code": 200,
+    "msg": "查询成功",
+    "text": "网络键盘侠",
+    "url": "https://www.cwjiaoyu.cn/img_generate_task/4b207733-0cfa-40d9-8138-90c7fcea1458"
+}
+        */
+        e.reply(segment.image(data.url))
 
     }
 
