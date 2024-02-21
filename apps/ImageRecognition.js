@@ -60,6 +60,7 @@ export class Photo extends plugin {
     "url": "https://www.cwjiaoyu.cn/img_generate_task/4b207733-0cfa-40d9-8138-90c7fcea1458"
 }
         */
+        console.warn(data)
         e.reply(segment.image(data.url))
 
     }
