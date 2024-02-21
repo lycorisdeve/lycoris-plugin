@@ -61,7 +61,7 @@ export class Photo extends plugin {
 }
         */
         e.reply(`请耐心等待30S！`)
-        sleep(30)
+        await sleep(30)
         e.reply(segment.image(data.url))
 
     }
