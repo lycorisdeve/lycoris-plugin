@@ -60,9 +60,9 @@ export class Photo extends plugin {
     "url": "https://www.cwjiaoyu.cn/img_generate_task/4b207733-0cfa-40d9-8138-90c7fcea1458"
 }
         */
-        e.reply(`请耐心等待30S！`)
-        await sleep(30)
-        e.reply(segment.image(data.url))
+        /* e.reply(`请耐心等待30S！`)
+        await sleep(30) */
+        e.reply(data.url, true)
 
     }
 
@@ -71,7 +71,8 @@ export class Photo extends plugin {
 
 
 }
-
+/* 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
+ */
