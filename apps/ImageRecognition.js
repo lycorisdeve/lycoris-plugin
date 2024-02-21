@@ -29,7 +29,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '^#生成:(.*)$',
+                    reg: '^#生成(.*)$',
                     /** 执行方法 */
                     fnc: 'genImg',
                 },
@@ -49,7 +49,7 @@ export class Photo extends plugin {
     }
 
     async genImg(e) {
-        let tag = e.msg.replace(/#生成:/g, "").trim()
+        let tag = e.msg.replace(/#生成/g, "").trim()
         let url = `https://api.linhun.vip/api/huitu?text=${tag}&prompt=水印,最差质量，低质量，裁剪&ratio=宽&apiKey=2842bc94ca70fd0cd4190ee06c51dac4`
         let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
         /* 
