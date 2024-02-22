@@ -41,7 +41,7 @@ export class Photo extends plugin {
     async picRecognition(e) {
         e = await parseImg(e);
         let url = 'https://api.lolimi.cn/API/AI/gemini.php'
-        let msg = '请描述这张图片，并找到这张图片的出处，最好给出具体番号，或者相似图片链接!'
+        let msg = '请简单描述这张图片，识别出图片上的人物，或者景物、地点，并找到这张图片的出处，最好给出具体番号，或者相似图片链接!'
         let imgUrl = url + `?msg=${msg}&img=${e.img}`
         let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
         data = data.data
