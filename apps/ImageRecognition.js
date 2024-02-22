@@ -46,7 +46,11 @@ export class Photo extends plugin {
         let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
         data = data.data
         console.log(data)
-        e.reply([data.output, segment.image(data.image)])
+        if (data.output != '') {
+            e.reply([data.output, segment.image(data.image)])
+        } else {
+            e.reply("没有找到出处！")
+        }
     }
 
     async genImg(e) {
