@@ -80,22 +80,14 @@ export class Photo extends plugin {
     
         } */
     async HDPhoto(e) {
-        const url = `https://xiaobai.klizi.cn/API/img/beauty.php?data=&`
-        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
-        e.reply(segment.image(imgUrl))
+        this.pic(e)
     }
     async HDWallpaper(e) {
-
-        const url = `https://xiaobai.klizi.cn/API/img/bizhi.php`
-        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
-        e.reply(segment.image(imgUrl))
+        this.pic1(e)
 
     }
     async HDGame(e) {
-        const url = `https://xiaobai.klizi.cn/API/img/game.php`
-        let imgUrl = await fetch(url).then(res => res.text()).catch((err) => console.error(err))
-        e.reply(segment.image(imgUrl))
-
+        this.pic2(e)
     }
     async pic(e) {
         const isPrivate = this.e.isPrivate;
