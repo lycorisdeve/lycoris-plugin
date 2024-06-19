@@ -89,7 +89,7 @@ export class Photo extends plugin {
         const url = `https://api.qvqa.cn/cos?type=json`
         let res = await fetch(url).then(res => res.json()).catch((err) => console.log(err))
         if (res.code == 200) {
-            let data = res
+            let data = res.data
             let url = data.msg
             let msg = `${data.title}\n${data.msg}`
             await e.reply(msg)
