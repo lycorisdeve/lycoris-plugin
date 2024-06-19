@@ -91,8 +91,6 @@ export class Photo extends plugin {
         if (res.code == 200) {
             let data = res.data
             let url = data.msg
-            let msg = `${data.title}\n${data.msg}`
-            await e.reply(msg)
             await e.reply(segment.video(url))
         }
     }
