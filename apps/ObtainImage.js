@@ -71,6 +71,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'pic2',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '#来点cos',
+                    /** 执行方法 */
+                    fnc: 'cosMp4',
+                },
             ]
         })
     }
@@ -79,6 +85,17 @@ export class Photo extends plugin {
             let url = `https://api.r10086.com/img-api.php?type=`
     
         } */
+    async cosMp4(e) {
+        const url = `https://api.qvqa.cn/cos?type=json`
+        let res = await fetch(url)
+        if (res.code == 200) {
+            let data = await res.json()
+            let url = data.msg
+            let msg = `${data.title}\n${data.msg}`
+            await e.reply(msg)
+            await e.reply(segment.video(url))
+        }
+    }
     async HDPhoto(e) {
         this.pic(e)
     }
