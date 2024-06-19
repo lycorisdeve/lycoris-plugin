@@ -87,9 +87,9 @@ export class Photo extends plugin {
         } */
     async cosMp4(e) {
         const url = `https://api.qvqa.cn/cos?type=json`
-        let res = await fetch(url)
+        let res = await fetch(url).then(res => res.json()).catch((err) => console.log(err))
         if (res.code == 200) {
-            let data = await res.json()
+            let data = res
             let url = data.msg
             let msg = `${data.title}\n${data.msg}`
             await e.reply(msg)
