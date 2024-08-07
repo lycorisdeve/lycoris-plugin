@@ -79,7 +79,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '原神|电波|声望',
+                    reg: '原神|电波|声望|买家秀',
                     /** 执行方法 */
                     fnc: 'pic3',
                 },
