@@ -77,6 +77,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'cosMp4',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '原神|电波|声望',
+                    /** 执行方法 */
+                    fnc: 'pic3',
+                },
             ]
         })
     }
@@ -242,6 +248,12 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         } else {
             return !1
         }
+    }
+
+    async pic3(e) {
+        const url3 = `https://api.03c3.cn/api/taobaoBuyerShow?type=json`
+        let imgInfo = await fetch(url3).then(res => res.json()).catch(err => console.error(err));
+        e.reply(segment.image(imgInfo.data.imgUrl));
     }
 
 
