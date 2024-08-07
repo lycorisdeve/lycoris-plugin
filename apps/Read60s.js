@@ -67,10 +67,13 @@ export class EpicGamesPlugin extends plugin {
 
     }
     async getRead60sNews1(e) {
-        const url = 'http://bjb.yunwj.top/php/tp/lj.php';
+        const url = 'https://api.jun.la/60s.php?format=imgapi';
         const response = await axios.get(url);
         const retdata = response.data;
-        const imageUrl = retdata.tp1;
+        const imageUrl = retdata.imageUrl;
+        if (imageUrl === undefined) {
+            imageUrl = retdata.imageBaidu
+        }
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
         let msg = segment.image(imageUrl)
         let imgMsg = msg
@@ -85,12 +88,24 @@ export class EpicGamesPlugin extends plugin {
         const token = "yTrBjcOSMko6kIEL"
         const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
         const response = await axios.get(url);
-        logger.mark(response)
         const retdata = response.data;
         const imageUrl = retdata.data.image;
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-        let msg = segment.image(imageUrl)
-        let imgMsg = msg
+        let imgMsg = segment.image(imageUrl)
+        if (imgMsg) {
+            e.reply(imgMsg)
+        } else {
+            e.reply("没有获取到今日新闻！")
+        }
+
+    }
+    async getRead60sNews3(e) {
+        const url = `https://api.03c3.cn/api/zb?type=jsonImg`;
+        const response = await axios.get(url);
+        const retdata = response.data;
+        const imageUrl = retdata.data.imageurl;
+        // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+        let imgMsg = segment.image(imageUrl)
         if (imgMsg) {
             e.reply(imgMsg)
         } else {
@@ -127,24 +142,28 @@ export class EpicGamesPlugin extends plugin {
 
 async function getNewsImage() {
     try {
-        const url = 'https://api.2xb.cn/zaob'; // 备用网址
+        const url = 'https://api.jun.la/60s.php?format=imgapi';
         const response = await axios.get(url);
         const retdata = response.data;
         const imageUrl = retdata.imageUrl;
+        if (imageUrl === undefined) {
+            imageUrl = retdata.imageBaidu
+        }
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-        // return picCqCode;
         let msg = segment.image(imageUrl)
         return msg;
-
     } catch {
         try {
-            const url = 'http://bjb.yunwj.top/php/tp/lj.php';
+
+            const url = 'https://api.2xb.cn/zaob'; // 备用网址
             const response = await axios.get(url);
             const retdata = response.data;
-            const imageUrl = retdata.tp1;
+            const imageUrl = retdata.imageUrl;
             // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+            // return picCqCode;
             let msg = segment.image(imageUrl)
             return msg;
+
         } catch {
             const token = "yTrBjcOSMko6kIEL"
             const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
