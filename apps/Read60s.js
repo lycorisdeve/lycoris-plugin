@@ -70,9 +70,9 @@ export class EpicGamesPlugin extends plugin {
         const url = 'https://api.jun.la/60s.php?format=imgapi';
         const response = await axios.get(url);
         const retdata = response.data;
-        const imageUrl = retdata.imageUrl;
-        if (imageUrl === undefined) {
-            imageUrl = retdata.imageBaidu
+        const imageUrl = retdata.imageBaidu;
+        if (imageUrl) {
+            imageUrl = retdata.imageUrl
         }
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
         let msg = segment.image(imageUrl)
