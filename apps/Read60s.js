@@ -71,7 +71,7 @@ export class EpicGamesPlugin extends plugin {
         const response = await axios.get(url);
         const retdata = response.data;
         const imageUrl = retdata.imageBaidu;
-        if (imageUrl) {
+        if (!imageUrl) {
             imageUrl = retdata.imageUrl
         }
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
