@@ -142,28 +142,26 @@ export class EpicGamesPlugin extends plugin {
 
 async function getNewsImage() {
     try {
-        const url = 'https://api.jun.la/60s.php?format=imgapi';
+        const url = 'https://api.2xb.cn/zaob'; // 备用网址
         const response = await axios.get(url);
         const retdata = response.data;
-        const imageUrl = retdata.imageBaidu;
-        if (!imageUrl) {
-            imageUrl = retdata.imageUrl
-        }
+        const imageUrl = retdata.imageUrl;
         // const picCqCode = `[CQ:image,file=${imageUrl}]`;
+        // return picCqCode;
         let msg = segment.image(imageUrl)
         return msg;
     } catch {
         try {
-
-            const url = 'https://api.2xb.cn/zaob'; // 备用网址
+            const url = 'https://api.jun.la/60s.php?format=imgapi';
             const response = await axios.get(url);
             const retdata = response.data;
-            const imageUrl = retdata.imageUrl;
+            const imageUrl = retdata.imageBaidu;
+            if (!imageUrl) {
+                imageUrl = retdata.imageUrl
+            }
             // const picCqCode = `[CQ:image,file=${imageUrl}]`;
-            // return picCqCode;
             let msg = segment.image(imageUrl)
             return msg;
-
         } catch {
             const token = "yTrBjcOSMko6kIEL"
             const url = `https://v2.alapi.cn/api/zaobao?format=json&token=${token}`;
