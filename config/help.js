@@ -56,20 +56,71 @@ export const helpList = [{
         icon: 22,
         title: '壁纸',
         desc: '#来一张壁纸 #壁纸搜索xxx'
-    }]
+    },
+    {
+        icon: 23,
+        title: '60S新闻',
+        desc: '#news #news1 #news2 #新闻'
+    },
+    {
+        icon: 24,
+        title: '摸鱼',
+        desc: '#摸鱼日历 #摸鱼日报 #日期'
+    },
+    {
+        icon: 25,
+        title: '其他',
+        desc: '#摸鱼视频日报 #内涵段子'
+    },
+    ]
 }, {
     group: '隐藏功能',
     list: [{
         icon: 57,
         title: '看秀图',
         desc: '不清楚'
-    },{
-        icon: 57,
+    }, {
+        icon: 58,
         title: 'bt',
         desc: '不清楚'
-    }]
     }, {
-        group: '管理功能',
+        icon: 58,
+        title: '#(动漫)写真',
+        desc: '动漫写真、写真'
+    },
+    {
+        icon: 59,
+        title: '#(高清/游戏)壁纸',
+        desc: '高清壁纸、游戏壁纸'
+    },
+    {
+        icon: 60,
+        title: '#(高清/游戏)壁纸',
+        desc: '高清壁纸、游戏壁纸'
+    },
+    {
+        icon: 61,
+        title: '随机触发1',
+        desc: '酒仙|井空|老猫|猫佬|羊总|猫哥|酒佬'
+    },
+    {
+        icon: 62,
+        title: '随机触发2',
+        desc: '紫卡|灵化|白鸡|大佬|吗喽|捞'
+    },
+    {
+        icon: 63,
+        title: '随机触发3',
+        desc: '原神|电波|声望|买家秀|图'
+    },
+    {
+        icon: 64,
+        title: 'cos视频',
+        desc: '#来点cos'
+    }
+    ]
+}, {
+    group: '管理功能',
     auth: 'master',
     list: [{
         icon: 95,
@@ -77,8 +128,8 @@ export const helpList = [{
         desc: '更新插件'
     }, {
         icon: 95,
-            title: '#彼岸花帮助',
-            desc: '查看本页面'
-        }
+        title: '#彼岸花帮助',
+        desc: '查看本页面'
+    }
     ]
 }]
