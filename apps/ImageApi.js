@@ -42,7 +42,7 @@ export class Photo extends plugin {
         e = await parseImg(e);
         let url = 'https://dayu.qqsuu.cn/moyuribao/apis.php?type=json'
         let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(segement.image(data.data))
+        e.reply(segment.image(data.data))
     }
 
     async genImg(e) {
