@@ -23,9 +23,9 @@ export class Photo extends plugin {
 
                 {
                     /** 命令正则匹配 */
-                    reg: '^#出处',
+                    reg: '^#摸鱼日报|摸鱼日报',
                     /** 执行方法 */
-                    fnc: 'picRecognition',
+                    fnc: 'moyuDayReport',
                 },
                 {
                     /** 命令正则匹配 */
@@ -38,19 +38,11 @@ export class Photo extends plugin {
         })
     }
 
-    async picRecognition(e) {
+    async moyuDayReport(e) {
         e = await parseImg(e);
-        let url = 'https://api.lolimi.cn/API/AI/gemini.php'
-        let msg = '请简单描述这张图片，识别出图片上的人物，或者景物、地点。最重要的是请找到这张图片的出处，最好给出具体番号，或者相似图片链接!'
-        let imgUrl = url + `?msg=${msg}&img=${e.img}`
-        let data = await fetch(imgUrl).then(res => res.json()).catch((err) => console.error(err))
-        data = data.data
-        console.log(data)
-        if (data.output != null) {
-            e.reply([data.output, segment.image(data.image)])
-        } else {
-            e.reply("没有找到出处！")
-        }
+        let url = 'https://dayu.qqsuu.cn/moyuribao/apis.php?type=json'
+        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
+        e.reply(data.data)
     }
 
     async genImg(e) {
