@@ -83,6 +83,12 @@ export class Photo extends plugin {
                     /** 执行方法 */
                     fnc: 'pic3',
                 },
+                {
+                    /** 命令正则匹配 */
+                    reg: '图',
+                    /** 执行方法 */
+                    fnc: 'pic4',
+                },
             ]
         })
     }
@@ -254,6 +260,11 @@ type	String	否	返回输出格式，默认json可选text/url。text为SQ类型�
         const url3 = `https://api.03c3.cn/api/taobaoBuyerShow?type=json`
         let imgInfo = await fetch(url3).then(res => res.json()).catch(err => console.error(err));
         e.reply(segment.image(imgInfo.data.imgUrl));
+    }
+    async pic4(e) {
+        const url4 = `https://api.vvhan.com/api/wallpaper/pcGirl?type=json`
+        let imgInfo = await fetch(url4).then(res => res.json()).catch(err => console.error(err));
+        e.reply(segment.image(imgInfo.url));
     }
 
 
