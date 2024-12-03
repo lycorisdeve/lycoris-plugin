@@ -61,7 +61,7 @@ export class bt extends plugin {
         }
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/bt搜索/g, "").trim()
+        let keyword = e.msg.replace(/bt/g, "").trim()
         let msgs = await getBtInfo(keyword, 1)
         let userInfo = {
             nickname: this.e.sender.card || this.e.user_id,
@@ -108,7 +108,7 @@ export class bt extends plugin {
         }
         /** e.msg 用户的命令消息 */
         logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/#bt/g, "").trim()
+        let keyword = e.msg.replace(/#bt搜索/g, "").trim()
 
         let myMagnet = await btApi(keyword, 0)
         let msgs = []
