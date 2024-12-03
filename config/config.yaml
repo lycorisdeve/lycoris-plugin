@@ -25,3 +25,13 @@ baidu_translate:
 youdao_translate:
   id: null
   key: null
+
+# 摸鱼日历
+moyu:
+  schedule:
+    hour: "8" # 在中午8:00:00执行
+    minute: "20"
+    second: "0"
+  #配置定时发送群组和需要私聊发送的人
+  group_ids: ["1035210666", "959969379"]
+  private_ids: []

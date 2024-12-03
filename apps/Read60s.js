@@ -14,7 +14,7 @@ const plugin_config = config.read60s
 const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * *`;
 
 
-export class EpicGamesPlugin extends plugin {
+export class Read60sPlugin extends plugin {
     constructor() {
         super({
             /** 功能名称 */
