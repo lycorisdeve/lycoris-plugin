@@ -16,8 +16,8 @@ import { btApi } from '../model/services/BtService.js';
 感谢您的使用。
 */
 
-const url = 'http://137.220.137.201'
-const BT_MAX_NUM = 3   // 返回的搜索数量 数字越小，响应速度越快
+const url = 'https://cili.site'
+const BT_MAX_NUM = 10   // 返回的搜索数量 数字越小，响应速度越快
 const IS_GROUPS = true // 是否开启群聊搜索
 // const IS_PRIVATE = true
 
@@ -35,13 +35,13 @@ export class bt extends plugin {
             rule: [
                 {
                     /** 命令正则匹配 */
-                    reg: '^#bt(.*)$',
+                    reg: '^#bt搜索(.*)$',
                     /** 执行方法 */
                     fnc: 'btInfo',
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '^bt搜索(.*)$',
+                    reg: '^bt(.*)$',
                     /** 执行方法 */
                     fnc: 'btSearch',
                 }
@@ -165,7 +165,7 @@ magnet:?xt=urn:btih:
 }
 async function getBtInfo(keyword, page) {
     try {
-        const response = await axios.get(`${url}/s/${keyword}_rel_${page}.html`, { timeout: 7000 });
+        const response = await axios.get(`${url}/search?q=${keyword}`, { timeout: 9000 });
         const text = response.data;
 
         if (text.includes('大约0条结果')) {
@@ -178,34 +178,47 @@ async function getBtInfo(keyword, page) {
             logger.error('请先安装cheerio：pnpm add cheerio -w')
             return
         }
-
-        const itemLst = $('.search-item');
+        const trs = $("tr");
+        if (trs.length === 0) {
+            return [];
+        }
+        const hrefList = trs.map((_, tr) => {
+            const aTag = $(tr).find("a").first();
+            return aTag.attr("href") ? this.magnetUrl + aTag.attr("href") : null;
+        }).get().filter(Boolean);
+        // const hrefList = $('.search-item');
         const btMaxNum = BT_MAX_NUM;
-        const maxResults = Math.min(btMaxNum, itemLst.length);
+        const maxResults = Math.min(btMaxNum, hrefList.length);
 
-        let results = [];
-        for (let i = 0; i < maxResults; i++) {
-            let divs = $(itemLst[i]).find('div');
+        let msgs = hrefList.slice(0, maxResults).map(url => getMagnetInfo(url));
+        // for (let i = 0; i < maxResults; i++) {
+        //     let searchUrl = hrefList[i];
+        //     const response = await axios.get(searchUrl, { timeout: 9000 }).then(rs => rs.text);
+        //     const $ = cheerio.load(response);
 
-            let title = $(divs[0]).find('a').text().replace(/<em>|<\/em>/g, '').trim();
-            let type_ = $(divs[2]).find('span').eq(0).text();
-            let createTime = $(divs[2]).find('span b').eq(0).text();
-            let fileSize = $(divs[2]).find('span b').eq(1).text();
-            let link = await getDownloadLink($(divs[0]).find('a').attr('href'));
+        //     let divs = $(hrefList[i]).find('div');
 
-            results.push({ title, type_, createTime, fileSize, link });
-        }
+        //     let title = $(divs[0]).find('a').text().replace(/<em>|<\/em>/g, '').trim();
+        //     let type_ = $(divs[2]).find('span').eq(0).text();
+        //     let createTime = $(divs[2]).find('span b').eq(0).text();
+        //     let fileSize = $(divs[2]).find('span b').eq(1).text();
+        //     let link = await getDownloadLink($(divs[0]).find('a').attr('href'));
 
-        let msgs = [];
-        for (let i in results) {
-            let msg =
-                `标题：${results[i].title}
-类型：${results[i].type_}
-创建时间：${results[i].createTime}
-文件大小：${results[i].fileSize}
-种子：${results[i].link}`
-            msgs.push(msg)
-        }
+        //     results.push({ title, type_, createTime, fileSize, link });
+        // }
+
+
+
+        // let msgs = [];
+        //         for (let i in results) {
+        //             let msg =
+        //                 `标题：${results[i].title}
+        // 类型：${results[i].type_}
+        // 创建时间：${results[i].createTime}
+        // 文件大小：${results[i].fileSize}
+        // 种子：${results[i].link}`
+        //             msgs.push(msg)
+        //         }
 
         return msgs;
     } catch (err) {
@@ -215,16 +228,29 @@ async function getBtInfo(keyword, page) {
     }
 }
 
-async function getDownloadLink(_url) {
+async function getMagnetInfo(searchUrl) {
     try {
-        const response = await axios.get(`${url}${_url}`, { timeout: 5000 });
-        const html = response.data;
-        const $ = cheerio.load(html);
-        const link = $('a#down-url').attr('href');
-
-        return link;
-    } catch (err) {
-        console.log(err);
-        return '';
+        const resp = await axios.get(searchUrl);
+        const $ = cheerio.load(resp.data);
+        const dl = $(".dl-horizontal.torrent-info.col-sm-9").first();
+        const h2 = $(".magnet-title").first();
+        if (dl.length > 0 && h2.length > 0) {
+            const dts = dl.find("dt");
+            const dds = dl.find("dd");
+            let target = `标题 :: ${h2.text()}\n磁力链接 :: magnet:?xt=urn:btih:${dds.first().text()}\n`;
+            for (let i = 1; i < Math.min(dts.length, dds.length); i++) {
+                let dtTemp = dts.eq(i).text().split("\n")[0];
+                let ddTemp = dds.eq(i).text().split("\n")[0];
+                if (!ddTemp) {
+                    ddTemp = dds.eq(i).text().split("\n")[1];
+                }
+                target += `${dtTemp}: ${ddTemp}\n`;
+            }
+            console.info(`${target}\n====================================`);
+            return target;
+        }
+        return `获取${searchUrl}失败`;
+    } catch (e) {
+        return `获取${searchUrl}失败， 错误信息：${e.toString()}`;
     }
 }
