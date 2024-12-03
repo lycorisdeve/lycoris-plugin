@@ -184,7 +184,7 @@ async function getBtInfo(keyword, page) {
         }
         const hrefList = trs.map((_, tr) => {
             const aTag = $(tr).find("a").first();
-            return aTag.attr("href") ? this.magnetUrl + aTag.attr("href") : null;
+            return aTag.attr("href") ? url + aTag.attr("href") : null;
         }).get().filter(Boolean);
         // const hrefList = $('.search-item');
         const btMaxNum = BT_MAX_NUM;
