@@ -76,7 +76,7 @@ export class MoyuCalendarPlugin extends plugin {
     async replyMoyuCalendar(e) {
         let img = await getCalendar()
         if (img != false) {
-            e.reply(img)
+            e.reply(segment.image(img))
         }
     }
 
