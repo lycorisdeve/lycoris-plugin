@@ -18,9 +18,9 @@ export class MoyuCalendarPlugin extends plugin {
     constructor() {
         super({
             /** 功能名称 */
-            name: '60S新闻',
+            name: '摸鱼日历',
             /** 功能描述 */
-            dsc: '获取60S新闻，并定时推送',
+            dsc: '获取摸鱼日历，并定时推送',
             /** https://oicqjs.github.io/oicq/#events */
             event: 'message',
             /** 优先级，数字越小等级越高 */
