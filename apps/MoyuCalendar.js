@@ -48,8 +48,13 @@ export class MoyuCalendarPlugin extends plugin {
 
     async sendCornMoyuImage() {
         try {
-            let imageBuffer = await getCalendar()
-            let message = segment.image(imageBuffer)
+            let message = '摸鱼日历'
+            let img = await getCalendar()
+            if (img != false) {
+                message = segment.image(img)
+            } else {
+                message = '摸鱼日历获取失败，请稍后使用 #摸鱼日历 手动获取 ！'
+            }
 
             for (const qq of plugin_config.private_ids) {
                 Bot.sendPrivateMsg(qq, message).catch((err) => {
@@ -69,43 +74,25 @@ export class MoyuCalendarPlugin extends plugin {
     }
 
     async replyMoyuCalendar(e) {
-        getCalendar().then(imageBuffer => {
-            // 使用imageBuffer作为图片发送
-            e.reply(segment.image(imageBuffer));
-        }).catch(error => {
-            console.error(error);
-            e.reply('摸鱼日历获取失败，请稍后再试。');
-        });
+        let img = await getCalendar()
+        if (img != false) {
+            e.reply(img)
+        }
     }
 
 }
 
 async function getCalendar() {
     try {
+        let url = 'https://api.vvhan.com/api/moyu?type=json';
         // 发起第一个GET请求，明确不跟随重定向
-        const response = await fetch('https://api.vvhan.com/api/moyu', {
-            redirect: 'manual' // 禁用自动重定向
-        });
-
-        if (response.status !== 302) {
-            throw new Error(`摸鱼日历获取失败，错误码：${response.status}`);
+        const response = await fetch(url).then(rs => rs.json);
+        if (response.success) {
+            return response.url
         }
-
-        // 获取重定向的URL
-        const imageUrl = response.headers.get('location');
-        if (!imageUrl) {
-            throw new Error('无法找到重定向的URL');
+        else {
+            return false
         }
-
-        // 发起第二个GET请求以获取图片内容
-        const imageResponse = await fetch(imageUrl);
-        if (!imageResponse.ok) {
-            throw new Error(`获取图片失败，错误码：${imageResponse.status}`);
-        }
-
-        // 将响应体作为Buffer返回
-        const imageBuffer = await imageResponse.buffer();
-        return imageBuffer;
 
     } catch (error) {
         console.error(error.message);
