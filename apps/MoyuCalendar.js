@@ -84,11 +84,12 @@ export class MoyuCalendarPlugin extends plugin {
 
 async function getCalendar() {
     try {
-        let url = 'https://api.vvhan.com/api/moyu?type=json';
+        // let url = 'https://api.vvhan.com/api/moyu?type=json';
+        let url = 'https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json';
         // 发起第一个GET请求，明确不跟随重定向
         const response = await fetch(url).then(rs => rs.json);
-        if (response.success) {
-            return response.url
+        if (response.code == 200) {
+            return response.data.img_url
         }
         else {
             return false
