@@ -90,7 +90,6 @@ async function getCalendar() {
         let url = 'https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json';
         // 发起第一个GET请求，明确不跟随重定向
         const response = await fetch(url).then(rs => rs.json());
-        console.log(response)
         if (response.code == 200) {
             return response.data.img_url
         }
