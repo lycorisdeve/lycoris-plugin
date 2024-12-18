@@ -30,6 +30,12 @@ export class MoyuCalendarPlugin extends plugin {
                     /** 命令正则匹配 */
                     reg: '^#摸鱼日历$',
                     /** 执行方法 */
+                    fnc: 'replyMoyuCalendar1'
+                },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#摸鱼日历1$',
+                    /** 执行方法 */
                     fnc: 'replyMoyuCalendar'
                 }
             ]
@@ -81,6 +87,14 @@ export class MoyuCalendarPlugin extends plugin {
             e.reply('摸鱼日历获取失败，请稍后重试！')
         }
     }
+    async replyMoyuCalendar1(e) {
+        let img = await getCalendar1()
+        if (img != false) {
+            e.reply(segment.image(img))
+        } else {
+            e.reply('摸鱼日历获取失败，请稍后重试！')
+        }
+    }
 
 }
 
@@ -92,6 +106,24 @@ async function getCalendar() {
         const response = await fetch(url).then(rs => rs.json());
         if (response.code == 200) {
             return response.data.img_url
+        }
+        else {
+            return false
+        }
+
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
+async function getCalendar1() {
+    try {
+        let url = 'https://api.vvhan.com/api/moyu?type=json';
+        // let url = 'https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json';
+        // 发起第一个GET请求，明确不跟随重定向
+        const response = await fetch(url).then(rs => rs.json());
+        if (response.success) {
+            return response.url
         }
         else {
             return false

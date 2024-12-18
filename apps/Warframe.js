@@ -97,7 +97,7 @@ export class warframe extends plugin {
             },
             {
                 /** 命令正则匹配 */
-                reg: '#wf赛特斯(.*)|wf地球平原|wf平原时间|赛特斯时间|地球平原', //匹配消息正则,命令正则
+                reg: '#wf赛特斯(.*)|wf地球平原|平原时间|赛特斯时间|地球平原', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getCetus'
             },
@@ -115,13 +115,13 @@ export class warframe extends plugin {
             },
             {
                 /** 命令正则匹配 */
-                    reg: '#wf赏金|wf赏金', //匹配消息正则,命令正则
-                    /** 执行方法 */
-                    fnc: 'getBounty'
-                },
-                {
-                    /** 命令正则匹配 */
-                    reg: '#地球赏金|地球赏金', //匹配消息正则,命令正则
+                reg: '#wf赏金|wf赏金', //匹配消息正则,命令正则
+                /** 执行方法 */
+                fnc: 'getBounty'
+            },
+            {
+                /** 命令正则匹配 */
+                reg: '#地球赏金|地球赏金', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getEarthBounty'
             },
@@ -196,24 +196,24 @@ export class warframe extends plugin {
                 reg: '#wfwiki(.*)', //匹配消息正则,命令正则
                 /** 执行方法 */
                 fnc: 'getWikiInfo'
-                },
-                {
-                    /** 命令正则匹配 */
-                    reg: '#切换为国服', //匹配消息正则,命令正则
-                    /** 执行方法 */
-                    fnc: 'changeToNational'
-                },
-                {
-                    /** 命令正则匹配 */
-                    reg: '#切换为国际服', //匹配消息正则,命令正则
-                    /** 执行方法 */
-                    fnc: 'changeToInternational'
-                }, {
-                    /** 命令正则匹配 */
-                    reg: '#国服所有信息', //匹配消息正则,命令正则
-                    /** 执行方法 */
-                    fnc: 'getImg'
-                }
+            },
+            {
+                /** 命令正则匹配 */
+                reg: '#切换为国服', //匹配消息正则,命令正则
+                /** 执行方法 */
+                fnc: 'changeToNational'
+            },
+            {
+                /** 命令正则匹配 */
+                reg: '#切换为国际服', //匹配消息正则,命令正则
+                /** 执行方法 */
+                fnc: 'changeToInternational'
+            }, {
+                /** 命令正则匹配 */
+                reg: '#国服所有信息', //匹配消息正则,命令正则
+                /** 执行方法 */
+                fnc: 'getImg'
+            }
             ]
 
         })
@@ -245,14 +245,14 @@ export class warframe extends plugin {
         config.isNationalService = true
         const cfgPath = `${pluginRootPath}/config/warframe.yaml`
         if (fs.existsSync(cfgPath)) {
-            
-            fs.writeFileSync(cfgPath,yaml.stringify(config),'utf-8' )
+
+            fs.writeFileSync(cfgPath, yaml.stringify(config), 'utf-8')
         } else {
             e.reply("切换出错")
             return
         }
 
-    url = 'https://api.null00.com/world/ZHCN/'
+        url = 'https://api.null00.com/world/ZHCN/'
         e.reply("切换成功，当前服务器为 国服")
 
     }
@@ -261,12 +261,12 @@ export class warframe extends plugin {
         config.isNationalService = false
         const cfgPath = `${pluginRootPath}/config/warframe.yaml`
         if (fs.existsSync(cfgPath)) {
-            fs.writeFileSync(cfgPath,yaml.stringify(config),'utf-8')
+            fs.writeFileSync(cfgPath, yaml.stringify(config), 'utf-8')
         } else {
             e.reply("切换出错")
             return
         }
-    url = 'http://nymph.rbq.life:3000/'
+        url = 'http://nymph.rbq.life:3000/'
 
         e.reply("切换成功，当前服务器为 国际服")
 
@@ -759,7 +759,7 @@ async function getJsonData(url_arg) {
     let api_url = url + url_arg
 
     let data1 = await fetch(api_url, {
-        timeout: 10000 ,// 设置5秒超时时间
+        timeout: 10000,// 设置5秒超时时间
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
         }
@@ -774,7 +774,7 @@ async function getTextData(url_arg) {
     let api_url = url + url_arg
 
     let data1 = await fetch(api_url, {
-        timeout: 10000 ,// 设置5秒超时时间
+        timeout: 10000,// 设置5秒超时时间
         headers: {
             "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
         }
