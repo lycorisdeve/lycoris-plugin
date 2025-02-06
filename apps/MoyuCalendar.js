@@ -63,7 +63,7 @@ export class MoyuCalendarPlugin extends plugin {
     async sendCornMoyuImage() {
         try {
             let message = '摸鱼日历'
-            let img = await getCalendar3()
+            let img = await getCalendar1()
             if (img != false) {
                 message = segment.image(img)
             } else {
@@ -103,15 +103,6 @@ export class MoyuCalendarPlugin extends plugin {
             e.reply('摸鱼日历获取失败，请稍后重试！')
         }
     }
-    async replyMoyuCalendar2(e) {
-        let img = await getCalendar3()
-        if (img != false) {
-            e.reply(segment.image(img))
-        } else {
-            e.reply('摸鱼日历获取失败，请稍后重试！')
-        }
-    }
-
 }
 
 async function getCalendar() {
@@ -155,31 +146,13 @@ async function getCalendar2() {
         let url = 'https://udp.qqsuu.cn/apis/moyu.php?type=json';
         // 发起第一个GET请求，明确不跟随重定向
         const response = await fetch(url).then(rs => rs.json());
-        if (response.success) {
-            return response.url
+
+        if (response.msg === 'success') {
+            return response.data
         }
         else {
             return false
         }
-
-    } catch (error) {
-        console.error(error.message);
-        throw error;
-    }
-}
-async function getCalendar3() {
-    try {
-        let url = 'https://jiejingku.net/moyurili';
-        const response = await fetch(url).then(rs => rs.text());
-        const $ = cheerio.load(response);
-        let targetImages = $('.wp-block-image').eq(1).find('img');
-
-        let img_url = false;
-        targetImages.each((index, img) => {
-            img_url = $(img).attr('data-original') || $(img).attr('src');
-            // console.log($(img).attr('data-original') || $(img).attr('src')); 
-        });
-        return img_url;
 
     } catch (error) {
         console.error(error.message);
