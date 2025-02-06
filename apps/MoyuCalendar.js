@@ -55,7 +55,7 @@ export class MoyuCalendarPlugin extends plugin {
     async sendCornMoyuImage() {
         try {
             let message = '摸鱼日历'
-            let img = await getCalendar1()
+            let img = await getCalendar()
             if (img != false) {
                 message = segment.image(img)
             } else {
