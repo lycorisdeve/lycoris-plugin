@@ -63,7 +63,7 @@ export class MoyuCalendarPlugin extends plugin {
     async sendCornMoyuImage() {
         try {
             let message = '摸鱼日历'
-            let img = await getCalendar()
+            let img = await getCalendar3()
             if (img != false) {
                 message = segment.image(img)
             } else {
@@ -170,17 +170,14 @@ async function getCalendar2() {
 async function getCalendar3() {
     try {
         let url = 'https://jiejingku.net/moyurili';
-        // 发起第一个GET请求，明确不跟随重定向
         const response = await fetch(url).then(rs => rs.text());
         const $ = cheerio.load(response);
-        // 选择第二个类为'wp-block-image'的div下的所有图片
         let targetImages = $('.wp-block-image').eq(1).find('img');
 
-        // 遍历找到的图片，并打印出它们的'data-original'属性（实际图片链接）
         let img_url = false;
         targetImages.each((index, img) => {
             img_url = $(img).attr('data-original') || $(img).attr('src');
-            console.log($(img).attr('data-original') || $(img).attr('src')); // 如果'data-original'不存在，则使用'src'
+            // console.log($(img).attr('data-original') || $(img).attr('src')); 
         });
         return img_url;
 
