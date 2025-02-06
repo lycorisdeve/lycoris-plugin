@@ -173,19 +173,16 @@ async function getCalendar3() {
         // 发起第一个GET请求，明确不跟随重定向
         const response = await fetch(url).then(rs => rs.text());
         const $ = cheerio.load(response);
-        let images = $('.wp-block-image').eq(1).find('img');
+        // 选择第二个类为'wp-block-image'的div下的所有图片
+        let targetImages = $('.wp-block-image').eq(1).find('img');
 
-        // 获取images的src属性值,如果images为数组则取第一个元素,只有一个元素则取唯一一个，其他情况返回false
-
-        if (images.length === 1) {
-            console.log(images.attr('src'));
-            return images.attr('src');
-        } else if (images.length > 1) {
-            console.log(images.eq(0).attr('src'));
-            return images.eq(0).attr('src');
-        } else {
-            return false;
-        }
+        // 遍历找到的图片，并打印出它们的'data-original'属性（实际图片链接）
+        let img_url = false;
+        targetImages.each((index, img) => {
+            img_url = $(img).attr('data-original') || $(img).attr('src');
+            console.log($(img).attr('data-original') || $(img).attr('src')); // 如果'data-original'不存在，则使用'src'
+        });
+        return img_url;
 
     } catch (error) {
         console.error(error.message);
