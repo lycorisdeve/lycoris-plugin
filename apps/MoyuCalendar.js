@@ -1,5 +1,7 @@
 import axios from 'axios'
 import Config from '../model/config.js'
+import * as cheerio from 'cheerio';
+
 
 /*
  * @description: read60s推送
@@ -37,7 +39,13 @@ export class MoyuCalendarPlugin extends plugin {
                     reg: '^#摸鱼日历1$',
                     /** 执行方法 */
                     fnc: 'replyMoyuCalendar'
-                }
+                },
+                {
+                    /** 命令正则匹配 */
+                    reg: '^#摸鱼日历2$',
+                    /** 执行方法 */
+                    fnc: 'replyMoyuCalendar2'
+                },
             ]
         })
         this.task = {
@@ -95,6 +103,14 @@ export class MoyuCalendarPlugin extends plugin {
             e.reply('摸鱼日历获取失败，请稍后重试！')
         }
     }
+    async replyMoyuCalendar2(e) {
+        let img = await getCalendar3()
+        if (img) {
+            e.reply(segment.image(img))
+        } else {
+            e.reply('摸鱼日历获取失败，请稍后重试！')
+        }
+    }
 
 }
 
@@ -129,6 +145,38 @@ async function getCalendar1() {
             return false
         }
 
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
+async function getCalendar2() {
+    try {
+        let url = 'https://udp.qqsuu.cn/apis/moyu.php?type=json';
+        // 发起第一个GET请求，明确不跟随重定向
+        const response = await fetch(url).then(rs => rs.json());
+        if (response.success) {
+            return response.url
+        }
+        else {
+            return false
+        }
+
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
+async function getCalendar3() {
+    try {
+        let url = 'https://jiejingku.net/moyurili';
+        // 发起第一个GET请求，明确不跟随重定向
+        const response = await fetch(url).then(rs => rs.text());
+        const $ = cheerio.load(response);
+        let images = $('.wp-block-image').eq(1).find('img');
+        // 获取images的src属性值
+        let img_url = images.attr('src');
+        return img_url
     } catch (error) {
         console.error(error.message);
         throw error;
