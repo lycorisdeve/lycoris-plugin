@@ -174,9 +174,14 @@ async function getCalendar3() {
         const response = await fetch(url).then(rs => rs.text());
         const $ = cheerio.load(response);
         let images = $('.wp-block-image').eq(1).find('img');
-        // 获取images的src属性值
-        let img_url = images.attr('src');
-        return img_url
+
+        // 获取images的src属性值,如果images为数组则取第一个元素，其他情况返回false
+        if (images.length > 1) {
+            let img1 = images.eq(0);
+            return img1.attr('src');
+        } else {
+            return false;
+        }
     } catch (error) {
         console.error(error.message);
         throw error;
