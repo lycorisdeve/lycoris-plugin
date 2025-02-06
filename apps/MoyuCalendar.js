@@ -105,7 +105,7 @@ export class MoyuCalendarPlugin extends plugin {
     }
     async replyMoyuCalendar2(e) {
         let img = await getCalendar3()
-        if (img) {
+        if (img != false) {
             e.reply(segment.image(img))
         } else {
             e.reply('摸鱼日历获取失败，请稍后重试！')
