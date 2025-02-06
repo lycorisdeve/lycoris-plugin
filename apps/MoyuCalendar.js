@@ -175,13 +175,18 @@ async function getCalendar3() {
         const $ = cheerio.load(response);
         let images = $('.wp-block-image').eq(1).find('img');
 
-        // 获取images的src属性值,如果images为数组则取第一个元素，其他情况返回false
-        if (images.length > 1) {
-            let img1 = images.eq(0);
-            return img1.attr('src');
+        // 获取images的src属性值,如果images为数组则取第一个元素,只有一个元素则取唯一一个，其他情况返回false
+
+        if (images.length === 1) {
+            console.log(images.attr('src'));
+            return images.attr('src');
+        } else if (images.length > 1) {
+            console.log(images.eq(0).attr('src'));
+            return images.eq(0).attr('src');
         } else {
             return false;
         }
+
     } catch (error) {
         console.error(error.message);
         throw error;
