@@ -335,18 +335,6 @@ export class Screenshot extends plugin {
             }
 
             logger.info('[截图] 页面主体加载完成，正在处理图片...');
-            // 等待页面完全渲染
-            // await page.evaluate(() => {
-            //     return new Promise((resolve) => {
-            //         if (document.readyState === 'complete') {
-            //             resolve();
-            //             return;
-            //         }
-            //         window.addEventListener('load', resolve);
-            //         setTimeout(resolve, 30000);
-            //     });
-            // });
-            // 等待页面完全渲染（改进版：移除重复监听并延长超时）
             await page.evaluate(() => {
                 return new Promise((resolve) => {
                     const checkReady = () => {
@@ -408,7 +396,6 @@ export class Screenshot extends plugin {
                             resolve();
                         }, 30000);
                     });
-                    window.scrollTo(0, 0);
                 });
             }
 
@@ -704,18 +691,6 @@ function screenRender(screenshotBase64, url, pageWidth) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>网页截图</title>
         <style>
-            :root {
-                --window-bg: #ffffff;
-                --header-bg: #f0f0f0;
-                --border-color: #e0e0e0;
-                --shadow-color: rgba(0, 0, 0, 0.12);
-                --close-btn: #ff5f57;
-                --minimize-btn: #ffbd2e;
-                --maximize-btn: #28c940;
-                --url-text: #333;
-                --url-bg: #ffffff;
-            }
-
             * {
                 margin: 0;
                 padding: 0;
@@ -730,107 +705,22 @@ function screenRender(screenshotBase64, url, pageWidth) {
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
                 padding: 0.5rem;
                 margin: 0;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
             .container {
                 width: ${containerWidth}px;
                 max-width: 98vw;
                 margin: 0 auto;
-                padding: 0 10px; /* 添加容器级别的留白 */
-            }
-
-            .browser-window {
-                width: 100%;
-                background-color: var(--window-bg);
-                border-radius: 8px;
-                overflow: hidden;
-                margin: 10px 0; /* 上下添加间距 */
-                box-shadow: 0 8px 16px var(--shadow-color);
-            }
-
-            .browser-header {
-                background-color: var(--header-bg);
-                padding: 12px 16px;
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                border-bottom: 1px solid var(--border-color);
-                height: 48px;
-            }
-
-            .browser-buttons {
-                display: flex;
-                gap: 8px;
-                flex-shrink: 0;
-            }
-
-            .browser-button {
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                position: relative;
-                transition: all 0.2s ease;
-                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-            }
-
-            .browser-button::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                border-radius: 50%;
-                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
-                opacity: 0;
-                transition: opacity 0.2s ease;
-            }
-
-            .browser-button:hover::after {
-                opacity: 1;
-            }
-
-            .close { background-color: var(--close-btn); }
-            .minimize { background-color: var(--minimize-btn); }
-            .maximize { background-color: var(--maximize-btn); }
-
-            .url-bar {
-                flex: 1;
-                background: var(--url-bg);
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 13px;
-                color: var(--url-text);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                border: 1px solid var(--border-color);
-                box-shadow: 
-                    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-                    0 1px 2px rgba(0, 0, 0, 0.05);
-                font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                user-select: none;
-                position: relative;
-            }
-
-            .url-bar::before {
-                content: '';
-                position: absolute;
-                left: 8px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 16px;
-                height: 16px;
-                background: #888;
-                border-radius: 50%;
-                opacity: 0.2;
+                padding: 0 10px;
             }
 
             .screenshot-container {
                 position: relative;
                 line-height: 0;
                 width: 100%;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+                border-radius: 8px;
+                overflow: hidden;
             }
 
             .screenshot {
@@ -839,7 +729,6 @@ function screenRender(screenshotBase64, url, pageWidth) {
                 display: block;
             }
 
-            /* 针对长截图优化 */
             @media screen and (min-height: 2000px) {
                 body {
                     align-items: flex-start;
@@ -848,14 +737,6 @@ function screenRender(screenshotBase64, url, pageWidth) {
             }
 
             @media (prefers-color-scheme: dark) {
-                :root {
-                    --window-bg: #2d2d2d;
-                    --header-bg: #1f1f1f;
-                    --border-color: #404040;
-                    --url-text: #e0e0e0;
-                    --url-bg: #333333;
-                }
-                
                 body {
                     background: linear-gradient(135deg, #2d3436 0%, #1a1a1a 100%);
                 }
@@ -864,18 +745,8 @@ function screenRender(screenshotBase64, url, pageWidth) {
     </head>
     <body>
         <div class="container">
-            <div class="browser-window">
-                <div class="browser-header">
-                    <div class="browser-buttons">
-                        <div class="browser-button close"></div>
-                        <div class="browser-button minimize"></div>
-                        <div class="browser-button maximize"></div>
-                    </div>
-                    <div class="url-bar">${url || 'https://example.com'}</div>
-                </div>
-                <div class="screenshot-container">
-                    <img class="screenshot" src="data:image/png;base64,${screenshotBase64}" alt="Screenshot">
-                </div>
+            <div class="screenshot-container">
+                <img class="screenshot" src="data:image/png;base64,${screenshotBase64}" alt="Screenshot">
             </div>
         </div>
     </body>
