@@ -329,7 +329,7 @@ export class Screenshot extends plugin {
                             clearInterval(scrollInterval);
                             window.scrollTo(0, 0);
                             resolve();
-                        }, 60000);
+                        }, 30000);
                     });
                 });
             }
@@ -350,7 +350,7 @@ export class Screenshot extends plugin {
                     window.addEventListener('load', resolve);
 
                     // 设置超时（60 秒）
-                    const timeout = setTimeout(resolve, 60000);
+                    const timeout = setTimeout(resolve, 30000);
 
                     // 检查 readyState
                     checkReady();
@@ -514,57 +514,7 @@ export class Screenshot extends plugin {
                 fullPage: fullPage,
                 omitBackground: false
             });
-
-            // 准备HTML内容时使用优化后的宽度
-            const screenshotBase64 = fs.readFileSync(tempFile, "base64");
-            const htmlContent = screenRender(screenshotBase64, link, pageWidth);
-
-            // 创建新页面用于渲染最终效果
-            const newPage = await browser.newPage();
-            await newPage.setViewport({
-                width: 1920,
-                height: 1080,
-                deviceScaleFactor: 1
-            });
-
-            // 设置HTML内容
-            await newPage.setContent(htmlContent);
-
-            // 等待渲染完成
-            await newPage.evaluate(() => {
-                return new Promise((resolve) => {
-                    if (document.querySelector('.browser-window')) {
-                        resolve();
-                    } else {
-                        const observer = new MutationObserver(() => {
-                            if (document.querySelector('.browser-window')) {
-                                observer.disconnect();
-                                resolve();
-                            }
-                        });
-                        observer.observe(document.body, {
-                            childList: true,
-                            subtree: true
-                        });
-                    }
-                });
-            });
-
-            // 获取元素并截图
-            const element = await newPage.$('.browser-window');
-            if (!element) {
-                throw new Error('找不到浏览器窗口元素');
-            }
-
-            // 最终截图
-            await element.screenshot({
-                path: tempFile,
-                type: "png",
-                omitBackground: false
-            });
-
-            logger.info('[截图] 截图处理完成，准备发送...');
-            // await this.e.reply("截图生成完成，正在发送...");
+            logger.info(`[截图] 截图已保存: ${tempFile}`);
 
             // 发送图片
             await this.e.reply(segment.image(fs.readFileSync(tempFile)));
