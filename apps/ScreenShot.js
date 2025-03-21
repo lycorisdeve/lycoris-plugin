@@ -322,15 +322,88 @@ export class Screenshot extends plugin {
                 }
             });
 
+            // 访问页面前，检查是否是微信文章
+            const isWeixinArticle = link.startsWith('https://mp.weixin.qq.com/s/');
+            
             // 访问页面
             logger.info(`[截图] 正在加载页面: ${link}`);
             const response = await page.goto(link, {
                 waitUntil: ['load', 'networkidle0'],
-                timeout: 60000
+                timeout: isWeixinArticle ? 60000 : 30000  // 微信文章给予更长的超时时间
             });
 
-            logger.info('[截图] 页面主体加载完成，正在处理图片...');
+            // 针对微信文章的特殊处理
+            if (isWeixinArticle) {
+                logger.info('[截图] 检测到微信文章，开始特殊处理...');
+                await page.evaluate(async () => {
+                    return new Promise((resolve) => {
+                        let scrollCount = 0;
+                        const maxScrolls = 10; // 最大滚动次数
+                        
+                        const scrollInterval = setInterval(() => {
+                            // 上下滚动以触发图片加载
+                            window.scrollTo(0, document.body.scrollHeight);
+                            setTimeout(() => window.scrollTo(0, 0), 500);
+                            
+                            // 处理图片加载
+                            document.querySelectorAll('img').forEach(img => {
+                                if (img.dataset.src && !img.src) {
+                                    img.src = img.dataset.src;
+                                }
+                                // 移除懒加载相关的类
+                                img.classList.remove('img_loading');
+                            });
+                            
+                            scrollCount++;
+                            if (scrollCount >= maxScrolls) {
+                                clearInterval(scrollInterval);
+                                window.scrollTo(0, 0);
+                                resolve();
+                            }
+                        }, 1000); // 每秒滚动一次
+                        
+                        // 60秒后强制结束
+                        setTimeout(() => {
+                            clearInterval(scrollInterval);
+                            window.scrollTo(0, 0);
+                            resolve();
+                        }, 60000);
+                    });
+                });
+                
+                // 额外等待图片加载
+                await page.evaluate(async () => {
+                    await new Promise((resolve) => {
+                        const checkImages = () => {
+                            const images = Array.from(document.images);
+                            const allLoaded = images.every(img => 
+                                img.complete || 
+                                img.naturalWidth > 0 ||
+                                !img.src ||
+                                img.src.startsWith('data:')
+                            );
+                            return allLoaded;
+                        };
+                        
+                        const interval = setInterval(() => {
+                            if (checkImages()) {
+                                clearInterval(interval);
+                                resolve();
+                            }
+                        }, 1000);
+                        
+                        // 30秒后强制结束等待
+                        setTimeout(() => {
+                            clearInterval(interval);
+                            resolve();
+                        }, 30000);
+                    });
+                });
+                
+                logger.info('[截图] 微信文章处理完成');
+            }
 
+            logger.info('[截图] 页面主体加载完成，正在处理图片...');
             // 等待页面完全渲染
             // await page.evaluate(() => {
             //     return new Promise((resolve) => {
