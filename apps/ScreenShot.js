@@ -278,7 +278,8 @@ export class Screenshot extends plugin {
             browser = await puppeteer.browserInit({
                 args: launchArgs,
                 ignoreHTTPSErrors: true,
-                timeout: 60000
+                timeout: 60000,
+                protocolTimeout: 60000  // 添加协议超时设置
             });
 
             // 创建新页面
