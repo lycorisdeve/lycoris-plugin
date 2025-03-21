@@ -1,3 +1,6 @@
+/** 
+ * 改编自https://gitee.com/a1_panda/Yunzai-Bot-plugins
+  */
 import fs from "fs";
 import puppeteer from "../../lib/puppeteer/puppeteer.js";
 import sizeOf from "image-size";
