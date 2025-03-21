@@ -82,6 +82,10 @@ function cleanupTempFiles() {
         for (const file of files) {
             const filePath = path.join(TEMP_DIR, file);
             const stats = fs.statSync(filePath);
+            // 跳过目录
+            if (stats.isDirectory()) {
+                continue;
+            }
             // 删除超过1小时的临时文件
             if (now - stats.mtimeMs > 3600000) {
                 fs.unlinkSync(filePath);
@@ -268,14 +272,6 @@ export class Screenshot extends plugin {
 
             // 创建新页面
             let page = await browser.newPage();
-
-            // 如果使用代理且有认证信息
-            if (config.proxy.enabled && config.proxy.username && config.proxy.password) {
-                await page.authenticate({
-                    username: config.proxy.username,
-                    password: config.proxy.password
-                });
-            }
 
             // 设置页面超时
             await page.setDefaultNavigationTimeout(30000);  // 减少到30秒
