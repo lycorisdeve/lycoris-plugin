@@ -277,21 +277,30 @@ export class Screenshot extends plugin {
             await page.setDefaultNavigationTimeout(30000);  // 减少到30秒
             await page.setDefaultTimeout(30000);
 
-            // 设置请求头，添加微信特定的请求头
+            // 设置请求头
             await page.setExtraHTTPHeaders({
                 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
+                'Cache-Control': 'max-age=0',
                 'Referer': 'https://mp.weixin.qq.com/',
                 'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
                 'Sec-Ch-Ua-Mobile': '?0',
-                'Sec-Ch-Ua-Platform': '"Windows"',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'same-origin',
-                'Sec-Fetch-User': '?1'
+                'Sec-Ch-Ua-Platform': '"Windows"'
+            });
+
+            // 设置更多浏览器选项
+            await page.setRequestInterception(true);
+            page.on('request', request => {
+                const resourceType = request.resourceType();
+                if (resourceType === 'image') {
+                    const headers = request.headers();
+                    headers['Referer'] = 'https://mp.weixin.qq.com/';
+                    request.continue({ headers });
+                } else {
+                    request.continue();
+                }
             });
 
             // 只发送一条开始提示
