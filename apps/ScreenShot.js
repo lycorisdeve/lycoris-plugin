@@ -245,6 +245,10 @@ export class Screenshot extends plugin {
         let browser = null;
         let tempFile = null;
         try {
+            // 检查是否是微信文章
+            const isWeixinArticle = link.startsWith('https://mp.weixin.qq.com/s/');
+            logger.info(`[截图] ${isWeixinArticle ? '检测到微信文章，将使用特殊处理...' : '普通网页处理'}`);
+
             // 基础启动参数
             const launchArgs = [
                 '--no-sandbox',
@@ -253,9 +257,16 @@ export class Screenshot extends plugin {
                 '--disable-gpu',
                 '--no-zygote'
             ];
-
-            // 检查是否需要使用代理
-            const needProxy = await this.checkNeedProxy(link);
+            let needProxy
+            // 如果是微信文章，添加特殊参数
+            if (isWeixinArticle) {
+                launchArgs.push('--enable-features=NetworkService');
+                launchArgs.push('--disable-features=NetworkServiceInProcess');
+                needProxy = false
+            } else {
+                // 检查是否需要使用代理
+                needProxy = await this.checkNeedProxy(link);
+            }
 
             // 处理URL
             const finalUrl = needProxy && config.proxyApi.enabled
@@ -273,96 +284,47 @@ export class Screenshot extends plugin {
             // 创建新页面
             let page = await browser.newPage();
 
-            // 设置页面超时
-            await page.setDefaultNavigationTimeout(30000);  // 减少到30秒
-            await page.setDefaultTimeout(30000);
+            // 设置页面超时（微信文章使用更长的超时时间）
+            await page.setDefaultNavigationTimeout(isWeixinArticle ? 60000 : 30000);
+            await page.setDefaultTimeout(isWeixinArticle ? 60000 : 30000);
 
-            // 设置请求头
-            await page.setExtraHTTPHeaders({
-                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Connection': 'keep-alive',
-                'Cache-Control': 'max-age=0',
-                'Referer': 'https://mp.weixin.qq.com/',
-                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-                'Sec-Ch-Ua-Mobile': '?0',
-                'Sec-Ch-Ua-Platform': '"Windows"'
-            });
-
-            // 设置更多浏览器选项
-            await page.setRequestInterception(true);
-            page.on('request', request => {
-                const resourceType = request.resourceType();
-                if (resourceType === 'image') {
-                    const headers = request.headers();
-                    headers['Referer'] = 'https://mp.weixin.qq.com/';
-                    request.continue({ headers });
-                } else {
-                    request.continue();
-                }
-            });
-
-            // 只发送一条开始提示
-            await this.e.reply("检测到网页，正在截图，请稍候...");
-
-            // 监听页面加载进度（改为只记录日志）
-            page.on('load', () => logger.info('[截图] DOM加载完成'));
-
-            // 添加请求计数
-            let totalRequests = 0;
-            let completedRequests = 0;
-
-            page.on('request', () => totalRequests++);
-            page.on('requestfinished', () => {
-                completedRequests++;
-                // 只在日志中显示进度
-                if (totalRequests > 0 && completedRequests % Math.max(1, Math.floor(totalRequests / 10)) === 0) {
-                    logger.info(`[截图] 资源加载进度: ${Math.floor((completedRequests / totalRequests) * 100)}%`);
-                }
-            });
-
-            // 访问页面前，检查是否是微信文章
-            const isWeixinArticle = link.startsWith('https://mp.weixin.qq.com/s/');
-            
             // 访问页面
             logger.info(`[截图] 正在加载页面: ${link}`);
             const response = await page.goto(link, {
                 waitUntil: ['load', 'networkidle0'],
-                timeout: isWeixinArticle ? 60000 : 30000  // 微信文章给予更长的超时时间
+                timeout: isWeixinArticle ? 60000 : 30000
             });
 
-            // 针对微信文章的特殊处理
+            // 如果是微信文章，等待更长时间确保图片加载
             if (isWeixinArticle) {
-                logger.info('[截图] 检测到微信文章，开始特殊处理...');
+                logger.info('[截图] 微信文章等待图片加载中...');
+                await this.delay(10000); // 先等待10秒
+
+                // 滚动触发图片加载
                 await page.evaluate(async () => {
                     return new Promise((resolve) => {
                         let scrollCount = 0;
-                        const maxScrolls = 10; // 最大滚动次数
-                        
+                        const maxScrolls = 20; // 增加滚动次数
+
                         const scrollInterval = setInterval(() => {
-                            // 上下滚动以触发图片加载
                             window.scrollTo(0, document.body.scrollHeight);
-                            setTimeout(() => window.scrollTo(0, 0), 500);
-                            
-                            // 处理图片加载
+                            setTimeout(() => window.scrollTo(0, 0), 800);
+
                             document.querySelectorAll('img').forEach(img => {
                                 if (img.dataset.src && !img.src) {
                                     img.src = img.dataset.src;
                                 }
-                                // 移除懒加载相关的类
                                 img.classList.remove('img_loading');
                             });
-                            
+
                             scrollCount++;
                             if (scrollCount >= maxScrolls) {
                                 clearInterval(scrollInterval);
                                 window.scrollTo(0, 0);
                                 resolve();
                             }
-                        }, 1000); // 每秒滚动一次
-                        
-                        // 60秒后强制结束
+                        }, 1500); // 增加滚动间隔
+
                         setTimeout(() => {
                             clearInterval(scrollInterval);
                             window.scrollTo(0, 0);
@@ -370,37 +332,6 @@ export class Screenshot extends plugin {
                         }, 60000);
                     });
                 });
-                
-                // 额外等待图片加载
-                await page.evaluate(async () => {
-                    await new Promise((resolve) => {
-                        const checkImages = () => {
-                            const images = Array.from(document.images);
-                            const allLoaded = images.every(img => 
-                                img.complete || 
-                                img.naturalWidth > 0 ||
-                                !img.src ||
-                                img.src.startsWith('data:')
-                            );
-                            return allLoaded;
-                        };
-                        
-                        const interval = setInterval(() => {
-                            if (checkImages()) {
-                                clearInterval(interval);
-                                resolve();
-                            }
-                        }, 1000);
-                        
-                        // 30秒后强制结束等待
-                        setTimeout(() => {
-                            clearInterval(interval);
-                            resolve();
-                        }, 30000);
-                    });
-                });
-                
-                logger.info('[截图] 微信文章处理完成');
             }
 
             logger.info('[截图] 页面主体加载完成，正在处理图片...');
