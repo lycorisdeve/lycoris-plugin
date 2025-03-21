@@ -277,13 +277,21 @@ export class Screenshot extends plugin {
             await page.setDefaultNavigationTimeout(30000);  // 减少到30秒
             await page.setDefaultTimeout(30000);
 
-            // 设置请求头
+            // 设置请求头，添加微信特定的请求头
             await page.setExtraHTTPHeaders({
                 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
+                'Upgrade-Insecure-Requests': '1',
+                'Referer': 'https://mp.weixin.qq.com/',
+                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'same-origin',
+                'Sec-Fetch-User': '?1'
             });
 
             // 只发送一条开始提示
@@ -593,7 +601,7 @@ export class Screenshot extends plugin {
         }
 
         const isEnable = e.msg.includes("开启");
-        config.proxy.enabled = isEnable;
+        config.proxyApi.enabled = true;
         this.saveConfig();
         e.reply(`已${isEnable ? '开启' : '关闭'}截图代理`);
         return true;
@@ -601,28 +609,26 @@ export class Screenshot extends plugin {
 
     async setProxy(e) {
         if (!e.isMaster) {
-            e.reply("只有主人才能设置截图代理");
+            e.reply("只有主人才能设置代理API");
             return true;
         }
 
-        // 修改正则以支持可选的代理类型
-        const match = e.msg.match(/^#截图代理设置\s*((?:http|socks5|https):\/\/)?([^:\s]+)\s*(\d+)$/i);
+        // 修改正则以匹配代理API URL
+        const match = e.msg.match(/^#截图代理设置\s*(https?:\/\/[^\s]+)\s*$/i);
         if (match) {
-            const [, proxyType = 'http://', host, port] = match;
+            const [, proxyUrl] = match;
 
-            // 设置代理类型（移除URL中的://）
-            config.proxy.type = proxyType.replace('://', '') || 'http';
-            // 设置主机地址（确保不包含协议前缀）
-            config.proxy.host = host;
-            config.proxy.port = parseInt(port);
+            // 确保URL以/结尾
+            config.proxyApi.url = proxyUrl.endsWith('/') ? proxyUrl : `${proxyUrl}/`;
+            config.proxyApi.enabled = true;
 
             this.saveConfig();
-            e.reply(`截图代理已更新：${config.proxy.type}://${config.proxy.host}:${config.proxy.port}`);
+            e.reply(`代理API已更新：${config.proxyApi.url}`);
 
             // 输出详细日志
-            logger.info(`[截图] 代理设置已更新 - 类型:${config.proxy.type} 地址:${config.proxy.host} 端口:${config.proxy.port}`);
+            logger.info(`[截图] 代理API已更新 - URL:${config.proxyApi.url}`);
         } else {
-            e.reply("格式错误！正确格式：#截图代理设置 [http://]127.0.0.1 7890");
+            e.reply("格式错误！正确格式：#截图代理设置 https://proxyapi.example.com/");
         }
         return true;
     }
@@ -656,7 +662,7 @@ export class Screenshot extends plugin {
             );
 
             // 如果在列表中或代理已开启，则使用代理
-            return needForceProxy || config.proxy.enabled;
+            return needForceProxy;
         } catch (error) {
             logger.error(`[截图] URL解析失败: ${error}`);
             return false;
