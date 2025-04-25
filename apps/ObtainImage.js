@@ -23,12 +23,6 @@ export class Photo extends plugin {
             /** 优先级，数字越小等级越高 */
             priority: 5000,
             rule: [
-                // {
-                //     /** 命令正则匹配 */
-                //     reg: '^#mm写真$',
-                //     /** 执行方法 */
-                //     fnc: 'mmImage',
-                // },
                 {
                     /** 命令正则匹配 */
                     reg: '^#动漫写真$',

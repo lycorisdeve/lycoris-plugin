@@ -1,6 +1,5 @@
 import axios from 'axios'
 import Config from '../model/config.js'
-import * as cheerio from 'cheerio';
 
 
 /*
