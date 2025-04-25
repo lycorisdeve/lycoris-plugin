@@ -109,7 +109,13 @@ export class DailyCheckIn extends plugin {
                 signData = JSON.parse(mySignInInfo);
             }
         }
-
+        logger.info(
+            signData,
+            "------------------------------",
+            todayCheckIn,
+            isFirstTime,
+            alreadyCheckedIn
+        )
         return { signData, todayCheckIn, isFirstTime, alreadyCheckedIn };
     }
 
