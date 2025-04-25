@@ -223,8 +223,8 @@ export class DailyCheckIn extends plugin {
      */
     async generateAndSendCheckInImage(e, signData, todayCheckIn, motto) {
         try {
-            const lastSignIn = signData.check_in_last.substr(0, 10);
-            const qqAvatar = `${API_CONFIG.AVATAR}${e.user_id}`;
+            let lastSignIn = signData.check_in_last.substr(0, 10);
+            let qqAvatar = `${API_CONFIG.AVATAR}${e.user_id}`;
 
             // 准备模板数据
             const templateData = {

@@ -30,7 +30,7 @@
         margin: 0;
         width: 100%;
         height: 100vh;
-        background: url(https://api.yimian.xyz/img?type=moe);
+        background: url(http://api.btstu.cn/sjbz/api.php?lx=dongman);
         background-size: cover;
         background-position: center;
         font-family: "HYWenHei", "微软雅黑", sans-serif;
@@ -346,7 +346,7 @@
           <div class="sign-info-down">
             <div class="avatar">
               <img
-                src="{{qqAvatar}}"
+                src="https://q1.qlogo.cn/g?b=qq&nk={{userInfo.user_qq}}&s=100"
                 alt="头像"
                 class="avatar-img" />
             </div>
@@ -394,41 +394,53 @@
             <p><span style="color: #4facfe">🎲</span> 抽卡次数: 0</p>
           </div>
           <div class="icon-list">
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-fire-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-water-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-wind-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-thunder-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-grass-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-ice-copy"></use>
-            </svg>
-            <svg
-              class="icon"
-              aria-hidden="true">
-              <use xlink:href="#icon-rock-copy"></use>
-            </svg>
+            <div
+              class="icon-row"
+              style="
+                display: flex;
+                justify-content: center;
+                margin-bottom: 10px;
+              ">
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-fire-copy"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-water-copy"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-wind-copy"></use>
+              </svg>
+            </div>
+            <div
+              class="icon-row"
+              style="display: flex; justify-content: center">
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-thunder-copy"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-grass-copy"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-ice-copy"></use>
+              </svg>
+              <svg
+                class="icon"
+                aria-hidden="true">
+                <use xlink:href="#icon-rock-copy"></use>
+              </svg>
+            </div>
             <p class="mingyan">{{mooto}}</p>
           </div>
         </div>
