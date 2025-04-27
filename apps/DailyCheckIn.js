@@ -116,7 +116,7 @@ export class dailycheckin extends plugin {
         let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
 
         // let qqInfo = await qqInfoJson.json()
-        let qqAvatar = `https://api.linhun.vip/api/Avatar?apiKey=4865ef5f552de39195d2c033e71ed44b&qq=${e.user_id}`
+        let qqAvatar = `https://api.qqsuu.cn/api/dm-qt?qq=${e.user_id}`
         let data = {
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             dz: _path,
