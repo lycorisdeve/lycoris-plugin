@@ -120,6 +120,7 @@ export class dailycheckin extends plugin {
         let data = {
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             dz: _path,
+            _res_path: `./plugins/${pluginName}/resources`,
             userInfo: checkInInformation,
             qqAvatar: qqAvatar,
             tdInfo: today_check_in,
