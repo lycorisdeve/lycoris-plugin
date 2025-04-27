@@ -31,31 +31,11 @@
         width: 100%;
         height: 100vh;
         /* 使用渐变背景作为默认背景 */
-        background: linear-gradient(
-          45deg,
-          #ff9a9e 0%,
-          #fad0c4 99%,
-          #fad0c4 100%
-        );
+        background: url("{{dz}}/plugins/lycoris-plugin/resources/html/signin/bg.jpg");
         background-size: cover;
         background-position: center;
         font-family: "HYWenHei", "微软雅黑", sans-serif;
         color: #333;
-      }
-
-      /* 添加背景图片容器 */
-      body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: url("{{bgUrl}}");
-        background-size: cover;
-        background-position: center;
-        z-index: -1;
-        opacity: 0.8;
       }
 
       .container {

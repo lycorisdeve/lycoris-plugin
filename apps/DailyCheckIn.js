@@ -107,7 +107,6 @@ export class DailyCheckIn extends plugin {
 
         // 获取用户签到记录
         const mySignInInfo = await redis.get(`${CHECK_IN_KEY}${userQQ}`);
-        logger.info(mySignInInfo)
         // 判断是否为首次签到
         let isFirstTime = mySignInInfo === null;  // 直接使用判断结果赋值
 
@@ -302,6 +301,8 @@ export class DailyCheckIn extends plugin {
 
             // 获取背景图片URL
             const bgUrl = await this.fetchImgUrl() || './bg.png';
+
+            logger.info(`背景图片URL: ${bgUrl}`);
 
             // 准备模板数据
             const templateData = {
