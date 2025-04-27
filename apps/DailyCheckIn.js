@@ -228,6 +228,7 @@ export class DailyCheckIn extends plugin {
     async fetchImgUrl() {
         try {
             const response = await fetch(API_CONFIG.IMG);
+            logger.info(response)
             // 获取最终的重定向URL
             const finalUrl = response.url;
             return finalUrl;
@@ -248,7 +249,7 @@ export class DailyCheckIn extends plugin {
         try {
             let lastSignIn = signData.check_in_last.substr(0, 10);
             let qqAvatar = `${API_CONFIG.AVATAR}${e.user_id}`;
-            
+
             // 获取背景图片URL
             const bgUrl = await this.fetchImgUrl() || './bg.png';
 
