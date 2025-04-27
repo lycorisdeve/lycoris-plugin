@@ -122,6 +122,10 @@ export class dailycheckin extends plugin {
             _res_path: `${_path}/plugins/${pluginName}/resources`,
             defaultLayout: `${_path}/plugins/${pluginName}/resources/html/common/layout/default.html`,
             dz: _path,
+            sys: {
+                scale: scale(1)
+            },
+            copyright: "Lycoris-Plugin",
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             userInfo: checkInInformation,
             qqAvatar: qqAvatar,
