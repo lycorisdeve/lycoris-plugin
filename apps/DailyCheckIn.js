@@ -113,7 +113,7 @@ export class dailycheckin extends plugin {
         mooto = await fetch("https://v1.hitokoto.cn/?encode=text").then(res => res.text()).catch((err) => console.error(err))
         // let bgApi = "https://xiaobai.klizi.cn/API/img/game.php"
         // let background = await fetch(bgApi).then(res => res.text()).catch((err) => console.error(err))
-        let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
+        let last_sign_in = checkInInformation.check_in_last ? checkInInformation.check_in_last.substr(0, 10) : '0000-00-00'
 
         // let qqInfo = await qqInfoJson.json()
         let qqAvatar = `https://api.qqsuu.cn/api/dm-qt?qq=${e.user_id}`
@@ -201,4 +201,4 @@ export class dailycheckin extends plugin {
         return Y + '-' + M + '-' + D;
     }
 
-} 
+}
