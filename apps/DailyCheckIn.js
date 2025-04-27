@@ -134,10 +134,6 @@ export class dailycheckin extends plugin {
 
         await e.reply(img, false, { at: true })
 
-
-
-
-
     }
 
     async getCheckInInformation(e) {
