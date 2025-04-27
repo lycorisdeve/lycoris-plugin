@@ -110,7 +110,7 @@ export class dailycheckin extends plugin {
 
         // let qqInfoJson = await fetch("http://xiaobai.klizi.cn/API/qqgn/qq.php?qq=" + e.user_id)
         // 一言
-        mooto = await fetch("https://xiaobai.klizi.cn/API/other/yy.php").then(res => res.text()).catch((err) => console.error(err))
+        mooto = await fetch("https://v1.hitokoto.cn/?encode=text").then(res => res.text()).catch((err) => console.error(err))
         // let bgApi = "https://xiaobai.klizi.cn/API/img/game.php"
         // let background = await fetch(bgApi).then(res => res.text()).catch((err) => console.error(err))
         let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
