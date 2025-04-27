@@ -96,6 +96,8 @@ export class DailyCheckIn extends plugin {
 
         // 获取用户签到记录
         const mySignInInfo = await redis.get(`${CHECK_IN_KEY}${userQQ}`);
+        logger.info(mySignInInfo)
+        // 判断是否为首次签到
         const isFirstTime = mySignInInfo === null;
 
         // 检查今日是否已签到
