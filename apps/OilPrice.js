@@ -141,11 +141,11 @@ export class OilPricePlugin extends plugin {
     formatOilPriceInfo(data) {
         return `
 📍 ${data.province} 🚘油价信息
-      ⛽89号汽油：${data.oil89}元/升
-      ⛽92号汽油：${data.oil92}元/升
-      ⛽95号汽油：${data.oil95}元/升
-      ⛽98号汽油：${data.oil98}元/升
-      ⛽0号柴油：${data.oil0}元/升
+⛽89号汽油：${data.oil89}元/升
+⛽92号汽油：${data.oil92}元/升
+⛽95号汽油：${data.oil95}元/升
+⛽98号汽油：${data.oil98}元/升
+⛽0号柴油：${data.oil0}元/升
 ⏰更新时间：${data.updateTime}
         `;
     }
