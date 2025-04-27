@@ -1,35 +1,11 @@
 import fetch from 'node-fetch'
 import { pluginName } from '../components/lib/Path.js';
 import puppeteer from "../../../lib/puppeteer/puppeteer.js";
-import fs from 'fs';
-import path from 'path';
 
-// 常量配置
-const REDIS_KEY_PREFIX = 'Lycoris:';
-const CHECK_IN_KEY = `${REDIS_KEY_PREFIX}checkIn:`;
-const TODAY_CHECK_IN_KEY = `${REDIS_KEY_PREFIX}td_ci:`;
-const REDIS_EXPIRY = {
-    DAILY: 3600 * 24,
-    QUARTERLY: 3600 * 24 * 90
-};
-const API_CONFIG = {
-    MOTTO: 'https://v1.hitokoto.cn/?encode=text',
-    AVATAR: 'https://api.qqsuu.cn/api/dm-qt?qq=',
-    IMG: 'http://api.yimian.xyz/img?type=moe',
-    IMG_BAK: 'https://api.lolicon.app/setu/v2?size=regular&r18=0'
-};
 
-// 添加本地图片相关配置
-const LOCAL_IMG_CONFIG = {
-    SAVE_DIR: './plugins/lycoris-plugin/resources/backgrounds',
-    MAX_IMAGES: 10,
-    UPDATE_INTERVAL: 24 * 60 * 60 * 1000, // 24小时
-};
+let _path = process.cwd()
 
-// 工作目录
-const _path = process.cwd();
-
-export class DailyCheckIn extends plugin {
+export class dailycheckin extends plugin {
     constructor() {
         super({
             name: '彼岸花签到',
@@ -40,309 +16,143 @@ export class DailyCheckIn extends plugin {
                 reg: "签到|打卡|daka|冒泡",
                 fnc: 'checkIn'
             }]
-        });
+        })
     }
 
-    /**
-     * 用户签到主函数
-     * @param {Object} e - 消息事件对象
-     */
     async checkIn(e) {
-        try {
-            // 初始化用户数据
-            const userQQ = e.user_id;
-            const todayDate = await this.formatNowDate();
 
-            // 获取用户签到信息
-            let { signData, todayCheckIn, isFirstTime, alreadyCheckedIn } =
-                await this.getUserCheckInStatus(userQQ, todayDate);
-
-            // 如果今天已经签到过了
-            if (alreadyCheckedIn) {
-                await e.reply("你今天已经签到过了，无需重复签到！", true);
-            }
-            // 如果是首次签到或今天未签到
-            else if (isFirstTime || !alreadyCheckedIn) {
-                // 处理签到逻辑并获取更新后的数据
-                const updatedData = await this.processCheckIn(signData, todayCheckIn, isFirstTime);
-                signData = updatedData.signData;
-                todayCheckIn = updatedData.todayCheckIn;
-            }
-
-            // 获取一言
-            const motto = await this.fetchMotto();
-
-            // 生成签到图片并回复
-            await this.generateAndSendCheckInImage(e, signData, todayCheckIn, motto);
-
-        } catch (error) {
-            logger.error(`签到出错: ${error.message}`);
-            await e.reply("签到过程中出现错误，请稍后再试！");
-        }
-    }
-
-    /**
-     * 获取用户签到状态
-     * @param {string} userQQ - 用户QQ号
-     * @param {string} todayDate - 今日日期
-     * @returns {Object} 用户签到状态信息
-     */
-    async getUserCheckInStatus(userQQ, todayDate) {
-        // 初始化签到数据结构
-        let signData = {
-            user_qq: userQQ,
+        let sign_group_user = {
+            user_qq: null,
             check_in_days: 0,
             check_in_last: "0000-00-00",
             check_in_time: "0000-00-00",
             favorability: 0,
             mora: 0,
-            primogems: 0
-        };
+            primogems: 0,
 
-        let todayCheckIn = {
+        }
+        let today_check_in = {
             td_favorability: 0.0,
             td_mora: 0,
             td_primogems: 0
-        };
 
-        // 获取用户签到记录
-        const mySignInInfo = await redis.get(`${CHECK_IN_KEY}${userQQ}`);
-        // 判断是否为首次签到
-        let isFirstTime = mySignInInfo === null;  // 直接使用判断结果赋值
-
-        // 检查今日是否已签到
-        let alreadyCheckedIn = false;
-        if (!isFirstTime) {
-            const lastCheckInJson = await redis.get(`${TODAY_CHECK_IN_KEY}${todayDate}:${userQQ}`);
-            if (lastCheckInJson) {
-                todayCheckIn = JSON.parse(lastCheckInJson);
-                alreadyCheckedIn = true;
-            }
-            signData = JSON.parse(mySignInInfo);
         }
+        let mooto = ''
 
-        return { signData, todayCheckIn, isFirstTime, alreadyCheckedIn };
-    }
+        sign_group_user.user_qq = e.user_id
+        let mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq)
+        if (mySignInInfo == null) {
+            sign_group_user.check_in_time = await this.formatNowTime()
+            sign_group_user.favorability = 0
+            let t_money = await this.getCheckInInformation(sign_group_user.favorability)
+            if (t_money) {
+                // 设置总好感度、摩拉、原石
+                sign_group_user.check_in_days = 1
+                sign_group_user.check_in_last = await this.formatNowTime()
+                sign_group_user.favorability = t_money.favorability
+                sign_group_user.mora = t_money.mora
+                sign_group_user.primogems = t_money.primogems
+                sign_group_user.primogems = 7
+                // 设置今日签到信息
+                today_check_in.td_favorability = t_money.favorability
+                today_check_in.td_mora = t_money.mora
+                today_check_in.td_primogems = t_money.primogems
 
-    /**
-     * 处理签到逻辑
-     * @param {Object} signData - 用户签到数据
-     * @param {Object} todayCheckIn - 今日签到数据
-     * @param {boolean} isFirstTime - 是否首次签到
-     * @returns {Object} 更新后的签到数据
-     */
-    async processCheckIn(signData, todayCheckIn, isFirstTime) {
-        const currentTime = await this.formatNowTime();
-        const todayDate = await this.formatNowDate();
+                let tci = JSON.stringify(today_check_in)
+                let sgu = JSON.stringify(sign_group_user)
+                let td_ci_date = await this.formatNowDate()
 
-        signData.check_in_time = currentTime;
+                await redis.set("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq, tci, { EX: 3600 * 24 })
+                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq, sgu, { EX: 3600 * 24 * 90 })
+                mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq)
 
-        // 计算签到奖励
-        const rewards = await this.getCheckInInformation(isFirstTime ? 0 : signData.favorability);
+            } else {
+                return e.reply("签到出错！！！")
+            }
 
-        if (isFirstTime) {
-            // 首次签到
-            signData.check_in_days = 1;
-            signData.check_in_last = currentTime;
-            signData.favorability = rewards.favorability;
-            signData.mora = rewards.mora;
-            signData.primogems = 7; // 首次签到固定7原石
         } else {
-            // 非首次签到
-            signData.favorability = parseFloat(signData.favorability) + parseFloat(rewards.favorability);
-            signData.check_in_days = parseFloat(signData.check_in_days) + 1;
-            signData.check_in_last = signData.check_in_time;
-            signData.mora = parseInt(signData.mora) + parseInt(rewards.mora);
-            signData.primogems = parseInt(signData.primogems) + parseInt(rewards.primogems);
-        }
+            let td_ci_date = await this.formatNowDate()
+            let last_ci_info_json = await redis.get("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq)
+            let last_ci_info = JSON.parse(last_ci_info_json)
 
-        // 更新今日签到信息
-        todayCheckIn.td_favorability = rewards.favorability;
-        todayCheckIn.td_mora = rewards.mora;
-        todayCheckIn.td_primogems = rewards.primogems;
+            if (last_ci_info) {
+                today_check_in = last_ci_info
+                e.reply("你今天已经签到过了，无需重复签到！", true);
+            } else {
+                // 查询上次数据+修改今天数据
+                sign_group_user.check_in_time = await this.formatNowTime()
+                let tmJson = JSON.parse(mySignInInfo)
+                let t_money = await this.getCheckInInformation(tmJson.favorability)
 
-        // 保存数据到Redis
-        await this.saveCheckInData(signData, todayCheckIn, todayDate);
+                sign_group_user.favorability = parseFloat(tmJson.favorability) + parseFloat(t_money.favorability)
+                sign_group_user.check_in_days = parseFloat(tmJson.check_in_days) + 1
+                sign_group_user.check_in_last = tmJson.check_in_time
+                sign_group_user.mora = parseInt(tmJson.mora) + parseInt(t_money.mora)
+                sign_group_user.primogems = parseInt(tmJson.primogems) + parseInt(t_money.primogems)
+                // 设置今日签到信息
 
-        return { signData, todayCheckIn };
-    }
+                today_check_in.td_favorability = t_money.favorability
+                today_check_in.td_mora = t_money.mora
+                today_check_in.td_primogems = t_money.primogems
 
-    /**
-     * 保存签到数据到Redis
-     * @param {Object} signData - 用户签到数据
-     * @param {Object} todayCheckIn - 今日签到数据
-     * @param {string} todayDate - 今日日期
-     */
-    async saveCheckInData(signData, todayCheckIn, todayDate) {
-        const userQQ = signData.user_qq;
-        const todayCheckInJson = JSON.stringify(todayCheckIn);
-        const signDataJson = JSON.stringify(signData);
+                let tci = JSON.stringify(today_check_in)
+                let sgu = JSON.stringify(sign_group_user)
+                let td_ci_date = await this.formatNowDate()
 
-        await redis.set(
-            `${TODAY_CHECK_IN_KEY}${todayDate}:${userQQ}`,
-            todayCheckInJson,
-            { EX: REDIS_EXPIRY.DAILY }
-        );
+                await redis.set("Lycoris:td_ci:" + td_ci_date + ':' + sign_group_user.user_qq, tci, { EX: 3600 * 24 })
+                await redis.set("Lycoris:checkIn:" + sign_group_user.user_qq, sgu, { EX: 3600 * 24 * 90 })
+                mySignInInfo = await redis.get("Lycoris:checkIn:" + sign_group_user.user_qq)
 
-        await redis.set(
-            `${CHECK_IN_KEY}${userQQ}`,
-            signDataJson,
-            { EX: REDIS_EXPIRY.QUARTERLY }
-        );
-    }
-
-    /**
-     * 获取签到奖励信息
-     * @param {number} currentFavorability - 当前好感度
-     * @returns {Object} 签到奖励信息
-     */
-    async getCheckInInformation(currentFavorability) {
-        // 根据当前好感度计算奖励
-        const favorabilityMultiplier = Math.max(1, currentFavorability / 10);
-
-        return {
-            favorability: (Math.random() * 10).toFixed(2),
-            mora: Math.floor(Math.random() * 1000 * favorabilityMultiplier + 1000),
-            primogems: Math.floor(Math.random() * 100 * favorabilityMultiplier + 60)
-        };
-    }
-
-    /**
-     * 获取一言
-     * @returns {string} 一言内容
-     */
-    async fetchMotto() {
-        try {
-            return await fetch(API_CONFIG.MOTTO)
-                .then(res => res.text())
-                .catch(err => {
-                    logger.error(`获取一言失败: ${err}`);
-                    return "今天也要元气满满哦~";
-                });
-        } catch (error) {
-            logger.error(`获取一言异常: ${error.message}`);
-            return "今天也要元气满满哦~";
-        }
-    }
-    async fetchImgUrl() {
-        // 首先尝试使用主API
-        try {
-            const response = await fetch(API_CONFIG.IMG)
-            const finalUrl = response.url;
-            return finalUrl;
-        } catch (error) {
-            logger.error(`主API获取图片失败: ${error.message}`);
-            return this.fetchLocalImgUrl();
-        }
-    }
-
-    async fetchLocalImgUrl() {
-        try {
-            // 确保本地图片目录存在
-            await fs.promises.mkdir(LOCAL_IMG_CONFIG.SAVE_DIR, { recursive: true });
-
-            // 获取本地图片列表
-            const files = await fs.promises.readdir(LOCAL_IMG_CONFIG.SAVE_DIR);
-            const images = files.filter(file => /\.(jpg|jpeg|png)$/i.test(file));
-
-            // 如果本地图片不足10张或需要更新，则从备用API获取新图片
-            if (images.length < LOCAL_IMG_CONFIG.MAX_IMAGES) {
-                try {
-                    const response = await fetch(API_CONFIG.IMG_BAK);
-                    const data = await response.json();
-                    if (data.data && data.data.length > 0) {
-                        const imgUrl = data.data[0].urls.regular;
-                        const imgResponse = await fetch(imgUrl);
-                        const buffer = await imgResponse.buffer();
-                        const fileName = `bg_${Date.now()}.jpg`;
-                        await fs.promises.writeFile(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName), buffer);
-
-                        // 如果图片数量超过限制，删除最旧的图片
-                        if (images.length >= LOCAL_IMG_CONFIG.MAX_IMAGES) {
-                            const oldestImage = images[0];
-                            await fs.promises.unlink(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, oldestImage));
-                        }
-
-                        return path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName);
-                    }
-                } catch (error) {
-                    logger.error(`从备用API获取图片失败: ${error.message}`);
-                }
             }
-
-            // 从本地图片中随机选择一张
-            if (images.length > 0) {
-                const randomImage = images[Math.floor(Math.random() * images.length)];
-                return path.join(LOCAL_IMG_CONFIG.SAVE_DIR, randomImage);
-            }
-
-            // 如果所有方法都失败，返回默认背景图片
-            return './bg.png';
-        } catch (error) {
-            logger.error(`获取图片URL失败: ${error.message}`);
-            return './bg.png';
         }
+
+        let checkInInformation = JSON.parse(mySignInInfo)
+
+        // let qqInfoJson = await fetch("http://xiaobai.klizi.cn/API/qqgn/qq.php?qq=" + e.user_id)
+        // 一言
+        mooto = await fetch("https://xiaobai.klizi.cn/API/other/yy.php").then(res => res.text()).catch((err) => console.error(err))
+        // let bgApi = "https://xiaobai.klizi.cn/API/img/game.php"
+        // let background = await fetch(bgApi).then(res => res.text()).catch((err) => console.error(err))
+        let last_sign_in = checkInInformation.check_in_last.substr(0, 10)
+
+        // let qqInfo = await qqInfoJson.json()
+        let qqAvatar = `https://api.linhun.vip/api/Avatar?apiKey=4865ef5f552de39195d2c033e71ed44b&qq=${e.user_id}`
+        let data = {
+            tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
+            dz: _path,
+            userInfo: checkInInformation,
+            qqAvatar: qqAvatar,
+            tdInfo: today_check_in,
+            mooto: mooto,
+            last_sign_in: last_sign_in,
+            nickname: e.nickname
+            // bg: background
+        }
+        let img = await puppeteer.screenshot("123", {
+            ...data,
+        });
+
+        await e.reply(img, false, { at: true })
+
+
+
+
+
     }
 
-    /**
-     * 生成并发送签到图片
-     * @param {Object} e - 消息事件对象
-     * @param {Object} signData - 用户签到数据
-     * @param {Object} todayCheckIn - 今日签到数据
-     * @param {string} motto - 一言内容
-     */
-    async generateAndSendCheckInImage(e, signData, todayCheckIn, motto) {
-        try {
-            let lastSignIn = signData.check_in_last;
-            if (lastSignIn === "0000-00-00") {
-                lastSignIn = "首次签到";
-            }
-            let qqAvatar = API_CONFIG.AVATAR + signData.user_qq;
-
-            // 获取背景图片URL
-            const bgUrl = await this.fetchImgUrl() || './bg.png';
-
-            logger.info(`背景图片URL: ${bgUrl}`);
-
-            // 准备模板数据
-            const templateData = {
-                tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
-                dz: _path,
-                userInfo: signData,
-                qqAvatar: qqAvatar,
-                tdInfo: todayCheckIn,
-                bgUrl: bgUrl,
-                mooto: motto,
-                last_sign_in: lastSignIn,
-                nickname: e.nickname,
-                // 添加响应式布局参数
-                layout: {
-                    responsive: true,
-                    maxWidth: '100%',
-                    minHeight: '100%',
-                    adaptiveFont: true
-                }
-            };
-
-            // 生成签到图片
-            const img = await puppeteer.screenshot("signin", {
-                ...templateData,
-            });
-
-            // 发送图片
-            await e.reply(img, false, { at: true });
-        } catch (error) {
-            logger.error(`生成签到图片失败: ${error.message}`);
-            await e.reply("生成签到图片失败，但签到数据已记录");
+    async getCheckInInformation(e) {
+        let info = {
+            favorability: 0,
+            mora: 0,
+            primogems: 0
         }
+        info.favorability = (Math.random() * 10).toFixed(2)
+        info.mora = Math.floor(Math.random() * 1000 * e + 1000)
+        info.primogems = Math.floor(Math.random() * 100 * e + 60)
+        return info
     }
 
-    /**
-     * 格式化当前时间为 YYYY-MM-DD HH:mm:ss
-     * @returns {string} 格式化后的时间字符串
-     */
     async formatNowTime() {
-
         var myDate = new Date();	//创建Date对象
         var Y = myDate.getFullYear();   //获取当前完整年份
         var M = myDate.getMonth() + 1;  //获取当前月份
@@ -369,16 +179,10 @@ export class DailyCheckIn extends plugin {
         // 秒数不足10补0
         if (s < 10) {
             s = '0' + s;
-            // 拼接日期分隔符根据自己的需要来修改
-            return Y + '-' + M + '-' + D + ' ' + H + ':' + i + ':' + s;
         }
-
+        // 拼接日期分隔符根据自己的需要来修改
+        return Y + '-' + M + '-' + D + ' ' + H + ':' + i + ':' + s;
     }
-
-    /**
-     * 格式化当前日期为 YYYY-MM-DD
-     * @returns {string} 格式化后的日期字符串
-     */
     async formatNowDate() {
         var myDate = new Date();	//创建Date对象
         var Y = myDate.getFullYear();   //获取当前完整年份
@@ -396,4 +200,5 @@ export class DailyCheckIn extends plugin {
         // 拼接日期分隔符根据自己的需要来修改
         return Y + '-' + M + '-' + D;
     }
-}
+
+} 

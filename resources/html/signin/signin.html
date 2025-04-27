@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -7,156 +7,104 @@
       content="IE=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      content="width=device-width, initial-scale=1.0" />
     <title>签到</title>
     <style>
-      /* 全局样式 */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
+      /* 偷懒 懒得建css文件*/
       @font-face {
-        font-family: "HYWenHei";
-        src: url("{{dz}}/plugins/lycoris-plugin/resources/font/HYWenHei-85W.ttf")
-          format("truetype");
+        font-family: "宋体";
+        src: local("宋体");
         font-weight: normal;
         font-style: normal;
       }
-
       body {
         padding: 0;
         margin: 0;
         width: 100%;
-        height: 100vh;
-        /* 使用渐变背景作为默认背景 */
-        background: url("{{dz}}/plugins/lycoris-plugin/resources/html/signin/bg.jpg");
-        background-size: cover;
-        background-position: center;
-        font-family: "HYWenHei", "微软雅黑", sans-serif;
-        color: #333;
+        height: 130%;
+        background: url(http://apis.liaomengyun.top/API/pic.php);
+        /* bg api  https://api.caonm.net/api/dm/index.php
+        http://apis.liaomengyun.top/API/pic.php
+        https://www.dmoe.cc/random.php
+        */
+        background-size: 150%;
       }
-
       .container {
         height: 100%;
         width: 100%;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
+        padding: 0;
+        margin: 0;
       }
-
-      /* 标题区域 */
       .title {
-        padding: 15px 20px;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 10px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(5px);
+        height: 100px;
+        padding-left: 50px;
+        padding-top: 20px;
       }
-
-      .title h1 {
-        font-size: 1.8rem;
-        margin-bottom: 5px;
-        color: #ff6b6b;
-      }
-
-      .title strong {
-        font-size: 1rem;
-        color: #666;
-      }
-
-      /* 信息区域 */
       .informations {
-        flex: 1;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.8);
+        margin-top: 20px;
+        border: 1px solid aqua;
+        height: 500px;
+        background: white;
+        /*opacity: 0.7;*/
+        display: flex;
+        background: rgba(255, 255, 255, 0.7);
+      }
+      .avatar {
+        width: 40%;
+        height: 90%;
+        text-align: center;
+        align-items: center;
+        border-right: 2px solid black;
+      }
+      .sign-info {
+        width: 80%;
+        height: 100%;
+      }
+      .sign-info-up {
+        height: 10%;
+        margin-left: 40px;
+        line-height: 50px;
+        font-size: larger;
+        font-weight: 900;
+        font-family: "黑体";
+      }
+      .sign-info-down {
+        height: 100%;
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(5px);
-      }
-
-      /* 签到信息 */
-      .sign-info {
-        flex: 3;
-        min-width: 300px;
-        display: flex;
-        flex-direction: column;
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
-      .sign-info-up {
-        padding: 15px 20px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        background: rgba(255, 255, 255, 0.5);
-      }
-
-      .sign-info-up span {
-        font-size: 1.2rem;
-      }
-
-      .sign-info-up strong {
-        font-size: 2rem;
-        color: #ff6b6b;
-        margin: 0 5px;
-      }
-
-      .sign-info-down {
-        flex: 1;
-        display: flex;
-        padding: 15px;
-      }
-
-      /* 头像区域 */
-      .avatar {
-        width: 150px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        flex-wrap: nowrap;
+        align-content: center;
         justify-content: center;
-        padding: 10px;
+        align-items: flex-start;
       }
-
-      .avatar-img {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #fff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      /* 签到详情 */
       .sign-info-details {
-        flex: 1;
-        padding: 10px 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        width: 100%;
+        height: 90%;
       }
-
-      .sign-info-details p {
-        margin: 8px 0;
-        font-size: 1rem;
+      .avatar-img {
+        width: 80%;
+        height: 120px;
+        border-radius: 100px;
+        margin-top: 130px;
+        opacity: 1;
       }
-
-      .sign-info-details strong {
-        color: #555;
+      .group-info {
+        height: 100%;
+        position: relative;
+        min-width: 300px;
       }
-
-      /* 进度条 */
+      p {
+        font-family: "楷体";
+        font-size: larger;
+        font-weight: 600;
+      }
+      /* 13 */
       .loadbar {
         width: 100%;
-        height: 20px;
-        border: 2px solid #ddd;
-        border-radius: 10px;
+        height: 30px;
+        border: 3px solid #212121;
+        border-radius: 20px;
         position: relative;
-        margin: 10px 0 15px 0;
-        overflow: hidden;
       }
 
       .loadbar div {
@@ -167,180 +115,86 @@
         left: 0;
       }
 
-      .loadbar div span {
-        box-shadow: inset 0 -2px 6px rgba(0, 0, 0, 0.1);
+      .loadbar div span,
+      .loadbar div i {
+        box-shadow: inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+        width: 0%;
         display: block;
         height: 100%;
         position: absolute;
         top: 0;
         left: 0;
-        border-radius: 10px;
-        background: linear-gradient(to right, #4facfe, #00f2fe);
-        transition: width 0.8s ease;
+        border-radius: 20px;
       }
 
       .loadbar div i {
         width: 100%;
-        height: 100%;
-        position: absolute;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0) 0%,
-          rgba(255, 255, 255, 0.4) 50%,
-          rgba(255, 255, 255, 0) 100%
-        );
-        animation: shimmer 1.5s infinite;
-        background-size: 200% 100%;
+        animation: alternate;
+        -webkit-animation: move 0.8s linear infinite;
+        /* background: -webkit-linear-gradient(
+          left top,
+          #7ed047 0%,
+          #7ed047 25%,
+          #4ea018 25%,
+          #4ea018 50%,
+          #7ed047 50%,
+          #7ed047 75%,
+          #4ea018 75%,
+          #4ea018 100%
+        ); */
+        background: linear-gradient(to left, rgb(212, 38, 38), rgb(7, 7, 227));
+        /* background-size: 40px 40px; */
       }
-
-      @keyframes shimmer {
-        0% {
-          background-position: -200% 0;
-        }
-        100% {
-          background-position: 200% 0;
-        }
-      }
-
-      /* 群组信息 */
-      .group-info {
-        flex: 2;
-        min-width: 250px;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .group-info > strong {
-        text-align: center;
-        font-size: 1.2rem;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
-      .group-info > strong span {
-        font-size: 1.8rem;
-        color: #ff6b6b;
-        margin: 0 5px;
-      }
-
-      .group-info > div {
-        padding: 5px 10px;
-      }
-
-      .group-info p {
-        margin: 8px 0;
-        font-size: 0.95rem;
-      }
-
-      /* 图标列表 */
-      .icon-list {
-        margin-top: auto;
-        padding: 15px 10px;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
       .icon {
-        width: 2em;
-        height: 2em;
-        margin: 0 5px;
-        vertical-align: middle;
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.15em;
         fill: currentColor;
         overflow: hidden;
-        transition: transform 0.3s ease;
+        font-size: 40px;
       }
-
-      .icon:hover {
-        transform: scale(1.2);
-      }
-
       .mingyan {
         font-weight: 500;
-        margin-top: 15px;
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.5);
-        border-radius: 8px;
-        font-style: italic;
-        color: #555;
-        max-height: 80px;
-        overflow-y: auto;
+        margin-top: 0px;
+        max-width: 250px;
+        overflow: hidden;
       }
-
-      /* 响应式布局 */
-      @media screen and (max-width: 768px) {
-        .informations {
-          flex-direction: column;
-        }
-
-        .sign-info {
-          border-right: none;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .sign-info-down {
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .avatar {
-          width: 100%;
-          margin-bottom: 15px;
-        }
-
-        .sign-info-details {
-          width: 100%;
-        }
+      .icon-list {
+        margin: 90px 20px 20px 20px;
       }
     </style>
     <script src="{{dz}}/plugins/lycoris-plugin/resources/html/signin/iconfont.js"></script>
     <script>
       onload = function () {
-        // 原有的进度条和布局调整代码
+        // let hiddenBg = document.getElementById("hiddenBg");
         let percent = document.getElementById("percent");
         let days = document.getElementById("days");
         let percentWidth = days.innerHTML;
-
-        // 设置进度条动画
-        setTimeout(function () {
-          if (percentWidth <= 100) {
-            percent.style.width = percentWidth + "%";
-          } else {
-            percent.style.width = "100%";
-          }
-        }, 100);
-
-        // 适配移动设备
-        function adjustLayout() {
-          const width = window.innerWidth;
-          const container = document.querySelector(".container");
-
-          if (width < 500) {
-            container.style.padding = "5px";
-          } else {
-            container.style.padding = "10px";
-          }
+        if (percentWidth <= 100) {
+          percent.style.width = percentWidth + "%";
+        } else {
+          percent.style.width = "100%";
         }
-
-        // 初始调整和窗口大小变化时调整
-        adjustLayout();
-        window.addEventListener("resize", adjustLayout);
+        //   document.body.style.background=hiddenBg.innerHTML
       };
     </script>
   </head>
 
   <body>
     <div class="container">
+      <!--<div id="hiddenBg" style="display: none;">{{bg}}</div>-->
       <div class="title">
         <h1>{{nickname}}</h1>
-        <strong>QQ: {{userInfo.user_qq}}</strong>
+        <strong>QQ:{{userInfo.user_qq}}</strong>
       </div>
 
       <div class="informations">
         <div class="sign-info">
           <div class="sign-info-up">
             <span
-              >你已经累计签到了<strong id="days"
+              >你已经累计签到了<strong
+                style="font-size: 40px; color: red"
+                id="days"
                 >{{userInfo.check_in_days}}</strong
               >天</span
             >
@@ -349,60 +203,49 @@
             <div class="avatar">
               <img
                 src="{{qqAvatar}}"
-                alt="头像"
+                alt=""
                 class="avatar-img" />
             </div>
             <div class="sign-info-details">
-              <p>当前<strong>好感度：</strong>{{userInfo.favorability}}</p>
-              <div
-                id="loadbar01"
-                class="loadbar">
-                <div>
-                  <span
-                    class="percent"
-                    id="percent">
-                    <i></i>
-                  </span>
+              <div style="margin: 100px auto auto 40px">
+                <p>当前<strong>好感度：</strong>{{userInfo.favorability}}</p>
+                <div
+                  id="loadbar01"
+                  class="loadbar">
+                  <div>
+                    <span
+                      class="percent"
+                      id="percent">
+                      <i></i>
+                    </span>
+                  </div>
                 </div>
+                <p>好感度:+{{tdInfo.td_favorability}}</p>
+                <p>摩拉:+{{tdInfo.td_mora}}</p>
+                <p>原石:+{{tdInfo.td_primogems}}</p>
+                <strong>签到时间：{{userInfo.check_in_time}}</strong>
               </div>
-              <p>
-                <span style="color: #4facfe">✨</span> 好感度:
-                +{{tdInfo.td_favorability}}
-              </p>
-              <p>
-                <span style="color: #ffa502">💰</span> 摩拉: +{{tdInfo.td_mora}}
-              </p>
-              <p>
-                <span style="color: #ff6b6b">💎</span> 原石:
-                +{{tdInfo.td_primogems}}
-              </p>
-              <p><strong>签到时间：</strong>{{userInfo.check_in_time}}</p>
             </div>
           </div>
         </div>
-        <div class="group-info">
-          <strong> 群好感度第<span>1</span>名 </strong>
-          <div>
-            <p>
-              <span style="color: #666">📅</span> 上次签到: {{last_sign_in}}
-            </p>
-            <p>
-              <span style="color: #ffa502">💰</span> 总摩拉: {{userInfo.mora}}
-            </p>
-            <p>
-              <span style="color: #ff6b6b">💎</span> 总原石:
-              {{userInfo.primogems}}
-            </p>
-            <p><span style="color: #4facfe">🎲</span> 抽卡次数: 0</p>
+        <div class="grop-info">
+          <strong style="text-align: center; font-size: 25px">
+            群好感度第<span style="font-size: 40px; color: red">1</span>名
+          </strong>
+          <div style="margin-left: 20px">
+            <p>上次签到日期:{{last_sign_in}}</p>
+            <p>总摩拉:{{userInfo.mora}}</p>
+            <p>总原石:{{userInfo.primogems}}</p>
+            <p>抽卡次数:undefined</p>
           </div>
           <div class="icon-list">
             <svg
-              class="icon"
+              class="icon svg-icon"
               aria-hidden="true">
               <use xlink:href="#icon-fire-copy"></use>
             </svg>
             <svg
-              class="icon"
+              class="icon svg-icon"
               aria-hidden="true">
               <use xlink:href="#icon-water-copy"></use>
             </svg>
@@ -412,22 +255,24 @@
               <use xlink:href="#icon-wind-copy"></use>
             </svg>
             <svg
-              class="icon"
+              class="icon svg-icon"
               aria-hidden="true">
               <use xlink:href="#icon-thunder-copy"></use>
             </svg>
+            <br />
             <svg
-              class="icon"
-              aria-hidden="true">
+              class="icon svg-icon"
+              aria-hidden="true"
+              style="margin-left: 20px">
               <use xlink:href="#icon-grass-copy"></use>
             </svg>
             <svg
-              class="icon"
+              class="icon svg-icon"
               aria-hidden="true">
               <use xlink:href="#icon-ice-copy"></use>
             </svg>
             <svg
-              class="icon"
+              class="icon svg-icon"
               aria-hidden="true">
               <use xlink:href="#icon-rock-copy"></use>
             </svg>
