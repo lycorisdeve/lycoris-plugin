@@ -152,10 +152,10 @@ export class Read60sPlugin extends plugin {
         try {
             const message = await getNewsImage();
             const sendPromises = [
-                ...plugin_config.private_ids.map(qq =>
+                ...plugin_config.private_ids.map(qq => 
                     Bot.sendPrivateMsg(qq, message).catch(err => logger.error(err))
                 ),
-                ...plugin_config.group_ids.map(qqGroup =>
+                ...plugin_config.group_ids.map(qqGroup => 
                     Bot.sendGroupMsg(qqGroup, message).catch(err => logger.error(err))
                 )
             ];

@@ -35,3 +35,14 @@ moyu:
   #配置定时发送群组和需要私聊发送的人
   group_ids: ["1035210666", "959969379"]
   private_ids: []
+# 油价查询
+oilPrice:
+  schedule:
+    hour: "8" # 在早上8:00:00执行
+    minute: "30"
+    second: "0"
+  #配置定时发送群组和需要私聊发送的人
+  group_ids: ["959969379"]
+  private_ids: []
+  #需要推送的省份
+  provinces: ["江苏", "福建"]
