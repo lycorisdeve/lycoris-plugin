@@ -24,11 +24,20 @@
         margin: 0;
         width: 100%;
         height: 100vh;
-        background: url(https://api.yimian.xyz/img?type=moe);
+        background-color: #f5f5f5; /* 添加默认背景色 */
         background-size: cover;
         background-position: center;
         font-family: "HYWenHei", "微软雅黑", sans-serif;
         color: #333;
+      }
+
+      /* 添加背景图片回退方案 */
+      @media (max-width: 768px), (min-width: 769px) {
+        body {
+          background: url(./bg.png), linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+          background-size: cover;
+          background-position: center;
+        }
       }
 
       .container {
@@ -112,6 +121,19 @@
         align-items: center;
         justify-content: center;
         padding: 10px;
+        position: relative; /* 添加相对定位 */
+      }
+
+      .avatar::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 140px; /* 比头像稍大 */
+        height: 140px;
+        background: url(./ava_border.png) no-repeat center/contain;
+        z-index: 1;
       }
 
       .avatar-img {
@@ -121,6 +143,8 @@
         object-fit: cover;
         border: 3px solid #fff;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 0;
       }
 
       /* 签到详情 */
