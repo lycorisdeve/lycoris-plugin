@@ -118,9 +118,11 @@ export class dailycheckin extends plugin {
         // let qqInfo = await qqInfoJson.json()
         let qqAvatar = `https://api.qqsuu.cn/api/dm-qt?qq=${e.user_id}`
         let data = {
-            tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
+
+            _res_path: `${_path}/plugins/${pluginName}/resources`,
+            defaultLayout: '${_path}/plugins/${pluginName}/resources/html/common/layout/defult.html',
             dz: _path,
-            _res_path: `${_path}/plugins/lycoris-plugin/resources`,
+            tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             userInfo: checkInInformation,
             qqAvatar: qqAvatar,
             tdInfo: today_check_in,
