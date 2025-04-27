@@ -1,7 +1,7 @@
 import axios from 'axios'
 import Config from '../model/config.js'
 import fs from 'fs'
-import yaml from 'js-yaml'
+import yaml from 'yaml'
 
 /*
  * @description: 全国油价查询推送
