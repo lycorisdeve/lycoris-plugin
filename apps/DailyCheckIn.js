@@ -120,7 +120,7 @@ export class dailycheckin extends plugin {
         let data = {
 
             _res_path: `${_path}/plugins/${pluginName}/resources`,
-            defaultLayout: '${_path}/plugins/${pluginName}/resources/html/common/layout/defult.html',
+            defaultLayout: `${_path}/plugins/${pluginName}/resources/html/common/layout/default.html`,
             dz: _path,
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             userInfo: checkInInformation,
