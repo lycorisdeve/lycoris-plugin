@@ -99,10 +99,7 @@ export class DailyCheckIn extends plugin {
         const mySignInInfo = await redis.get(`${CHECK_IN_KEY}${userQQ}`);
         logger.info(mySignInInfo)
         // 判断是否为首次签到
-        const isFirstTime = true;
-        if (mySignInInfo != null) {
-            isFirstTime = false;
-        }
+        let isFirstTime = mySignInInfo === null;  // 直接使用判断结果赋值
 
         // 检查今日是否已签到
         let alreadyCheckedIn = false;
@@ -113,7 +110,6 @@ export class DailyCheckIn extends plugin {
                 alreadyCheckedIn = true;
             }
             signData = JSON.parse(mySignInInfo);
-
         }
 
         return { signData, todayCheckIn, isFirstTime, alreadyCheckedIn };
