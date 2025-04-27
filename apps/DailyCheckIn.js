@@ -37,7 +37,7 @@ export class DailyCheckIn extends plugin {
      * 用户签到主函数
      * @param {Object} e - 消息事件对象
      */
-    async checkIn() {
+    async checkIn(e) {
         try {
             // 初始化用户数据
             const userQQ = e.user_id;
@@ -63,7 +63,7 @@ export class DailyCheckIn extends plugin {
             const motto = await this.fetchMotto();
 
             // 生成签到图片并回复
-            await this.generateAndSendCheckInImage(signData, todayCheckIn, motto);
+            await this.generateAndSendCheckInImage(e, signData, todayCheckIn, motto);
 
         } catch (error) {
             logger.error(`签到出错: ${error.message}`);
@@ -111,11 +111,11 @@ export class DailyCheckIn extends plugin {
             if (lastCheckInJson) {
                 todayCheckIn = JSON.parse(lastCheckInJson);
                 alreadyCheckedIn = true;
-            } 
+            }
             signData = JSON.parse(mySignInInfo);
-            
+
         }
-       
+
         return { signData, todayCheckIn, isFirstTime, alreadyCheckedIn };
     }
 
@@ -239,7 +239,7 @@ export class DailyCheckIn extends plugin {
      * @param {Object} todayCheckIn - 今日签到数据
      * @param {string} motto - 一言内容
      */
-    async generateAndSendCheckInImage(signData, todayCheckIn, motto) {
+    async generateAndSendCheckInImage(e, signData, todayCheckIn, motto) {
         try {
             let lastSignIn = signData.check_in_last.substr(0, 10);
             let qqAvatar = API_CONFIG.AVATAR + signData.user_qq;
