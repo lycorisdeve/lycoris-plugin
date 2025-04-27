@@ -237,7 +237,10 @@ export class DailyCheckIn extends plugin {
      */
     async generateAndSendCheckInImage(e, signData, todayCheckIn, motto) {
         try {
-            let lastSignIn = signData.check_in_last.substr(0, 10);
+            let lastSignIn = signData.check_in_last;
+            if (lastSignIn === "0000-00-00") {
+                lastSignIn = "首次签到";
+            }
             let qqAvatar = API_CONFIG.AVATAR + signData.user_qq;
 
             // 获取背景图片URL
