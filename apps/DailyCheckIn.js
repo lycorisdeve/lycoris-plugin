@@ -1,6 +1,8 @@
 import fetch from 'node-fetch'
 import { pluginName } from '../components/lib/Path.js';
 import puppeteer from "../../../lib/puppeteer/puppeteer.js";
+import fs from 'fs';
+import path from 'path';
 
 // 常量配置
 const REDIS_KEY_PREFIX = 'Lycoris:';
@@ -224,14 +226,24 @@ export class DailyCheckIn extends plugin {
         }
     }
     async fetchImgUrl() {
+        // 首先尝试使用主API
+        try {
+            const response = await fetch(API_CONFIG.IMG)
+            const finalUrl = response.url;
+            return finalUrl;
+        } catch (error) {
+            logger.error(`主API获取图片失败: ${error.message}`);
+            return this.fetchLocalImgUrl();
+        }
+    }
+
+    async fetchLocalImgUrl() {
         try {
             // 确保本地图片目录存在
-            const fs = require('fs').promises;
-            const path = require('path');
-            await fs.mkdir(LOCAL_IMG_CONFIG.SAVE_DIR, { recursive: true });
+            await fs.promises.mkdir(LOCAL_IMG_CONFIG.SAVE_DIR, { recursive: true });
 
             // 获取本地图片列表
-            const files = await fs.readdir(LOCAL_IMG_CONFIG.SAVE_DIR);
+            const files = await fs.promises.readdir(LOCAL_IMG_CONFIG.SAVE_DIR);
             const images = files.filter(file => /\.(jpg|jpeg|png)$/i.test(file));
 
             // 如果本地图片不足10张或需要更新，则从备用API获取新图片
@@ -244,12 +256,12 @@ export class DailyCheckIn extends plugin {
                         const imgResponse = await fetch(imgUrl);
                         const buffer = await imgResponse.buffer();
                         const fileName = `bg_${Date.now()}.jpg`;
-                        await fs.writeFile(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName), buffer);
+                        await fs.promises.writeFile(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName), buffer);
 
                         // 如果图片数量超过限制，删除最旧的图片
                         if (images.length >= LOCAL_IMG_CONFIG.MAX_IMAGES) {
                             const oldestImage = images[0];
-                            await fs.unlink(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, oldestImage));
+                            await fs.promises.unlink(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, oldestImage));
                         }
 
                         return path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName);
