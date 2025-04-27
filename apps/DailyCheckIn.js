@@ -13,7 +13,15 @@ const REDIS_EXPIRY = {
 const API_CONFIG = {
     MOTTO: 'https://v1.hitokoto.cn/?encode=text',
     AVATAR: 'https://api.qqsuu.cn/api/dm-qt?qq=',
-    IMG: 'https://api.yimian.xyz/img?type=moe'
+    IMG: 'http://api.yimian.xyz/img?type=moe',
+    IMG_BAK: 'https://api.lolicon.app/setu/v2?size=regular&r18=0'
+};
+
+// 添加本地图片相关配置
+const LOCAL_IMG_CONFIG = {
+    SAVE_DIR: './plugins/lycoris-plugin/resources/backgrounds',
+    MAX_IMAGES: 10,
+    UPDATE_INTERVAL: 24 * 60 * 60 * 1000, // 24小时
 };
 
 // 工作目录
@@ -217,14 +225,51 @@ export class DailyCheckIn extends plugin {
     }
     async fetchImgUrl() {
         try {
-            const response = await fetch(API_CONFIG.IMG);
-            logger.info(response)
-            // 获取最终的重定向URL
-            const finalUrl = response.url;
-            return finalUrl;
+            // 确保本地图片目录存在
+            const fs = require('fs').promises;
+            const path = require('path');
+            await fs.mkdir(LOCAL_IMG_CONFIG.SAVE_DIR, { recursive: true });
+
+            // 获取本地图片列表
+            const files = await fs.readdir(LOCAL_IMG_CONFIG.SAVE_DIR);
+            const images = files.filter(file => /\.(jpg|jpeg|png)$/i.test(file));
+
+            // 如果本地图片不足10张或需要更新，则从备用API获取新图片
+            if (images.length < LOCAL_IMG_CONFIG.MAX_IMAGES) {
+                try {
+                    const response = await fetch(API_CONFIG.IMG_BAK);
+                    const data = await response.json();
+                    if (data.data && data.data.length > 0) {
+                        const imgUrl = data.data[0].urls.regular;
+                        const imgResponse = await fetch(imgUrl);
+                        const buffer = await imgResponse.buffer();
+                        const fileName = `bg_${Date.now()}.jpg`;
+                        await fs.writeFile(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName), buffer);
+
+                        // 如果图片数量超过限制，删除最旧的图片
+                        if (images.length >= LOCAL_IMG_CONFIG.MAX_IMAGES) {
+                            const oldestImage = images[0];
+                            await fs.unlink(path.join(LOCAL_IMG_CONFIG.SAVE_DIR, oldestImage));
+                        }
+
+                        return path.join(LOCAL_IMG_CONFIG.SAVE_DIR, fileName);
+                    }
+                } catch (error) {
+                    logger.error(`从备用API获取图片失败: ${error.message}`);
+                }
+            }
+
+            // 从本地图片中随机选择一张
+            if (images.length > 0) {
+                const randomImage = images[Math.floor(Math.random() * images.length)];
+                return path.join(LOCAL_IMG_CONFIG.SAVE_DIR, randomImage);
+            }
+
+            // 如果所有方法都失败，返回默认背景图片
+            return './bg.png';
         } catch (error) {
             logger.error(`获取图片URL失败: ${error.message}`);
-            return null;
+            return './bg.png';
         }
     }
 

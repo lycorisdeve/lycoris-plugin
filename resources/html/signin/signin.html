@@ -2,6 +2,12 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <meta
+      http-equiv="X-UA-Compatible"
+      content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>签到</title>
     <style>
       /* 全局样式 */
@@ -9,15 +15,6 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-      }
-
-      :root {
-        --primary-color: #ff6b6b;
-        --secondary-color: #4facfe;
-        --border-color: rgba(0, 0, 0, 0.1);
-        --card-bg: rgba(255, 255, 255, 0.8);
-        --text-color: #333;
-        --text-secondary: #666;
       }
 
       @font-face {
@@ -28,33 +25,37 @@
         font-style: normal;
       }
 
-      /* 基础卡片样式 */
-      .card {
-        background: var(--card-bg);
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(5px);
-      }
-
       body {
         padding: 0;
         margin: 0;
         width: 100%;
         height: 100vh;
-        background: url("{{bgUrl}}");
+        /* 使用渐变背景作为默认背景 */
+        background: linear-gradient(
+          45deg,
+          #ff9a9e 0%,
+          #fad0c4 99%,
+          #fad0c4 100%
+        );
         background-size: cover;
         background-position: center;
         font-family: "HYWenHei", "微软雅黑", sans-serif;
-        color: var(--text-color);
+        color: #333;
       }
 
-      @media (max-width: 768px), (min-width: 769px) {
-        body {
-          background: url("./bg.png"),
-            linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
-          background-size: cover;
-          background-position: center;
-        }
+      /* 添加背景图片容器 */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("{{bgUrl}}");
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        opacity: 0.8;
       }
 
       .container {
@@ -68,27 +69,35 @@
       /* 标题区域 */
       .title {
         padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
         margin-bottom: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
       }
 
       .title h1 {
         font-size: 1.8rem;
         margin-bottom: 5px;
-        color: var(--primary-color);
+        color: #ff6b6b;
       }
 
       .title strong {
         font-size: 1rem;
-        color: var(--text-secondary);
+        color: #666;
       }
 
       /* 信息区域 */
       .informations {
         flex: 1;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.8);
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(5px);
       }
 
       /* 签到信息 */
@@ -97,12 +106,12 @@
         min-width: 300px;
         display: flex;
         flex-direction: column;
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
       }
 
       .sign-info-up {
         padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         background: rgba(255, 255, 255, 0.5);
       }
 
@@ -112,7 +121,7 @@
 
       .sign-info-up strong {
         font-size: 2rem;
-        color: var(--primary-color);
+        color: #ff6b6b;
         margin: 0 5px;
       }
 
@@ -130,19 +139,6 @@
         align-items: center;
         justify-content: center;
         padding: 10px;
-        position: relative;
-      }
-
-      .avatar::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 140px;
-        height: 140px;
-        background: url(./ava_border.png) no-repeat center/contain;
-        z-index: 1;
       }
 
       .avatar-img {
@@ -152,8 +148,24 @@
         object-fit: cover;
         border: 3px solid #fff;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        position: relative;
-        z-index: 0;
+      }
+
+      /* 签到详情 */
+      .sign-info-details {
+        flex: 1;
+        padding: 10px 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .sign-info-details p {
+        margin: 8px 0;
+        font-size: 1rem;
+      }
+
+      .sign-info-details strong {
+        color: #555;
       }
 
       /* 进度条 */
@@ -183,7 +195,7 @@
         top: 0;
         left: 0;
         border-radius: 10px;
-        background: linear-gradient(to right, var(--secondary-color), #00f2fe);
+        background: linear-gradient(to right, #4facfe, #00f2fe);
         transition: width 0.8s ease;
       }
 
@@ -210,17 +222,45 @@
         }
       }
 
-      /* 通用文本样式 */
-      .text-content p {
+      /* 群组信息 */
+      .group-info {
+        flex: 2;
+        min-width: 250px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .group-info > strong {
+        text-align: center;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .group-info > strong span {
+        font-size: 1.8rem;
+        color: #ff6b6b;
+        margin: 0 5px;
+      }
+
+      .group-info > div {
+        padding: 5px 10px;
+      }
+
+      .group-info p {
         margin: 8px 0;
         font-size: 0.95rem;
       }
 
-      .text-content strong {
-        color: var(--text-secondary);
+      /* 图标列表 */
+      .icon-list {
+        margin-top: auto;
+        padding: 15px 10px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
       }
 
-      /* 图标样式 */
       .icon {
         width: 2em;
         height: 2em;
@@ -235,6 +275,18 @@
         transform: scale(1.2);
       }
 
+      .mingyan {
+        font-weight: 500;
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 8px;
+        font-style: italic;
+        color: #555;
+        max-height: 80px;
+        overflow-y: auto;
+      }
+
       /* 响应式布局 */
       @media screen and (max-width: 768px) {
         .informations {
@@ -243,7 +295,7 @@
 
         .sign-info {
           border-right: none;
-          border-bottom: 1px solid var(--border-color);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .sign-info-down {
@@ -262,6 +314,39 @@
       }
     </style>
     <script src="{{dz}}/plugins/lycoris-plugin/resources/html/signin/iconfont.js"></script>
+    <script>
+      onload = function () {
+        // 原有的进度条和布局调整代码
+        let percent = document.getElementById("percent");
+        let days = document.getElementById("days");
+        let percentWidth = days.innerHTML;
+
+        // 设置进度条动画
+        setTimeout(function () {
+          if (percentWidth <= 100) {
+            percent.style.width = percentWidth + "%";
+          } else {
+            percent.style.width = "100%";
+          }
+        }, 100);
+
+        // 适配移动设备
+        function adjustLayout() {
+          const width = window.innerWidth;
+          const container = document.querySelector(".container");
+
+          if (width < 500) {
+            container.style.padding = "5px";
+          } else {
+            container.style.padding = "10px";
+          }
+        }
+
+        // 初始调整和窗口大小变化时调整
+        adjustLayout();
+        window.addEventListener("resize", adjustLayout);
+      };
+    </script>
   </head>
 
   <body>
@@ -331,53 +416,41 @@
             <p><span style="color: #4facfe">🎲</span> 抽卡次数: 0</p>
           </div>
           <div class="icon-list">
-            <div
-              class="icon-row"
-              style="
-                display: flex;
-                justify-content: center;
-                margin-bottom: 10px;
-              ">
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-fire-copy"></use>
-              </svg>
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-water-copy"></use>
-              </svg>
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-wind-copy"></use>
-              </svg>
-            </div>
-            <div
-              class="icon-row"
-              style="display: flex; justify-content: center">
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-thunder-copy"></use>
-              </svg>
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-grass-copy"></use>
-              </svg>
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-ice-copy"></use>
-              </svg>
-              <svg
-                class="icon"
-                aria-hidden="true">
-                <use xlink:href="#icon-rock-copy"></use>
-              </svg>
-            </div>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-fire-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-water-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-wind-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-thunder-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-grass-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-ice-copy"></use>
+            </svg>
+            <svg
+              class="icon"
+              aria-hidden="true">
+              <use xlink:href="#icon-rock-copy"></use>
+            </svg>
             <p class="mingyan">{{mooto}}</p>
           </div>
         </div>
