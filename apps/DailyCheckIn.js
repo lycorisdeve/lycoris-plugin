@@ -123,7 +123,10 @@ export class dailycheckin extends plugin {
             defaultLayout: `${_path}/plugins/${pluginName}/resources/html/common/layout/default.html`,
             dz: _path,
             sys: {
-                scale: scale(1)
+                scale: 100,
+                width: 1200,
+                height: 1200,
+                background: "rgba(255,255,255,0.8)"
             },
             copyright: "Lycoris-Plugin",
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
