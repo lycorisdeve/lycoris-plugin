@@ -12,7 +12,8 @@ const REDIS_EXPIRY = {
 };
 const API_CONFIG = {
     MOTTO: 'https://v1.hitokoto.cn/?encode=text',
-    AVATAR: 'https://api.qqsuu.cn/api/dm-qt?qq='
+    AVATAR: 'https://api.qqsuu.cn/api/dm-qt?qq=',
+    IMG: 'https://api.yimian.xyz/img?type=moe'
 };
 
 // 工作目录
@@ -98,7 +99,10 @@ export class DailyCheckIn extends plugin {
         const mySignInInfo = await redis.get(`${CHECK_IN_KEY}${userQQ}`);
         logger.info(mySignInInfo)
         // 判断是否为首次签到
-        const isFirstTime = mySignInInfo === null;
+        const isFirstTime = true;
+        if (mySignInInfo != null) {
+            isFirstTime = false;
+        }
 
         // 检查今日是否已签到
         let alreadyCheckedIn = false;
@@ -221,6 +225,17 @@ export class DailyCheckIn extends plugin {
             return "今天也要元气满满哦~";
         }
     }
+    async fetchImgUrl() {
+        try {
+            const response = await fetch(API_CONFIG.IMG);
+            // 获取最终的重定向URL
+            const finalUrl = response.url;
+            return finalUrl;
+        } catch (error) {
+            logger.error(`获取图片URL失败: ${error.message}`);
+            return null;
+        }
+    }
 
     /**
      * 生成并发送签到图片
@@ -233,6 +248,9 @@ export class DailyCheckIn extends plugin {
         try {
             let lastSignIn = signData.check_in_last.substr(0, 10);
             let qqAvatar = `${API_CONFIG.AVATAR}${e.user_id}`;
+            
+            // 获取背景图片URL
+            const bgUrl = await this.fetchImgUrl() || './bg.png';
 
             // 准备模板数据
             const templateData = {

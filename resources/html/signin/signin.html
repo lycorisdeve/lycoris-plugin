@@ -41,7 +41,7 @@
         margin: 0;
         width: 100%;
         height: 100vh;
-        background-color: #f5f5f5;
+        background: url("{{bgUrl}}");
         background-size: cover;
         background-position: center;
         font-family: "HYWenHei", "微软雅黑", sans-serif;
@@ -191,7 +191,12 @@
         width: 100%;
         height: 100%;
         position: absolute;
-        background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.4) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
         animation: shimmer 1.5s infinite;
         background-size: 200% 100%;
       }
@@ -257,51 +262,6 @@
       }
     </style>
     <script src="{{dz}}/plugins/lycoris-plugin/resources/html/signin/iconfont.js"></script>
-    <script>
-      onload = function () {
-        // 原有的进度条和布局调整代码
-        let percent = document.getElementById("percent");
-        let days = document.getElementById("days");
-        let percentWidth = days.innerHTML;
-
-        // 设置进度条动画
-        setTimeout(function () {
-          if (percentWidth <= 100) {
-            percent.style.width = percentWidth + "%";
-          } else {
-            percent.style.width = "100%";
-          }
-        }, 100);
-
-        // 适配移动设备
-        function adjustLayout() {
-          const width = window.innerWidth;
-          const container = document.querySelector(".container");
-
-          if (width < 500) {
-            container.style.padding = "5px";
-          } else {
-            container.style.padding = "10px";
-          }
-        }
-
-        // 加载背景图片
-        fetch("https://api.yimian.xyz/img?type=moe")
-          .then((response) => response.url)
-          .then((finalUrl) => {
-            document.body.style.background = `url(${finalUrl})`;
-          })
-          .catch(() => {
-            // 如果加载失败，使用渐变背景作为备选
-            document.body.style.background =
-              "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)";
-          });
-
-        // 初始调整和窗口大小变化时调整
-        adjustLayout();
-        window.addEventListener("resize", adjustLayout);
-      };
-    </script>
   </head>
 
   <body>
