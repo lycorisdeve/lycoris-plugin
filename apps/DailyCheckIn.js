@@ -116,12 +116,11 @@ export class dailycheckin extends plugin {
         let last_sign_in = checkInInformation.check_in_last ? checkInInformation.check_in_last.substr(0, 10) : '0000-00-00'
 
         // let qqInfo = await qqInfoJson.json()
-        let qqAvatar = `https://api.qqsuu.cn/api/dm-qt?qq=${e.user_id}`
-        // 获取307重定向后的链接
-        let res = await fetch(qqAvatar)
-        let qqAvatarUrl = res.url || qqAvatar // 如果获取失败则使用原始链接
-        let data = {
+        // 使用更稳定的QQ头像API
+        let qqAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${e.user_id}&s=640`
+        let qqAvatarUrl = qqAvatar  // 直接使用此API，无需处理重定向
 
+        let data = {
             _res_path: `${_path}/plugins/${pluginName}/resources`,
             defaultLayout: `${_path}/plugins/${pluginName}/resources/html/common/layout/default.html`,
             dz: _path,
