@@ -52,16 +52,38 @@ class Config {
 
   /** json 转 yaml */
   transition() {
-    if (!fs.existsSync(`${pluginRootPath}/config/config.json`, 'utf8')) {
+    const jsonPath = `${pluginRootPath}/config/config.json`
+    if (!fs.existsSync(jsonPath)) {
       return
     }
-    const oldCfg = JSON.parse(fs.readFileSync(`${pluginRootPath}/config/config.json`, 'utf8'))
 
-    return newCfg
+    try {
+      // 读取旧的JSON配置
+      const oldCfg = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))
+
+      // 转换为YAML格式
+      const yamlContent = YAML.stringify(oldCfg)
+
+      // 保存为YAML文件
+      const yamlPath = `${pluginRootPath}/config/config/config.yaml`
+      fs.writeFileSync(yamlPath, yamlContent, 'utf8')
+
+      // 备份并删除旧的JSON文件
+      const backupPath = `${jsonPath}.backup`
+      fs.copyFileSync(jsonPath, backupPath)
+      fs.unlinkSync(jsonPath)
+
+      logger.mark(`[${pluginName}] 配置文件已从JSON转换为YAML格式`)
+
+      return oldCfg
+    } catch (error) {
+      logger.error(`[${pluginName}] 配置文件转换失败：${error.message}`)
+      return {}
+    }
   }
 
   /** 插件相关配置 */
-  get config() {
+  get allConfig() {
     return this.getDefOrConfig('config')
   }
 
