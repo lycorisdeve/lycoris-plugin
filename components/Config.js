@@ -1,5 +1,6 @@
 
 import fs from 'fs'
+import _ from 'lodash'
 import YAML from 'yaml'
 import chokidar from 'chokidar'
 import Version from './Version.js'
