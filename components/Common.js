@@ -1,4 +1,4 @@
-import Cfg from './Cfg.js'
+import Config from './Config.js'
 import render from './lib/Render.js'
 
 function sleep(ms) {
@@ -7,7 +7,6 @@ function sleep(ms) {
 
 export default {
   render,
-  cfg: Cfg.get,
-  isDisable: Cfg.isDisable,
+  config: Config.All,
   sleep
 }

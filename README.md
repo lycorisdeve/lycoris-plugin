@@ -32,6 +32,8 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 | 商店     | 用签到获得的原石购买粉球和蓝球 | #商店 #购买商品纠缠之缘            |
 | 壁纸     | 获得一张壁纸                   | #来一张壁纸 #壁纸搜索 xxx          |
 | 看秀图   | 不清楚                         | #秀图搜索 xx #看秀图 xx            |
+| 查油价   | 查油价                         | #油价 江苏                         |
+| 网页截图 | 网页截图                       | 网页截图                           |
 
 ## 免责声明
 

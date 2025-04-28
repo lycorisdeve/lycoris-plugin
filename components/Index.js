@@ -1,5 +1,5 @@
-import Cfg from './Cfg.js'
+import Config from './Config.js'
 import Common from './Common.js'
 import Data from './Data.js'
 import Version from './Version.js'
-export { Cfg, Common, Data, Version }
+export { Config, Common, Data, Version }
