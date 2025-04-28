@@ -132,6 +132,17 @@ p {
   background: linear-gradient(to left, rgb(212, 38, 38), rgb(7, 7, 227));
   /* background-size: 40px 40px; */
 }
+.icon-list {
+  margin: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto;
+  gap: 15px;
+  justify-items: center;
+  align-items: center;
+  max-width: 300px;
+}
+
 .icon {
   width: 1em;
   height: 1em;
@@ -139,13 +150,34 @@ p {
   fill: currentColor;
   overflow: hidden;
   font-size: 40px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.icon:hover {
+  transform: scale(1.1);
+  color: #4ea018;
+}
+
+.icon.fire-icon { color: #ff4d4d; }
+.icon.water-icon { color: #4d4dff; }
+.icon.wind-icon { color: #40bf40; }
+.icon.thunder-icon { color: #bf40bf; }
+.icon.grass-icon { color: #00cc00; }
+.icon.ice-icon { color: #66ccff; }
+.icon.rock-icon { color: #cc9900; }
+
+.mingyan {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 .mingyan {
   font-weight: 500;
   margin-top: 0px;
   max-width: 250px;
   overflow: hidden;
-}
-.icon-list {
-  margin: 90px 20px 20px 20px;
 }

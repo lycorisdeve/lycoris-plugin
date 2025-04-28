@@ -117,6 +117,9 @@ export class dailycheckin extends plugin {
 
         // let qqInfo = await qqInfoJson.json()
         let qqAvatar = `https://api.qqsuu.cn/api/dm-qt?qq=${e.user_id}`
+        // 获取307重定向后的链接
+        let res = await fetch(qqAvatar)
+        let qqAvatarUrl = res.url || qqAvatar // 如果获取失败则使用原始链接
         let data = {
 
             _res_path: `${_path}/plugins/${pluginName}/resources`,
@@ -131,7 +134,7 @@ export class dailycheckin extends plugin {
             copyright: "Lycoris-Plugin",
             tplFile: `./plugins/${pluginName}/resources/html/signin/signin.html`,
             userInfo: checkInInformation,
-            qqAvatar: qqAvatar,
+            qqAvatar: qqAvatarUrl,
             tdInfo: today_check_in,
             mooto: mooto,
             last_sign_in: last_sign_in,
