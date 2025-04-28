@@ -1,9 +1,9 @@
 
 import { Version } from '../Index.js'
 import Config from '../Config.js'
-import { pluginResources, pluginRootPath, BotName } from './Path.js'
+import { pluginResources, pluginRootPath } from './Path.js'
 import { join } from 'path'
-import puppeteer from '../../../../lib/puppeteer/puppeteer.js'
+
 
 async function rednering(path, params, cfg) {
   let { e } = cfg
