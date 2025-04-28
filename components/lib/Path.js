@@ -14,7 +14,6 @@ const pluginResources = path.join(pluginRootPath, 'resources')
 export {
     path,
     botPath,
-    botName,
     pluginName,
     pluginRootPath,
     pluginResources,
