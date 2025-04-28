@@ -2,7 +2,7 @@
 
 Lycoris-Plugin 是一个 Yunzai-Bot 的附属插件，主要提供了原史及部分功能，具体可见#彼岸花帮助
 自用插件，内含许多借鉴的其他插件代码
-该插件借鉴了许多其他插件的代码，如你发现其中包含你的代码且不原被借鉴，请及时联系作者删除。
+自用插件
 
 ## 安装与更新
 
@@ -44,3 +44,11 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 - 最后再求一个 star~，您的支持是维护本项目的动力
 - 交流群号：木得
 - 赞助支持：[Lycoris 爱发电](https://afdian.net/a/lycorisdeve)
+
+#### 鸣谢
+
+- [Yunzai-Bot](
+- [Yunzai-Bot](URL_ADDRESS.com/yunzai-bot/yunzai)
+- [miao-plugin](URL_ADDRESS.com/imcute/miao-plugin)
+- [earth-k-plugin](URL_ADDRESS.com/earth-k/earth-k-plugin)
+- [kkk-plugin](URL_ADDRESS.com/kkk/kkk-plugin)
