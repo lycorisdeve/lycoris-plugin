@@ -1,0 +1,13 @@
+fullScreen: true
+screenshot:
+  quality: 80
+  minWidth: 800
+  maxWidth: 1920
+  padding: 80
+  timeout:
+    page: 60000
+    resource: 30000
+    render: 10000
+proxyApi:
+  url: "https://proxyapi.198143.xyz/"
+  enabled: true

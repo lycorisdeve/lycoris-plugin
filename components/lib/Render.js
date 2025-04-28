@@ -1,13 +1,11 @@
-/*
- * @description: 
- * @author: 名字
- * @date: Do not edit
- */
-import { Version } from '../Index.js'
-import Cfg from '../Cfg.js'
-import { pluginResources } from './Path.js'
 
-export default async function (path, params, cfg) {
+import { Version } from '../Index.js'
+import Config from '../Config.js'
+import { pluginResources, pluginRootPath, BotName } from './Path.js'
+import { join } from 'path'
+import puppeteer from '../lib/public/puppeteer.js'
+
+async function rednering(path, params, cfg) {
   let { e } = cfg
   if (!e.runtime) {
     console.log('未找到e.runtime，请升级至最新版Yunzai')
@@ -32,3 +30,57 @@ export default async function (path, params, cfg) {
     }
   })
 }
+
+
+function scale(pct = 1) {
+  const scale = Math.min(2, Math.max(0.5, Number(Config.config.renderScale) / 100))
+  pct = pct * scale
+  return `style=transform:scale(${pct})`
+}
+
+async function gitstatus() {
+  const status = await Version.getUpdateStatus()
+  if (status.latest) {
+    return ` SHA: <span class="version">${status.currentCommitId}</span>`
+  } else {
+    return ` SHA: <span class="version">${status.currentCommitId}</span> <span class="tip">(有新版本: ${status.remoteCommitId})</span>`
+  }
+}
+
+const Render = {
+  /**
+   *
+   * @param {string} path html模板路径
+   * @param {*} params 模板参数
+   * @param {*} cfg 渲染参数
+   * @param {boolean} multiPage 是否分页截图，默认false
+   * @returns
+   */
+  async render(path, params) {
+    path = path.replace(/.html$/, '')
+    const savePath = '/' + path.replace('html/', '') + '/'
+    const data = {
+      _res_path: (join(pluginRootPath, '/resources') + '/').replace(/\\/g, '/'),
+      _layout_path: (join(pluginRootPath, '/resources', 'html', 'common', 'layout') + '/').replace(/\\/g, '/'),
+      defaultLayout: (join(pluginRootPath, '/resources', 'html', 'common', 'layout') + '/default.html').replace(/\\/g, '/'),
+      elemLayout: (join(pluginRootPath, '/resources', 'html', 'common', 'layout') + '/elem.html').replace(/\\/g, '/'),
+      sys: {
+        scale: scale(params?.scale || 1)
+      },
+      copyright: `${BotName}<span class="version"> v${Version.pluginVersion}</span> & ${Version}<span class="version"> v${Version.version}</span>${await gitstatus()}`,
+      pageGotoParams: {
+        waitUntil: 'load'
+      },
+      tplFile: `${pluginRootPath}/resources/${path}.html`,
+      pluResPath: `${pluginRootPath}/resources/`,
+      saveId: path.split('/').pop(),
+      imgType: 'jpeg',
+      multiPage: true,
+      multiPageHeight: 12000,
+      ...params
+    }
+    return await puppeteer.screenshots(BotName === 'Karin' ? savePath : pluginRootPath + savePath, data)
+  }
+}
+
+export default Render

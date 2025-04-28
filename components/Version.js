@@ -1,5 +1,6 @@
 import fs from 'fs'
 import lodash from 'lodash'
+import { pluginRootPath } from './lib/Path'
 
 const _path = process.cwd()
 const _logPath = `${_path}/plugins/lycoris-plugin/CHANGELOG.md`
@@ -10,6 +11,7 @@ let currentVersion
 let versionCount = 4
 
 let packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+let yunzaiPackageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 
 const getLine = function (line) {
   line = line.replace(/(^\s*\*|\r)/g, '')
@@ -70,20 +72,106 @@ try {
   // do nth
 }
 
-const yunzaiVersion = packageJson.version
+const yunzaiVersion = yunzaiPackageJson.version
 const isV3 = yunzaiVersion[0] === '3'
+const pluginVersion = packageJson.version
+
+/**
+ * @type {'Karin'|'Miao-Yunzai'|'Trss-Yunzai'|'yunzai'}
+ */
+const BotName = (() => {
+  if (/^karin/i.test(pluginName)) {
+    return 'Karin'
+  } else if (packageJson.name === 'yunzai-next') {
+    return 'yunzai'
+  } else if (Array.isArray(global.Bot?.uin)) {
+    return 'TRSS-Yunzai'
+  } else if (packageJson.dependencies.sequelize) {
+    return 'Miao-Yunzai'
+  } else {
+    throw new Error('还有人玩Yunzai-Bot??')
+  }
+})()
+
+async function checkCommitIdAndUpdateStatus() {
+  const git = simpleGit({ baseDir: pluginRootPath })
+  let result = {
+    currentCommitId: null,
+    remoteCommitId: null,
+    latest: false,
+    error: null,
+    commitLog: null
+  }
+
+  // Timeout Promise
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Operation timed out')), 5000)
+  )
+
+  // Main logic wrapped in a promise
+  const mainLogic = (async () => {
+    try {
+      // Attempt to get the current commit ID (short version)
+      const stdout = execSync(`git -C "${pluginRootPath}" rev-parse --short=7 HEAD`).toString().trim()
+      result.currentCommitId = stdout
+
+      // Perform git fetch
+      await git.fetch()
+
+      // Get the remote commit ID (short version)
+      const remoteCommitId = (await git.revparse(['HEAD@{u}'])).substring(0, 7)
+      result.remoteCommitId = remoteCommitId
+
+      // Compare local and remote commit IDs
+      if (result.currentCommitId === result.remoteCommitId) {
+        result.latest = true
+        const log = await git.log({ from: result.currentCommitId, to: result.currentCommitId })
+        if (log && log.all && log.all.length > 0) {
+          result.commitLog = log.all[0].message
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to check update status: ${error.message}`)
+      result.error = 'Failed to check update status'
+    }
+
+    return result
+  })()
+
+  // Race the main logic against the timeout
+  try {
+    return await Promise.race([mainLogic, timeoutPromise])
+  } catch (error) {
+    console.error(error.message)
+    result.error = error.message
+    return result
+  }
+}
+
 
 let Version = {
   isV3,
   get version() {
     return currentVersion
   },
+  get pluginVersion() {
+    return pluginVersion
+  },
   get yunzai() {
     return yunzaiVersion
   },
   get changelogs() {
     return changelogs
+  },
+
+  get BotName() {
+    return BotName
   }
+  ,
+  async getUpdateStatus() {
+    return await checkCommitIdAndUpdateStatus()
+  }
+
 }
 
 export default Version

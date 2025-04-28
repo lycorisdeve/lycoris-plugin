@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Config from '../model/config.js'
+import Config from '../components/Config.js'
 import fs from 'fs'
 import yaml from 'yaml'
 

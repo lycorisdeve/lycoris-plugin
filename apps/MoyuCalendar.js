@@ -1,12 +1,6 @@
-import axios from 'axios'
-import Config from '../model/config.js'
+import Config from '../components/Config.js'
 
 
-/*
- * @description: read60s推送
- * @author: lycoris
- * @date: undefined
- */
 const config = Config.getConfig('config')
 
 

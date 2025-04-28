@@ -12,11 +12,11 @@
 
 import fetch from 'node-fetch'
 import crypto from 'crypto'
-import config from '../model/config.js'
+import Config from '../components/Config.js'
 import md5 from 'md5'
 import lodash from 'lodash'
 
-let cfg = await config.getConfig('config')
+let cfg = await Config.getConfig('config')
 const BAIDU = cfg.baidu_translate
 const YOUDAO = cfg.youdao_translate
 

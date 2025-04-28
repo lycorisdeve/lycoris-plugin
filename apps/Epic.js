@@ -1,5 +1,5 @@
 import plugin from '../../../lib/plugins/plugin.js'
-import Config from '../model/config.js'
+import Config from '../components/Config.js'
 import epicGamesMsg from '../model/services/EpicService.js'
 
 /*

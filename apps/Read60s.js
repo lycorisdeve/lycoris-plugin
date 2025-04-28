@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Config from '../model/config.js'
+import Config from '../components/Config.js'
 
 /*
  * @description: read60s推送

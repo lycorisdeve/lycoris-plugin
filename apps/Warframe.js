@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import fs from 'node:fs'
 import yaml from 'yaml'
-import Config from '../model/config.js'
+import Config from '../components/Config.js'
 import moment from "moment";
 import puppeteer from 'puppeteer'
 import { pluginRootPath } from "../components/lib/Path.js";
