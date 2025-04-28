@@ -1,6 +1,4 @@
-{{extend defaultLayout}} 
-
-{{block 'css'}}
+{{extend defaultLayout}} {{block 'css'}}
 <link
   rel="stylesheet"
   type="text/css"
@@ -9,104 +7,104 @@
 {{/block}} 
 
 {{block 'main'}}
-<div class="user-banner">
-  <div class="face">
-    <img
-      src="{{qqAvatar}}"
-      alt="头像" />
+<div class="container">
+  <!--<div id="hiddenBg" style="display: none;">{{bg}}</div>-->
+  <div class="title">
+    <h1>{{nickname}}</h1>
+    <strong>QQ:{{userInfo.user_qq}}</strong>
   </div>
-  <div class="user-info">
-    <div class="name">
-      <strong>{{nickname}}</strong>
-    </div>
-    <div class="uid">
-      <span>QQ:{{userInfo.user_qq}}</span>
-    </div>
-  </div>
-  <div class="stat">
-    <div class="stat-li">
-      <strong id="days">{{userInfo.check_in_days}}</strong>
-      <span>累计签到</span>
-    </div>
-    <div class="stat-li">
-      <strong>{{userInfo.favorability}}</strong>
-      <span>好感度</span>
-    </div>
-    <div class="stat-li">
-      <strong>{{userInfo.mora}}</strong>
-      <span>摩拉</span>
-    </div>
-    <div class="stat-li">
-      <strong>{{userInfo.primogems}}</strong>
-      <span>原石</span>
-    </div>
-  </div>
-</div>
 
-<div class="cont">
-  <div class="cont-title">今日签到</div>
-  <div class="cont-body">
-    <p>好感度: +{{tdInfo.td_favorability}}</p>
-    <p>摩拉: +{{tdInfo.td_mora}}</p>
-    <p>原石: +{{tdInfo.td_primogems}}</p>
-    <p>签到时间：{{userInfo.check_in_time}}</p>
-    <p>上次签到：{{last_sign_in}}</p>
-
-    <div
-      class="loadbar"
-      id="loadbar01">
-      <div>
+  <div class="informations">
+    <div class="sign-info">
+      <div class="sign-info-up">
         <span
-          class="percent"
-          id="percent">
-          <i></i>
-        </span>
+          >你已经累计签到了<strong
+            style="font-size: 40px; color: red"
+            id="days"
+            >{{userInfo.check_in_days}}</strong
+          >天</span
+        >
+      </div>
+      <div class="sign-info-down">
+        <div class="avatar">
+          <img
+            src="{{qqAvatar}}"
+            alt=""
+            class="avatar-img" />
+        </div>
+        <div class="sign-info-details">
+          <div style="margin: 100px auto auto 40px">
+            <p>当前<strong>好感度：</strong>{{userInfo.favorability}}</p>
+            <div
+              id="loadbar01"
+              class="loadbar">
+              <div>
+                <span
+                  class="percent"
+                  id="percent">
+                  <i></i>
+                </span>
+              </div>
+            </div>
+            <p>好感度:+{{tdInfo.td_favorability}}</p>
+            <p>摩拉:+{{tdInfo.td_mora}}</p>
+            <p>原石:+{{tdInfo.td_primogems}}</p>
+            <strong>签到时间：{{userInfo.check_in_time}}</strong>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="cont">
-  <div class="cont-title">元素之力</div>
-  <div class="cont-body">
-    <div class="icon-list">
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-fire-copy"></use>
-      </svg>
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-water-copy"></use>
-      </svg>
-      <svg
-        class="icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-wind-copy"></use>
-      </svg>
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-thunder-copy"></use>
-      </svg>
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-grass-copy"></use>
-      </svg>
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-ice-copy"></use>
-      </svg>
-      <svg
-        class="icon svg-icon"
-        aria-hidden="true">
-        <use xlink:href="#icon-rock-copy"></use>
-      </svg>
+    <div class="grop-info">
+      <strong style="text-align: center; font-size: 25px">
+        群好感度第<span style="font-size: 40px; color: red">1</span>名
+      </strong>
+      <div style="margin-left: 20px">
+        <p>上次签到日期:{{last_sign_in}}</p>
+        <p>总摩拉:{{userInfo.mora}}</p>
+        <p>总原石:{{userInfo.primogems}}</p>
+        <p>抽卡次数:undefined</p>
+      </div>
+      <div class="icon-list">
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-fire-copy"></use>
+        </svg>
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-water-copy"></use>
+        </svg>
+        <svg
+          class="icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-wind-copy"></use>
+        </svg>
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-thunder-copy"></use>
+        </svg>
+        <br />
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true"
+          style="margin-left: 20px">
+          <use xlink:href="#icon-grass-copy"></use>
+        </svg>
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-ice-copy"></use>
+        </svg>
+        <svg
+          class="icon svg-icon"
+          aria-hidden="true">
+          <use xlink:href="#icon-rock-copy"></use>
+        </svg>
+        <p class="mingyan">{{mooto}}</p>
+      </div>
     </div>
-    <p class="mingyan">{{mooto}}</p>
   </div>
 </div>
 {{/block}}
