@@ -153,6 +153,13 @@ p {
   align-self: center;
 }
 
+.icon-row-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  grid-column: 1 / -1;
+}
+
 .icon {
   width: 1em;
   height: 1em;
