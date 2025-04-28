@@ -47,7 +47,6 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 
 #### 鸣谢
 
-- [Yunzai-Bot](
 - [Yunzai-Bot](URL_ADDRESS.com/yunzai-bot/yunzai)
 - [miao-plugin](URL_ADDRESS.com/imcute/miao-plugin)
 - [earth-k-plugin](URL_ADDRESS.com/earth-k/earth-k-plugin)
