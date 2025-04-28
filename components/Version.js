@@ -1,6 +1,7 @@
 import fs from 'fs'
 import lodash from 'lodash'
 import { pluginRootPath } from './lib/Path.js'
+import { pluginName } from './lib/Path.js'
 
 const _path = process.cwd()
 const _logPath = `${_path}/plugins/lycoris-plugin/CHANGELOG.md`
