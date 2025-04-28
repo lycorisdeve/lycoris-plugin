@@ -132,8 +132,17 @@ p {
   background: linear-gradient(to left, rgb(212, 38, 38), rgb(7, 7, 227));
   /* background-size: 40px 40px; */
 }
+.grop-info {
+  height: 100%;
+  position: relative;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .icon-list {
-  margin: 20px;
+  margin: 0 20px 20px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto auto;
@@ -141,6 +150,7 @@ p {
   justify-items: center;
   align-items: center;
   max-width: 300px;
+  align-self: center;
 }
 
 .icon {
@@ -151,6 +161,9 @@ p {
   overflow: hidden;
   font-size: 40px;
   transition: transform 0.3s ease, color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .icon:hover {
