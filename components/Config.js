@@ -5,8 +5,9 @@ import chokidar from 'chokidar'
 import {
   pluginName,
   pluginRootPath,
-} from './lib/Path'
-import YamlManager from './YamlManager'
+} from './lib/Path.js'
+
+import YamlManager from './YamlManager.js'
 
 const _cfgPath = `${pluginRootPath}/components/`
 
