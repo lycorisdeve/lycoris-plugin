@@ -2,14 +2,13 @@
 import fs from 'fs'
 import YAML from 'yaml'
 import chokidar from 'chokidar'
+import Version from './Version.js'
 import {
   pluginName,
   pluginRootPath,
 } from './lib/Path.js'
 
 import YamlManager from './YamlManager.js'
-
-const _cfgPath = `${pluginRootPath}/components/`
 
 
 let configPath = `${pluginRootPath}/config/`
