@@ -83,7 +83,7 @@ class Config {
   }
 
   /** 插件相关配置 */
-  get allConfig() {
+  get userConfig() {
     return this.getDefOrConfig('config')
   }
 
@@ -102,7 +102,7 @@ class Config {
 
   All() {
     return {
-      config: this.config,
+      config: this.userConfig,
       warframe: this.warframe,
       screenshot: this.screenshot,
     }
