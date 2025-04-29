@@ -1,9 +1,8 @@
 
 import axios from 'axios'
-import cheerio from 'cheerio'
+import * as cheerio from 'cheerio';
 
-
-const XIUREN_URL = 'https://www.tuxiuren.com/page/'
+const XIUREN_URL = 'https://www.xiurenb.net/page/'
 let xiurenResult = [];
 let keyword = ''
 
@@ -11,7 +10,7 @@ export class XiuRenPlugin extends plugin {
   constructor() {
     super({
       name: 'Xiu Ren Plugin', // 插件名称
-      dsc: '秀人网妹子爬虫插件', // 插件描述
+      dsc: '秀人网', // 插件描述
       event: 'message', // 监听事件类型
       priority: 1000, // 优先级（数值越大，优先级越高）
       rule: [
@@ -38,16 +37,20 @@ export class XiuRenPlugin extends plugin {
         return
       }
       try {
-        let url = XIUREN_URL + pageNum + "?s=" + keyword
-        const response = await axios.get(url);
+        let url = XIUREN_URL + pageNum + "?s=" + encodeURIComponent(keyword)
+        const response = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
         const html = response.data;
         const $ = cheerio.load(html);
         let msgInfos = []
-        $('div.placeholder').each((i, ele) => {
+        $('.article-content').each((i, ele) => {
           let obj = {};
           let href = $(ele).find('a').attr('href');
           obj.title = $(ele).find('img').attr('alt');
-          obj.imgSrc = $(ele).find('img').attr('data-src');
+          obj.imgSrc = $(ele).find('img').attr('src');
           xiurenResult.push(href);
           msgInfos.push(obj)
         });
@@ -83,7 +86,7 @@ export class XiuRenPlugin extends plugin {
         }
       } catch (err) {
         logger.error(err);
-        await e.reply('请求失败');
+        await e.reply('请求失败，请稍后重试');
       }
     } else if (message.includes("#看秀图")) {
 
