@@ -239,7 +239,7 @@ export class IPixiv extends plugin {
                     user_id: e.sender.user_id,
                     time: parseInt(Date.now() / 1000),
                     seq: e.seq || 0,
-                    content: '查看图片'
+                    content: ' '
                 }
             }
 
@@ -384,13 +384,9 @@ export class IPixiv extends plugin {
 
         // 发送合并消息
         try {
-            let forward
-            if (e.isGroup) {
-                forward = await e.group.makeForwardMsg(msgs)
-            } else {
-                forward = await e.friend.makeForwardMsg(msgs)
-            }
-            await e.reply(forward)
+            await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
+                recallMsg: -1,
+            });
         } catch (error) {
             logger.error(`发送合并转发消息失败: ${error}`)
             await e.reply('图片发送失败，请稍后再试~', true)
