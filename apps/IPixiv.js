@@ -264,17 +264,11 @@ export class IPixiv extends plugin {
                     message: infoText
                 }
             ]
+            console.log(forwardMsg)
 
-            // 制作并发送合并转发消息
-            let sendMsg
-            if (e.isGroup) {
-                sendMsg = await e.group.makeForwardMsg(forwardMsg)
-            } else {
-                sendMsg = await e.friend.makeForwardMsg(forwardMsg)
-            }
-
-            // 发送合并转发消息
-            await e.reply(sendMsg)
+            await this.e.reply(await Bot.makeForwardMsg(forwardMsg), false, {
+                recallMsg: -1,
+            });
             return true
         } catch (error) {
             logger.error(`合并转发发送图片失败: ${error}`)
@@ -337,7 +331,7 @@ export class IPixiv extends plugin {
         }
 
         // 构建合并消息
-        const msgs = []
+        let msgs = []
 
         // 添加标题消息
         msgs.push({
@@ -357,7 +351,7 @@ export class IPixiv extends plugin {
                         user_id: e.sender.user_id,
                         time: parseInt(Date.now() / 1000),
                         seq: e.seq || 0,
-                        content: '查看图片'
+                        content: ' '
                     }
                 }
 

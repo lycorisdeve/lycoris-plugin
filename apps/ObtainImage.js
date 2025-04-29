@@ -1,6 +1,7 @@
 
 const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
 import { segment } from 'icqq';
+import fetch from 'node-fetch';  // Make sure this import is available
 
 // API 配置
 const API_CONFIG = {
@@ -252,5 +253,30 @@ export class Photo extends plugin {
             const imgInfo = await this.fetchWithRetry(API_CONFIG.WALLPAPER + '?type=json');
             return imgInfo.url;
         });
+    }
+
+    // Add this method to your class
+    async fetchWithRetry(url, options = {}, retryCount = 0) {
+        try {
+            // Handle text response type
+            if (options.type === 'text') {
+                const response = await fetch(url);
+                return await response.text();
+            }
+            
+            // Handle JSON response type (default)
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            // Retry logic
+            if (retryCount < CONSTANTS.MAX_RETRY_COUNT) {
+                console.log(`Retry attempt ${retryCount + 1} for ${url}`);
+                await sleep(CONSTANTS.SLEEP_TIME);
+                return this.fetchWithRetry(url, options, retryCount + 1);
+            }
+            
+            console.error(`Failed to fetch ${url} after ${CONSTANTS.MAX_RETRY_COUNT} attempts:`, error);
+            throw error;
+        }
     }
 }
