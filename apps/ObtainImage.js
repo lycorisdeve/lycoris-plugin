@@ -112,7 +112,7 @@ export class Photo extends plugin {
                 case 'MEINV':
                     // MEINV API返回格式: { data: { image: "url" } }
                     return response?.data?.image;
-                
+
                 case 'COSPLAY':
                     // COSPLAY API返回格式: { code: 1, data: { data: [...] } }
                     if (response?.code === 1 && Array.isArray(response?.data?.data)) {
@@ -120,30 +120,30 @@ export class Photo extends plugin {
                         return response.data.data[randomIndex]?.url;
                     }
                     return null;
-                
+
                 case 'TAOBAO':
                     // TAOBAO API返回格式: { data: { imgUrl: "url" } }
                     return response?.data?.imgUrl;
-                
+
                 case 'WALLPAPER':
                     // WALLPAPER API返回格式: { url: "url" }
                     return response?.url;
-                
+
                 case 'COS':
                     // COS API返回格式: { pic: "url" }
                     return response?.pic;
-                
+
                 case 'LOVEANIMER':
                     // LOVEANIMER API返回格式: { url: "url" }
                     return response?.url;
-                
+
                 case 'BACKUP':
                     // BACKUP API返回格式: { error: false, data: [{ urls: { regular: "url" } }] }
                     if (!response?.error && response?.data?.length > 0) {
                         return response.data[0]?.urls?.regular;
                     }
                     return null;
-                
+
                 default:
                     logger.warn(`未知的API类型: ${apiName}`);
                     return null;
@@ -159,16 +159,20 @@ export class Photo extends plugin {
         try {
             const response = await getImageFn();
             const imageUrl = this.processApiResponse(apiName, response);
-            
+
             if (imageUrl) {
                 try {
                     // 尝试直接发送图片
-                    await e.reply(segment.image(imageUrl));
-                    return true;
+                    let flag = await e.reply(segment.image(imageUrl));
+                    if (!flag) {
+                        return await this.sendByForward(e, imageUrl);
+                    } else {
+                        return true;
+                    }
+
                 } catch (sendError) {
                     // 图片发送失败，尝试使用引用+合并转发的方式
                     logger.warn(`${apiName}图片直接发送失败，尝试使用合并转发方式`, sendError);
-                    return await this.sendByForward(e, imageUrl);
                 }
             }
 
