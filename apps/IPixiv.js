@@ -193,6 +193,7 @@ export class IPixiv extends plugin {
 
         // 选择可用的URL
         const imageUrl = result.urls.original
+        console.error(imageUrl)
 
         if (!imageUrl) {
             await e.reply('获取图片链接失败，请稍后再试~', true)
@@ -352,6 +353,7 @@ export class IPixiv extends plugin {
             await e.reply('没有找到符合条件的图片哦~', true)
             return
         }
+        logger.error(results)
 
         // 发送图片，强制使用合并转发方式
         await this.sendImageResult(e, results[0], true)
