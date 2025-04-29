@@ -278,6 +278,7 @@ export class IPixiv extends plugin {
             return true
         } catch (error) {
             logger.error(`合并转发发送图片失败: ${error}`)
+            console.error(error)
             await e.reply('图片发送失败，请稍后再试~', true)
             return false
         }
@@ -337,7 +338,7 @@ export class IPixiv extends plugin {
 
         // 构建合并消息
         const msgs = []
-        
+
         // 添加标题消息
         msgs.push({
             message: '获取到的图片集合：',
