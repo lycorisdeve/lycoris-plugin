@@ -1,5 +1,6 @@
 
 const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
+import { segment } from 'icqq';
 
 // API 配置
 const API_CONFIG = {
@@ -108,8 +109,15 @@ export class Photo extends plugin {
         try {
             const result = await getImageFn();
             if (result) {
-                await e.reply(segment.image(result));
-                return true;
+                try {
+                    // 尝试直接发送图片
+                    await e.reply(segment.image(result));
+                    return true;
+                } catch (sendError) {
+                    // 图片发送失败，尝试使用引用+合并转发的方式
+                    logger.warn(`${apiName}图片直接发送失败，尝试使用合并转发方式`, sendError);
+                    return await this.sendByForward(e, result);
+                }
             }
 
             // 主API失败，记录并通知
@@ -118,12 +126,87 @@ export class Photo extends plugin {
             // 尝试备用API
             const backupUrl = await this.getBackupImage();
             if (backupUrl) {
-                await e.reply(segment.image(backupUrl));
-                return true;
+                try {
+                    // 尝试直接发送备用图片
+                    await e.reply(segment.image(backupUrl));
+                    return true;
+                } catch (sendError) {
+                    // 备用图片发送失败，尝试使用引用+合并转发的方式
+                    logger.warn(`${apiName}备用图片直接发送失败，尝试使用合并转发方式`, sendError);
+                    return await this.sendByForward(e, backupUrl);
+                }
             }
             return false;
         } catch (error) {
             console.error(`${apiName}图片发送失败:`, error);
+            return false;
+        }
+    }
+
+    // 使用合并转发的方式发送图片
+    async sendByForward(e, imgUrl) {
+        try {
+            // 创建包含图片的消息
+            const imgMsg = segment.image(imgUrl);
+            
+            // 准备合并转发消息
+            let nickname = Bot.nickname;
+            if (e.isGroup) {
+                let info = await Bot.getGroupMemberInfo(e.group_id, Bot.uin);
+                nickname = info.card || info.nickname;
+            }
+            
+            const userInfo = {
+                user_id: Bot.uin,
+                nickname
+            };
+            
+            // 构建转发消息列表
+            const forwardMsg = [];
+            
+            // 添加标题消息
+            forwardMsg.push({
+                ...userInfo,
+                message: '获取到的图片：'
+            });
+            
+            // 直接创建引用消息对象并添加到合并转发消息中
+            // 创建一个引用消息和图片的组合
+            const referenceMsg = {
+                ...userInfo,
+                message: [
+                    // 直接创建引用消息对象，不需要先发送消息
+                    {
+                        type: 'quote',
+                        data: {
+                            // 使用当前消息的信息
+                            user_id: e.sender.user_id,
+                            time: parseInt(Date.now() / 1000),
+                            seq: e.seq || 0,
+                            // 可以添加其他必要的引用信息
+                            content: '查看图片'
+                        }
+                    },
+                    imgMsg
+                ]
+            };
+            
+            // 添加引用+图片的组合消息
+            forwardMsg.push(referenceMsg);
+            
+            // 制作并发送合并转发消息
+            let sendMsg;
+            if (e.isGroup) {
+                sendMsg = await e.group.makeForwardMsg(forwardMsg);
+            } else {
+                sendMsg = await e.friend.makeForwardMsg(forwardMsg);
+            }
+            
+            // 发送合并转发消息
+            await e.reply(sendMsg, false);
+            return true;
+        } catch (error) {
+            logger.error('合并转发发送图片失败:', error);
             return false;
         }
     }

@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { segment } from 'icqq'
 
 export class IPixiv extends plugin {
     constructor() {
@@ -175,11 +176,11 @@ export class IPixiv extends plugin {
         }
 
         // 发送图片
-        await this.sendImageResult(e, results[0])
+        await this.sendImageResult(e, results[0], params.r18 > 0)
     }
 
     // 发送图片结果
-    async sendImageResult(e, result) {
+    async sendImageResult(e, result, isR18 = false) {
         // 构建回复消息
         const title = result.title || '无标题'
         const author = result.author || '未知作者'
@@ -193,12 +194,93 @@ export class IPixiv extends plugin {
             return
         }
 
-        const msg = [
-            segment.image(imageUrl),
-            `标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
-        ]
+        // 如果是R18内容或者图片URL包含R18关键词，使用合并转发方式发送
+        if (isR18 || result.tags.some(tag => tag.toLowerCase().includes('r-18')) || result.title.toLowerCase().includes('r-18')) {
+            await this.sendByForward(e, imageUrl, result)
+            return
+        }
 
-        await e.reply(msg)
+        // 非R18内容尝试直接发送
+        try {
+            const msg = [
+                segment.image(imageUrl),
+                `标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
+            ]
+            await e.reply(msg)
+        } catch (error) {
+            logger.warn(`图片直接发送失败，尝试使用合并转发方式: ${error}`)
+            await this.sendByForward(e, imageUrl, result)
+        }
+    }
+
+    // 使用合并转发的方式发送图片
+    async sendByForward(e, imageUrl, result) {
+        try {
+            // 准备用户信息
+            let nickname = Bot.nickname
+            if (e.isGroup) {
+                try {
+                    const info = await Bot.getGroupMemberInfo(e.group_id, Bot.uin)
+                    nickname = info.card || info.nickname
+                } catch (error) {
+                    logger.warn(`获取群成员信息失败: ${error}`)
+                }
+            }
+
+            const userInfo = {
+                user_id: Bot.uin,
+                nickname
+            }
+
+            // 创建引用消息对象
+            const quoteMsg = {
+                type: 'quote',
+                data: {
+                    user_id: e.sender.user_id,
+                    time: parseInt(Date.now() / 1000),
+                    seq: e.seq || 0,
+                    content: '查看图片'
+                }
+            }
+
+            // 构建图片消息
+            const imgMsg = segment.image(imageUrl)
+
+            // 构建图片信息文本
+            const infoText = `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}\n标签：${result.tags.join(', ')}`
+
+            // 构建转发消息列表
+            const forwardMsg = [
+                {
+                    ...userInfo,
+                    message: '获取到的图片：'
+                },
+                {
+                    ...userInfo,
+                    message: [quoteMsg, imgMsg]
+                },
+                {
+                    ...userInfo,
+                    message: infoText
+                }
+            ]
+
+            // 制作并发送合并转发消息
+            let sendMsg
+            if (e.isGroup) {
+                sendMsg = await e.group.makeForwardMsg(forwardMsg)
+            } else {
+                sendMsg = await e.friend.makeForwardMsg(forwardMsg)
+            }
+
+            // 发送合并转发消息
+            await e.reply(sendMsg)
+            return true
+        } catch (error) {
+            logger.error(`合并转发发送图片失败: ${error}`)
+            await e.reply('图片发送失败，请稍后再试~', true)
+            return false
+        }
     }
 
     // 选择最佳图片URL
@@ -230,8 +312,8 @@ export class IPixiv extends plugin {
             return
         }
 
-        // 发送图片
-        await this.sendImageResult(e, results[0])
+        // 发送图片，强制使用合并转发方式
+        await this.sendImageResult(e, results[0], true)
     }
 
     // 多图搜索
@@ -243,6 +325,7 @@ export class IPixiv extends plugin {
 
         // 获取参数
         const params = this.parseParams(tags, { num: num })
+        const isR18 = params.r18 > 0
 
         // 获取图片
         const results = await this.getImage(params)
@@ -254,25 +337,63 @@ export class IPixiv extends plugin {
 
         // 构建合并消息
         const msgs = []
+        
+        // 添加标题消息
+        msgs.push({
+            message: '获取到的图片集合：',
+            nickname: Bot.nickname,
+            user_id: Bot.uin
+        })
+
+        // 为每张图片创建一个消息
         for (const result of results) {
             const imageUrl = this.selectBestImageUrl(result.urls)
             if (imageUrl) {
+                // 创建引用消息对象
+                const quoteMsg = {
+                    type: 'quote',
+                    data: {
+                        user_id: e.sender.user_id,
+                        time: parseInt(Date.now() / 1000),
+                        seq: e.seq || 0,
+                        content: '查看图片'
+                    }
+                }
+
+                // 添加图片消息
                 msgs.push({
-                    message: segment.image(imageUrl),
+                    message: [quoteMsg, segment.image(imageUrl)],
+                    nickname: Bot.nickname,
+                    user_id: Bot.uin
+                })
+
+                // 添加图片信息
+                msgs.push({
+                    message: `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}`,
                     nickname: Bot.nickname,
                     user_id: Bot.uin
                 })
             }
         }
 
-        if (msgs.length === 0) {
+        if (msgs.length <= 1) {
             await e.reply('获取图片链接失败，请稍后再试~', true)
             return
         }
 
         // 发送合并消息
-        const forward = await Bot.makeForwardMsg(msgs)
-        await e.reply(forward)
+        try {
+            let forward
+            if (e.isGroup) {
+                forward = await e.group.makeForwardMsg(msgs)
+            } else {
+                forward = await e.friend.makeForwardMsg(msgs)
+            }
+            await e.reply(forward)
+        } catch (error) {
+            logger.error(`发送合并转发消息失败: ${error}`)
+            await e.reply('图片发送失败，请稍后再试~', true)
+        }
     }
 
     // 标签搜索
