@@ -91,7 +91,7 @@ export class Photo extends plugin {
 
     // 使用备用API获取图片
     async getBackupImage() {
-        const v = [0, 1, 2];  
+        const v = [0, 1, 2];
         const randomR18 = v[Math.floor(Math.random() * v.length)];
 
         try {
@@ -105,19 +105,70 @@ export class Photo extends plugin {
         }
     }
 
+    // API响应处理方法
+    processApiResponse(apiName, response) {
+        try {
+            switch (apiName) {
+                case 'MEINV':
+                    // MEINV API返回格式: { data: { image: "url" } }
+                    return response?.data?.image;
+                
+                case 'COSPLAY':
+                    // COSPLAY API返回格式: { code: 1, data: { data: [...] } }
+                    if (response?.code === 1 && Array.isArray(response?.data?.data)) {
+                        const randomIndex = Math.floor(Math.random() * response.data.data.length);
+                        return response.data.data[randomIndex]?.url;
+                    }
+                    return null;
+                
+                case 'TAOBAO':
+                    // TAOBAO API返回格式: { data: { imgUrl: "url" } }
+                    return response?.data?.imgUrl;
+                
+                case 'WALLPAPER':
+                    // WALLPAPER API返回格式: { url: "url" }
+                    return response?.url;
+                
+                case 'COS':
+                    // COS API返回格式: { pic: "url" }
+                    return response?.pic;
+                
+                case 'LOVEANIMER':
+                    // LOVEANIMER API返回格式: { url: "url" }
+                    return response?.url;
+                
+                case 'BACKUP':
+                    // BACKUP API返回格式: { error: false, data: [{ urls: { regular: "url" } }] }
+                    if (!response?.error && response?.data?.length > 0) {
+                        return response.data[0]?.urls?.regular;
+                    }
+                    return null;
+                
+                default:
+                    logger.warn(`未知的API类型: ${apiName}`);
+                    return null;
+            }
+        } catch (error) {
+            logger.error(`处理API响应失败 [${apiName}]:`, error);
+            return null;
+        }
+    }
+
     // 发送图片的通用方法
     async sendImageWithFallback(e, apiName, getImageFn) {
         try {
-            const result = await getImageFn();
-            if (result) {
+            const response = await getImageFn();
+            const imageUrl = this.processApiResponse(apiName, response);
+            
+            if (imageUrl) {
                 try {
                     // 尝试直接发送图片
-                    await e.reply(segment.image(result));
+                    await e.reply(segment.image(imageUrl));
                     return true;
                 } catch (sendError) {
                     // 图片发送失败，尝试使用引用+合并转发的方式
                     logger.warn(`${apiName}图片直接发送失败，尝试使用合并转发方式`, sendError);
-                    return await this.sendByForward(e, result);
+                    return await this.sendByForward(e, imageUrl);
                 }
             }
 
@@ -139,119 +190,33 @@ export class Photo extends plugin {
             }
             return false;
         } catch (error) {
-            console.error(`${apiName}图片发送失败:`, error);
+            logger.error(`${apiName}图片发送失败:`, error);
             return false;
         }
     }
 
-    // 使用合并转发的方式发送图片
-    async sendByForward(e, imgUrl) {
-        try {
-            // 创建包含图片的消息
-            const imgMsg = segment.image(imgUrl);
-            
-            // 准备合并转发消息
-            let nickname = Bot.nickname;
-            if (e.isGroup) {
-                let info = await Bot.getGroupMemberInfo(e.group_id, Bot.uin);
-                nickname = info.card || info.nickname;
-            }
-            
-            const userInfo = {
-                user_id: Bot.uin,
-                nickname
-            };
-            
-            // 构建转发消息列表
-            const forwardMsg = [];
-            
-            // 添加标题消息
-            forwardMsg.push({
-                ...userInfo,
-                message: '获取到的图片：'
-            });
-            
-            // 直接创建引用消息对象并添加到合并转发消息中
-            // 创建一个引用消息和图片的组合
-            const referenceMsg = {
-                ...userInfo,
-                message: [
-                    // 直接创建引用消息对象，不需要先发送消息
-                    {
-                        type: 'quote',
-                        data: {
-                            // 使用当前消息的信息
-                            user_id: e.sender.user_id,
-                            time: parseInt(Date.now() / 1000),
-                            seq: e.seq || 0,
-                            // 可以添加其他必要的引用信息
-                            content: '查看图片'
-                        }
-                    },
-                    imgMsg
-                ]
-            };
-            
-            // 添加引用+图片的组合消息
-            forwardMsg.push(referenceMsg);
-            
-            // 制作并发送合并转发消息
-            let sendMsg;
-            if (e.isGroup) {
-                sendMsg = await e.group.makeForwardMsg(forwardMsg);
-            } else {
-                sendMsg = await e.friend.makeForwardMsg(forwardMsg);
-            }
-            
-            // 发送合并转发消息
-            await e.reply(sendMsg, false);
-            return true;
-        } catch (error) {
-            logger.error('合并转发发送图片失败:', error);
-            return false;
-        }
-    }
-
+    // 修改各个API调用方法
     async pic1(e) {
         await this.sendImageWithFallback(e, 'MEINV', async () => {
-            const imgUrl = await this.fetchWithRetry(API_CONFIG.MEINV, { type: 'text' });
-            return imgUrl;
+            return await this.fetchWithRetry(API_CONFIG.MEINV);
         });
     }
 
     async pic2(e) {
-        try {
-            const imgInfo = await this.fetchWithRetry(API_CONFIG.COSPLAY + '?type=all');
-            if (imgInfo.code === 1 && Array.isArray(imgInfo.data.data)) {
-                const msgs = this.formatCosplayMessages(imgInfo);
-                await this.sendMessage(e, msgs, this.e.isPrivate);
-                return;
-            }
-
-            // API失败，发送警告并使用备用API
-            await this.checkAndSendApiAlert('COSPLAY');
-            const backupUrl = await this.getBackupImage();
-            if (backupUrl) {
-                await e.reply(segment.image(backupUrl));
-            } else {
-                await e.reply('获取图片失败，请稍后重试');
-            }
-        } catch (error) {
-            console.error('获取cosplay图片失败:', error);
-        }
+        await this.sendImageWithFallback(e, 'COSPLAY', async () => {
+            return await this.fetchWithRetry(API_CONFIG.COSPLAY + '?type=all');
+        });
     }
 
     async pic3(e) {
         await this.sendImageWithFallback(e, 'TAOBAO', async () => {
-            const imgInfo = await this.fetchWithRetry(API_CONFIG.TAOBAO + '?type=json');
-            return imgInfo.data.imgUrl;
+            return await this.fetchWithRetry(API_CONFIG.TAOBAO + '?type=json');
         });
     }
 
     async pic4(e) {
         await this.sendImageWithFallback(e, 'WALLPAPER', async () => {
-            const imgInfo = await this.fetchWithRetry(API_CONFIG.WALLPAPER + '?type=json');
-            return imgInfo.url;
+            return await this.fetchWithRetry(API_CONFIG.WALLPAPER + '?type=json');
         });
     }
 
@@ -263,7 +228,7 @@ export class Photo extends plugin {
                 const response = await fetch(url);
                 return await response.text();
             }
-            
+
             // Handle JSON response type (default)
             const response = await fetch(url);
             return await response.json();
@@ -274,7 +239,7 @@ export class Photo extends plugin {
                 await sleep(CONSTANTS.SLEEP_TIME);
                 return this.fetchWithRetry(url, options, retryCount + 1);
             }
-            
+
             console.error(`Failed to fetch ${url} after ${CONSTANTS.MAX_RETRY_COUNT} attempts:`, error);
             throw error;
         }
