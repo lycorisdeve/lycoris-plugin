@@ -138,7 +138,7 @@ export class update extends plugin {
 
     let end = "";
     end =
-      "更多详细信息，请前往gitee查看\nhttps://gitee.com/aurora-love/lycoris-plugin/blob/master/CHANGELOG.md";
+      "\n更多详细信息，请前往gitee查看\nhttps://gitee.com/aurora-love/lycoris-plugin/blob/master/CHANGELOG.md";
 
     log = [`lycoris-plugin更新日志，共${line}条`, ...log]
     // log = await this.makeForwardMsg(`lycoris-plugin更新日志，共${line}条`, log, end);
