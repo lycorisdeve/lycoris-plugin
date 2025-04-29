@@ -41,7 +41,7 @@ export class IPixiv extends plugin {
         this.defaultProxy = 'i.pixiv.re'
 
         // 默认图片尺寸
-        this.defaultSize = 'regular'
+        this.defaultSize = 'original'
 
         // 默认每次返回数量
         this.defaultNum = 1
@@ -186,15 +186,13 @@ export class IPixiv extends plugin {
 
     // 发送图片结果
     async sendImageResult(e, result, isR18 = false) {
-        console.error(result)
         // 构建回复消息
         const title = result.title || '无标题'
         const author = result.author || '未知作者'
         const resultTags = result.tags.join(', ')
 
-        // 选择可用的URL
-        const imageUrl = result.urls.original
-        console.error(imageUrl)
+        // 根据请求的size选择图片URL:original regular small thumb mini
+        const imageUrl = result.urls[this.defaultSize] || result.urls.regular || result.urls.original
 
         if (!imageUrl) {
             await e.reply('获取图片链接失败，请稍后再试~', true)
@@ -354,7 +352,6 @@ export class IPixiv extends plugin {
             await e.reply('没有找到符合条件的图片哦~', true)
             return
         }
-        logger.error(results)
 
         // 发送图片，强制使用合并转发方式
         await this.sendImageResult(e, results[0], true)
