@@ -245,13 +245,6 @@ export class IPixiv extends plugin {
         // 构建合并消息
         let msgs = []
 
-        // 添加标题消息
-        msgs.push({
-            message: '获取到的图片集合：',
-            nickname: Bot.nickname,
-            user_id: Bot.uin
-        })
-
         // 为每张图片创建一个消息
         for (const result of results) {
             const imageUrl = result.urls.original
@@ -291,7 +284,7 @@ export class IPixiv extends plugin {
             }
         }
 
-        if (msgs.length <= 1) {
+        if (msgs.length === 0) {
             await e.reply('获取图片链接失败，请稍后再试~', true)
             return
         }
