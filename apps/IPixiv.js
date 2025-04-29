@@ -186,6 +186,7 @@ export class IPixiv extends plugin {
 
     // 发送图片结果
     async sendImageResult(e, result, isR18 = false) {
+        console.error(result)
         // 构建回复消息
         const title = result.title || '无标题'
         const author = result.author || '未知作者'
