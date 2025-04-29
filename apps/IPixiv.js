@@ -192,7 +192,7 @@ export class IPixiv extends plugin {
         const resultTags = result.tags.join(', ')
 
         // 选择可用的URL
-        const imageUrl = this.selectBestImageUrl(result.urls)
+        const imageUrl = result.urls.original
 
         if (!imageUrl) {
             await e.reply('获取图片链接失败，请稍后再试~', true)
@@ -254,7 +254,7 @@ export class IPixiv extends plugin {
 
         // 为每张图片创建一个消息
         for (const result of results) {
-            const imageUrl = this.selectBestImageUrl(result.urls)
+            const imageUrl = result.urls.original
             if (imageUrl) {
                 // 检查是否为R18内容
                 const isR18Content = isR18 || result.tags.some(tag => tag.toLowerCase().includes('r-18')) || result.title.toLowerCase().includes('r-18')
