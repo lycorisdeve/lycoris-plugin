@@ -345,6 +345,25 @@ export class IPixiv extends plugin {
         await this.sendImageResult(e, results[0])
     }
 
+    async r18Setu(e) {
+        // 提取关键词
+        const tags = e.msg.replace(/^#?(r18|R18)\s*/, '').trim()
+
+        // 获取参数，设置r18=1
+        const params = this.parseParams(tags, { r18: 1 })
+
+        // 获取图片
+        const results = await this.getImage(params)
+
+        if (results.length === 0) {
+            await e.reply('没有找到符合条件的图片哦~', true)
+            return
+        }
+
+        // 发送图片，强制使用合并转发方式
+        await this.sendImageResult(e, results[0], true)
+    }
+
     // 显示帮助信息
     async showHelp(e) {
         const helpMsg = `【Pixiv图片搜索帮助】
