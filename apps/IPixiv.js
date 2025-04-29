@@ -179,6 +179,11 @@ export class IPixiv extends plugin {
         await this.sendImageResult(e, results[0], params.r18 > 0)
     }
 
+    // 生成二维码URL
+    generateQRCode(imageUrl) {
+        return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(imageUrl)}`;
+    }
+
     // 发送图片结果
     async sendImageResult(e, result, isR18 = false) {
         // 构建回复消息
@@ -194,121 +199,28 @@ export class IPixiv extends plugin {
             return
         }
 
-        // 如果是R18内容或者图片URL包含R18关键词，使用合并转发方式发送
-        if (isR18 || result.tags.some(tag => tag.toLowerCase().includes('r-18')) || result.title.toLowerCase().includes('r-18')) {
-            await this.sendByForward(e, imageUrl, result)
-            return
-        }
+        // 检查是否为R18内容
+        const isR18Content = isR18 || result.tags.some(tag => tag.toLowerCase().includes('r-18')) || result.title.toLowerCase().includes('r-18')
 
-        // 非R18内容尝试直接发送
-        try {
+        if (isR18Content) {
+            // 生成二维码
+            const qrcodeUrl = this.generateQRCode(imageUrl)
+            // 发送二维码和提示信息
             const msg = [
-                segment.image(imageUrl),
-                `标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
+                '该内容已转换为二维码，请自行扫码查看\n',
+                segment.image(qrcodeUrl),
+                `\n标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
             ]
             await e.reply(msg)
-        } catch (error) {
-            logger.warn(`图片直接发送失败，尝试使用合并转发方式: ${error}`)
-            await this.sendByForward(e, imageUrl, result)
-        }
-    }
-
-    // 使用合并转发的方式发送图片
-    async sendByForward(e, imageUrl, result) {
-        try {
-            // 准备用户信息
-            let nickname = Bot.nickname
-            if (e.isGroup) {
-                try {
-                    const info = await Bot.getGroupMemberInfo(e.group_id, Bot.uin)
-                    nickname = info.card || info.nickname
-                } catch (error) {
-                    logger.warn(`获取群成员信息失败: ${error}`)
-                }
-            }
-
-            const userInfo = {
-                user_id: Bot.uin,
-                nickname
-            }
-
-            // 创建引用消息对象
-            const quoteMsg = {
-                type: 'quote',
-                data: {
-                    user_id: e.sender.user_id,
-                    time: parseInt(Date.now() / 1000),
-                    seq: e.seq || 0,
-                    content: ' '
-                }
-            }
-
-            // 构建图片消息
-            const imgMsg = segment.image(imageUrl)
-
-            // 构建图片信息文本
-            const infoText = `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}\n标签：${result.tags.join(', ')}`
-
-            // 构建转发消息列表
-            const forwardMsg = [
-                {
-                    ...userInfo,
-                    message: '获取到的图片：'
-                },
-                {
-                    ...userInfo,
-                    message: [quoteMsg, imgMsg]
-                },
-                {
-                    ...userInfo,
-                    message: infoText
-                }
-            ]
-            console.log(forwardMsg)
-
-            await this.e.reply(await Bot.makeForwardMsg(forwardMsg), false, {
-                recallMsg: -1,
-            });
-            return true
-        } catch (error) {
-            logger.error(`合并转发发送图片失败: ${error}`)
-            console.error(error)
-            await e.reply('图片发送失败，请稍后再试~', true)
-            return false
-        }
-    }
-
-    // 选择最佳图片URL
-    selectBestImageUrl(urls) {
-        // 按优先级选择URL
-        const priorities = ['regular', 'original', 'small', 'thumb', 'mini']
-
-        for (const size of priorities) {
-            if (urls[size]) return urls[size]
-        }
-
-        // 如果没有找到任何URL，返回null
-        return null
-    }
-
-    // R18搜索
-    async r18Setu(e) {
-        // 提取关键词
-        const tags = e.msg.replace(/^#?(r18|R18)\s*/, '').trim()
-
-        // 获取参数，设置r18=1
-        const params = this.parseParams(tags, { r18: 1 })
-
-        // 获取图片
-        const results = await this.getImage(params)
-
-        if (results.length === 0) {
-            await e.reply('没有找到符合条件的图片哦~', true)
             return
         }
 
-        // 发送图片，强制使用合并转发方式
-        await this.sendImageResult(e, results[0], true)
+        // 非R18内容直接发送
+        const msg = [
+            segment.image(imageUrl),
+            `标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
+        ]
+        await e.reply(msg)
     }
 
     // 多图搜索
@@ -344,27 +256,35 @@ export class IPixiv extends plugin {
         for (const result of results) {
             const imageUrl = this.selectBestImageUrl(result.urls)
             if (imageUrl) {
-                // 创建引用消息对象
-                const quoteMsg = {
-                    type: 'quote',
-                    data: {
-                        user_id: e.sender.user_id,
-                        time: parseInt(Date.now() / 1000),
-                        seq: e.seq || 0,
-                        content: ' '
-                    }
-                }
+                // 检查是否为R18内容
+                const isR18Content = isR18 || result.tags.some(tag => tag.toLowerCase().includes('r-18')) || result.title.toLowerCase().includes('r-18')
 
-                // 添加图片消息
-                msgs.push({
-                    message: [quoteMsg, segment.image(imageUrl)],
-                    nickname: Bot.nickname,
-                    user_id: Bot.uin
-                })
+                if (isR18Content) {
+                    // 生成二维码
+                    const qrcodeUrl = this.generateQRCode(imageUrl)
+                    // 添加二维码消息
+                    msgs.push({
+                        message: '该内容已转换为二维码，请自行扫码查看',
+                        nickname: Bot.nickname,
+                        user_id: Bot.uin
+                    })
+                    msgs.push({
+                        message: segment.image(qrcodeUrl),
+                        nickname: Bot.nickname,
+                        user_id: Bot.uin
+                    })
+                } else {
+                    // 添加普通图片消息
+                    msgs.push({
+                        message: segment.image(imageUrl),
+                        nickname: Bot.nickname,
+                        user_id: Bot.uin
+                    })
+                }
 
                 // 添加图片信息
                 msgs.push({
-                    message: `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}`,
+                    message: `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}\n标签：${result.tags.join(', ')}`,
                     nickname: Bot.nickname,
                     user_id: Bot.uin
                 })

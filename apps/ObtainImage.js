@@ -154,6 +154,27 @@ export class Photo extends plugin {
         }
     }
 
+    // 检查图片是否为R18
+    isR18Image(apiName, response) {
+        try {
+            switch (apiName) {
+                case 'BACKUP':
+                    return response?.data?.[0]?.r18 || false;
+                // 其他API的R18检查逻辑可以根据需要添加
+                default:
+                    return false;
+            }
+        } catch (error) {
+            logger.error(`检查R18状态失败 [${apiName}]:`, error);
+            return false;
+        }
+    }
+
+    // 生成二维码URL
+    generateQRCode(imageUrl) {
+        return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(imageUrl)}`;
+    }
+
     // 发送图片的通用方法
     async sendImageWithFallback(e, apiName, getImageFn) {
         try {
@@ -162,17 +183,26 @@ export class Photo extends plugin {
 
             if (imageUrl) {
                 try {
-                    // 尝试直接发送图片
-                    let flag = await e.reply(segment.image(imageUrl));
-                    if (!flag) {
-                        return await this.sendByForward(e, imageUrl);
+                    // 检查是否为R18图片
+                    const isR18 = this.isR18Image(apiName, response);
+
+                    if (isR18) {
+                        // 如果是R18图片，生成二维码
+                        const qrcodeUrl = this.generateQRCode(imageUrl);
+                        // 发送二维码图片和提示信息
+                        const msg = [
+                            segment.text('R18内容已转换为二维码，请自行扫码查看\n'),
+                            segment.image(qrcodeUrl)
+                        ];
+                        let flag = await e.reply(msg);
+                        return flag;
                     } else {
+                        // 非R18图片正常发送
+                        await e.reply(segment.image(imageUrl));
                         return true;
                     }
-
                 } catch (sendError) {
-                    // 图片发送失败，尝试使用引用+合并转发的方式
-                    logger.warn(`${apiName}图片直接发送失败，尝试使用合并转发方式`, sendError);
+                    logger.warn(`${apiName}图片发送失败，尝试使用合并转发方式`, sendError);
                 }
             }
 
@@ -180,16 +210,30 @@ export class Photo extends plugin {
             await this.checkAndSendApiAlert(apiName);
 
             // 尝试备用API
-            const backupUrl = await this.getBackupImage();
+            const backupResponse = await this.fetchWithRetry(API_CONFIG.BACKUP);
+            const backupUrl = this.processApiResponse('BACKUP', backupResponse);
+
             if (backupUrl) {
                 try {
-                    // 尝试直接发送备用图片
-                    await e.reply(segment.image(backupUrl));
-                    return true;
+                    // 检查备用图片是否为R18
+                    const isBackupR18 = this.isR18Image('BACKUP', backupResponse);
+
+                    if (isBackupR18) {
+                        // 如果是R18图片，生成二维码
+                        const qrcodeUrl = this.generateQRCode(backupUrl);
+                        const msg = [
+                            segment.text('R18内容已转换为二维码，请自行扫码查看\n'),
+                            segment.image(qrcodeUrl)
+                        ];
+                        return await e.reply(msg);
+                    } else {
+                        // 非R18图片正常发送
+                        await e.reply(segment.image(backupUrl));
+
+                        return true;
+                    }
                 } catch (sendError) {
-                    // 备用图片发送失败，尝试使用引用+合并转发的方式
-                    logger.warn(`${apiName}备用图片直接发送失败，尝试使用合并转发方式`, sendError);
-                    return await this.sendByForward(e, backupUrl);
+                    logger.warn(`${apiName}备用图片发送失败，尝试使用合并转发方式`, sendError);
                 }
             }
             return false;
