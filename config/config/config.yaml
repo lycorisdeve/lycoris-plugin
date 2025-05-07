@@ -38,6 +38,9 @@ moyu:
 # 油价查询
 oilPrice:
   schedule:
+    year: "*"
+    month: "*"
+    week: "5" # 在周五和周日执行（星期天是 0）
     hour: "8" # 在早上8:00:00执行
     minute: "30"
     second: "0"

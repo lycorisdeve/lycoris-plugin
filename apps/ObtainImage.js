@@ -88,23 +88,6 @@ export class Photo extends plugin {
             await redis.set(key, '1', { EX: CONSTANTS.API_ALERT_EXPIRE });
         }
     }
-
-    // 使用备用API获取图片
-    async getBackupImage() {
-        const v = [0, 1, 2];
-        const randomR18 = v[Math.floor(Math.random() * v.length)];
-
-        try {
-            const backupApi = `${API_CONFIG.BACKUP}&r18=${randomR18}`;
-            const response = await this.fetchWithRetry(backupApi);
-            if (response.error) return null;
-            return response.data[0]?.urls?.regular;
-        } catch (error) {
-            console.error('备用API调用失败:', error);
-            return null;
-        }
-    }
-
     // API响应处理方法
     processApiResponse(apiName, response) {
         try {
@@ -180,37 +163,15 @@ export class Photo extends plugin {
         try {
             const response = await getImageFn();
             const imageUrl = this.processApiResponse(apiName, response);
-
-            if (imageUrl) {
-                try {
-                    // 检查是否为R18图片
-                    const isR18 = this.isR18Image(apiName, response);
-
-                    if (isR18) {
-                        // 如果是R18图片，生成二维码
-                        const qrcodeUrl = this.generateQRCode(imageUrl);
-                        // 发送二维码图片和提示信息
-                        const msg = [
-                            segment.text('R18内容已转换为二维码，请自行扫码查看\n'),
-                            segment.image(qrcodeUrl)
-                        ];
-                        let flag = await e.reply(msg);
-                        return flag;
-                    } else {
-                        // 非R18图片正常发送
-                        await e.reply(segment.image(imageUrl));
-                        return true;
-                    }
-                } catch (sendError) {
-                    logger.warn(`${apiName}图片发送失败，尝试使用合并转发方式`, sendError);
-                }
-            }
+            let res = e.reply(segment.image(imageUrl))
+            if (res) return true;
 
             // 主API失败，记录并通知
             await this.checkAndSendApiAlert(apiName);
 
             // 尝试备用API
             const backupResponse = await this.fetchWithRetry(API_CONFIG.BACKUP);
+            
             const backupUrl = this.processApiResponse('BACKUP', backupResponse);
 
             if (backupUrl) {
@@ -222,7 +183,7 @@ export class Photo extends plugin {
                         // 如果是R18图片，生成二维码
                         const qrcodeUrl = this.generateQRCode(backupUrl);
                         const msg = [
-                            segment.text('R18内容已转换为二维码，请自行扫码查看\n'),
+                            segment.text('图片内容已转换为二维码，请自行扫码查看\n'),
                             segment.image(qrcodeUrl)
                         ];
                         return await e.reply(msg);

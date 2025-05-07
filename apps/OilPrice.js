@@ -16,7 +16,7 @@ const API_CONFIG = {
 }
 
 const plugin_config = config.oilPrice
-const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * *`;
+const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * ${plugin_config.schedule.week}`;
 const VALID_PROVINCES = [
     "安徽", "北京", "福建", "甘肃", "广东", "广西", "贵州", "海南",
     "河北", "河南", "黑龙江", "湖北", "湖南", "吉林", "江苏", "江西",
