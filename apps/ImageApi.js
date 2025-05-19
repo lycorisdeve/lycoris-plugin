@@ -4,7 +4,7 @@
  * @time 2023-03-31 23:57
  */
 import fetch from 'node-fetch'
-import { parseImg } from '../utils/ImgUtils.js'
+
 
 
 
@@ -29,7 +29,7 @@ export class Photo extends plugin {
                 },
                 {
                     /** 命令正则匹配 */
-                    reg: '日期',
+                    reg: '#日期',
                     /** 执行方法 */
                     fnc: 'todayInfo',
                 },
@@ -56,46 +56,8 @@ export class Photo extends plugin {
         })
     }
 
-    async moyuDayReport(e) {
-        // e = await parseImg(e);
-        let url = 'https://dayu.qqsuu.cn/moyuribao/apis.php?type=json'
-        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(segment.image(data.data))
-    }
-    async todayInfo(e) {
-        // e = await parseImg(e);
-        let url = 'https://dayu.qqsuu.cn/moyurili/apis.php?type=json'
-        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(segment.image(data.data))
-    }
-    async neihanduanzi(e) {
-        // e = await parseImg(e);
-        let url = 'https://dayu.qqsuu.cn/neihanduanzi/apis.php?type=json'
-        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(segment.image(data.data))
-    }
-    async videoMoyuRiBao(e) {
-        // e = await parseImg(e);
-        let url = 'https://dayu.qqsuu.cn/moyuribaoshipin/apis.php?type=json'
-        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(segment.video(data.data))
-    }
-
-    async genImg(e) {
-        let tag = e.msg.replace(/#生成/g, "").trim()
-        let url = `https://api.linhun.vip/api/huitu?text=${tag}&prompt=水印,最差质量，低质量，裁剪&ratio=宽&apiKey=2842bc94ca70fd0cd4190ee06c51dac4`
-        let data = await fetch(url).then(res => res.json()).catch((err) => console.error(err))
-        e.reply(data.url, true)
-
-    }
-
 
 
 
 
 }
-/* 
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-}
- */

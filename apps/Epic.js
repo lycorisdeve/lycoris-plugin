@@ -13,6 +13,7 @@ const CRON_EXPRESSION = `${config.epicGames.schedule.second} ${config.epicGames.
 // 获取group_ids和private_ids
 const groupIds = config.epicGames.group_ids;
 const privateIds = config.epicGames.private_ids;
+const isPush = config.epicGames.isPush;
 export class EpicGamesPlugin extends plugin {
     constructor() {
         super({
@@ -45,6 +46,9 @@ export class EpicGamesPlugin extends plugin {
 
     }
     async epicGamesCorn() {
+        if (!isPush) {
+            return false;
+        }
         // 检查groupIds和privateIds是否至少有一个有值且为数组类型
         if ((Array.isArray(groupIds) && groupIds.length > 0) || (Array.isArray(privateIds) && privateIds.length > 0)) {
             // 获取Epic Games消息

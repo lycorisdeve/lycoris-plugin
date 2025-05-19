@@ -1,5 +1,6 @@
 #epic
 epicGames:
+  isPush: true
   schedule:
     month: "*" # 每个月都执行
     dayOfWeek: "5,0" # 在周五和周日执行（星期天是 0）
@@ -11,6 +12,7 @@ epicGames:
   private_ids: []
 #read60s
 read60s:
+  isPush: true
   schedule:
     hour: "8" # 在中午8:00:00执行
     minute: "20"
@@ -28,6 +30,7 @@ youdao_translate:
 
 # 摸鱼日历
 moyu:
+  isPush: true
   schedule:
     hour: "8" # 在中午8:00:00执行
     minute: "20"
@@ -37,6 +40,7 @@ moyu:
   private_ids: []
 # 油价查询
 oilPrice:
+  isPush: true
   schedule:
     year: "*"
     month: "*"

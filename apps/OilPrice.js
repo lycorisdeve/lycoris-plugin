@@ -23,6 +23,7 @@ const VALID_PROVINCES = [
     "辽宁", "内蒙古", "宁夏", "青海", "山东", "山西", "陕西", "上海",
     "四川", "天津", "西藏", "新疆", "云南", "浙江", "重庆"
 ];
+const isPush = config.oilPrice.isPush
 
 export class OilPricePlugin extends plugin {
     constructor() {
@@ -200,6 +201,9 @@ export class OilPricePlugin extends plugin {
 
     // 修改定时推送方法，支持相同油价合并发送
     async sendOilPriceInfo() {
+        if (!isPush) {
+            return;
+        }
         try {
             const provinces = plugin_config.provinces || ['广东'];
             const priceGroups = new Map(); // 用于存储相同油价的省份
