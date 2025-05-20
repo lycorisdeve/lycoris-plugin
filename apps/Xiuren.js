@@ -4,20 +4,82 @@ import * as cheerio from 'cheerio';
 import { segment } from 'oicq';
 import https from 'https';
 
-// API配置 - 更新为更多可能的网站
-const API_CONFIG = {
-  PRIMARY: 'https://x5.xr5.top',
-  BACKUP1: 'http://25.xiuren005.top',
-  BACKUP2: 'https://www.xiuren.org',
-  BACKUP3: 'https://www.xiurenset.com',
-  BACKUP4: 'https://www.xiuren.vip',
-  BACKUP5: 'https://www.xiuren.cc',
-  TIMEOUT: 15000
+// 网站配置 - 更新为更多可能的秀人网站点
+const SITE_CONFIG = {
+  SITES: [
+    'https://x5.xr5.top',
+    'http://25.xiuren005.top',
+    'https://www.xiuren.org',
+    'https://www.xiurenset.com',
+    'https://www.xiuren.vip',
+    'https://www.xiuren.cc',
+    'https://www.xiuren.net',
+    'https://www.xiuren.one',
+    'https://www.xiurenb.net'
+  ],
+  // 反代API，如果有的话
+  PROXY_API: 'https://proxyapi.198143.xyz/',
+  // 是否使用反代
+  USE_PROXY: false,
+  // 超时设置
+  TIMEOUT: 15000,
+  // 随机延迟范围（毫秒）
+  DELAY_MIN: 500,
+  DELAY_MAX: 2000
 }
 
 // 存储搜索结果
 let xiurenResult = [];
 let keyword = '';
+
+// 用户代理列表
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+];
+
+// 网站选择器配置 - 针对不同网站的不同选择器
+const SELECTORS = {
+  // 通用选择器
+  common: {
+    title: ['.entry-title', 'h1.title', '.post-title', 'h1', '.article-title'],
+    content: [
+      '.article-content', 
+      '.post', 
+      '.post-item', 
+      '.content-item', 
+      '.item', 
+      '.article', 
+      '.post-list .post',
+      '.posts-list .item'
+    ],
+    image: [
+      '.entry-content img', 
+      '.entry-wrapper img', 
+      '.article-content img', 
+      '.post-content img', 
+      '.content img',
+      '.main-content img',
+      '.single-content img',
+      '.detail-content img'
+    ]
+  },
+  // 特定网站的选择器
+  specific: {
+    'x5.xr5.top': {
+      content: ['.article-content'],
+      image: ['.entry-content img']
+    },
+    'xiuren.org': {
+      content: ['.post'],
+      image: ['.single-content img']
+    }
+    // 可以根据实际情况添加更多网站的特定选择器
+  }
+};
 
 export class XiuRenPlugin extends plugin {
   constructor() {
@@ -38,9 +100,47 @@ export class XiuRenPlugin extends plugin {
         {
           reg: "^#看秀图(.*)", // 匹配规则 - 查看详情
           fnc: 'viewXiurenDetail',
+        },
+        {
+          reg: "^#秀人调试$", // 匹配规则 - 调试
+          fnc: 'debugXiuren',
         }
       ],
     });
+  }
+
+  // 获取随机延迟
+  getRandomDelay() {
+    return Math.floor(Math.random() * (SITE_CONFIG.DELAY_MAX - SITE_CONFIG.DELAY_MIN + 1)) + SITE_CONFIG.DELAY_MIN;
+  }
+
+  // 获取随机用户代理
+  getRandomUserAgent() {
+    return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+  }
+
+  // 调试功能
+  async debugXiuren(e) {
+    if (!e.isMaster) {
+      e.reply("只有主人才能使用调试功能");
+      return false;
+    }
+
+    const debugInfo = {
+      sites: SITE_CONFIG.SITES,
+      useProxy: SITE_CONFIG.USE_PROXY,
+      proxyApi: SITE_CONFIG.PROXY_API,
+      timeout: SITE_CONFIG.TIMEOUT,
+      delay: `${SITE_CONFIG.DELAY_MIN}-${SITE_CONFIG.DELAY_MAX}ms`,
+      userAgents: USER_AGENTS.length,
+      selectors: {
+        common: SELECTORS.common,
+        specific: Object.keys(SELECTORS.specific)
+      }
+    };
+
+    await e.reply("秀人网插件调试信息：\n" + JSON.stringify(debugInfo, null, 2));
+    return true;
   }
 
   // 获取首页内容
@@ -48,9 +148,9 @@ export class XiuRenPlugin extends plugin {
     await e.reply("正在获取秀人网首页内容，请稍候...");
 
     try {
-      // 尝试使用主API获取首页内容
-      const html = await this.fetchWithRetry(`${API_CONFIG.PRIMARY}/`);
-      return this.parseAndSendGalleryList(e, html, "首页图集");
+      // 尝试使用第一个站点获取首页内容
+      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITES[0]}/`);
+      return this.parseAndSendGalleryList(e, html, "首页图集", SITE_CONFIG.SITES[0]);
     } catch (err) {
       logger.error(`秀人网首页请求失败: ${err.message}`);
       await e.reply(`获取首页内容失败，请稍后重试。错误信息: ${err.message}`);
@@ -81,16 +181,31 @@ export class XiuRenPlugin extends plugin {
 
     await e.reply(`正在搜索"${keyword}"，页码: ${pageNum}，请稍候...`);
 
-    try {
-      // 构建搜索URL
-      const searchUrl = `${API_CONFIG.PRIMARY}/page/${pageNum}?s=${encodeURIComponent(keyword)}`;
-      const html = await this.fetchWithRetry(searchUrl);
-      return this.parseAndSendGalleryList(e, html, `"${keyword}"的搜索结果`);
-    } catch (err) {
-      logger.error(`秀人网搜索请求失败: ${err.message}`);
-      await e.reply(`搜索失败，请稍后重试。错误信息: ${err.message}`);
-      return false;
+    // 尝试所有站点进行搜索
+    for (const site of SITE_CONFIG.SITES) {
+      try {
+        // 构建搜索URL
+        const searchUrl = `${site}/page/${pageNum}?s=${encodeURIComponent(keyword)}`;
+        logger.info(`尝试从 ${searchUrl} 搜索`);
+        
+        // 添加随机延迟
+        await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
+        
+        const html = await this.fetchWithRetry(searchUrl);
+        const result = await this.parseAndSendGalleryList(e, html, `"${keyword}"的搜索结果`, site);
+        
+        if (result) {
+          return true; // 如果成功找到结果，就不再尝试其他站点
+        }
+      } catch (err) {
+        logger.warn(`从 ${site} 搜索失败: ${err.message}`);
+        // 继续尝试下一个站点
+      }
     }
+    
+    // 所有站点都尝试失败
+    await e.reply(`搜索"${keyword}"失败，请尝试其他关键词或稍后再试`);
+    return false;
   }
 
   // 查看详情图片
@@ -113,14 +228,23 @@ export class XiuRenPlugin extends plugin {
     await e.reply("正在获取详细图片，请稍候...");
 
     try {
+      // 添加随机延迟
+      await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
+      
       // 获取详情页内容
       const html = await this.fetchWithRetry(url);
       const $ = cheerio.load(html);
       const msgList = [];
 
       // 提取标题 - 尝试多种可能的选择器
-      const titleSelectors = ['.entry-title', 'h1.title', '.post-title', 'h1', '.article-title'];
       let title = '';
+      
+      // 获取当前网站的域名
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname;
+      
+      // 尝试使用特定网站的选择器
+      const titleSelectors = SELECTORS.specific[domain]?.title || SELECTORS.common.title;
       
       for (const selector of titleSelectors) {
         const foundTitle = $(selector).first().text().trim();
@@ -140,18 +264,10 @@ export class XiuRenPlugin extends plugin {
 
       // 提取所有图片 - 尝试多种可能的选择器
       let imageCount = 0;
-      const imageSelectors = [
-        '.entry-content img', 
-        '.entry-wrapper img', 
-        '.article-content img', 
-        '.post-content img', 
-        '.content img',
-        '.main-content img',
-        '.single-content img',
-        '.detail-content img'
-      ];
-      
       let foundImages = false;
+      
+      // 尝试使用特定网站的选择器
+      const imageSelectors = SELECTORS.specific[domain]?.image || SELECTORS.common.image;
       
       for (const selector of imageSelectors) {
         const images = $(selector);
@@ -228,22 +344,17 @@ export class XiuRenPlugin extends plugin {
   }
 
   // 解析并发送图集列表
-  async parseAndSendGalleryList(e, html, title) {
+  async parseAndSendGalleryList(e, html, title, siteUrl) {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
 
-    // 尝试多种可能的选择器
-    const contentSelectors = [
-      '.article-content', 
-      '.post', 
-      '.post-item', 
-      '.content-item', 
-      '.item', 
-      '.article', 
-      '.post-list .post',
-      '.posts-list .item'
-    ];
+    // 获取当前网站的域名
+    const urlObj = new URL(siteUrl);
+    const domain = urlObj.hostname;
+    
+    // 尝试使用特定网站的选择器
+    const contentSelectors = SELECTORS.specific[domain]?.content || SELECTORS.common.content;
     
     let foundContent = false;
     
@@ -256,7 +367,12 @@ export class XiuRenPlugin extends plugin {
         
         // 确保图片链接是完整的URL
         if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
-          obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
+          obj.imgSrc = new URL(obj.imgSrc, siteUrl).href;
+        }
+        
+        // 确保链接是完整的URL
+        if (href && !href.startsWith('http')) {
+          href = new URL(href, siteUrl).href;
         }
         
         if (href && obj.imgSrc) {
@@ -282,7 +398,12 @@ export class XiuRenPlugin extends plugin {
             
             // 确保图片链接是完整的URL
             if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
-              obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
+              obj.imgSrc = new URL(obj.imgSrc, siteUrl).href;
+            }
+            
+            // 确保链接是完整的URL
+            if (href && !href.startsWith('http')) {
+              href = new URL(href, siteUrl).href;
             }
             
             if (obj.imgSrc) {
@@ -325,61 +446,71 @@ export class XiuRenPlugin extends plugin {
       await e.reply(await Bot.makeForwardMsg(msgList), false);
       return true;
     } else {
-      await e.reply('未找到匹配的内容，请尝试其他关键词或手动访问网站查看HTML结构');
+      logger.warn(`从 ${siteUrl} 未找到匹配的内容`);
       return false;
     }
   }
 
-  // 带有重试和备用API的请求方法
+  // 带有重试的请求方法
   async fetchWithRetry(url, retryCount = 0) {
     try {
-      // 确定使用哪个API
-      let baseUrl;
-      const apiKeys = Object.keys(API_CONFIG).filter(key => key.includes('PRIMARY') || key.includes('BACKUP'));
-      
-      if (retryCount < apiKeys.length) {
-        baseUrl = API_CONFIG[apiKeys[retryCount]];
-      } else {
-        baseUrl = API_CONFIG.PRIMARY;
+      // 如果启用了反代API
+      if (SITE_CONFIG.USE_PROXY) {
+        return await this.fetchWithProxy(url);
       }
-
-      // 替换URL中的域名部分
-      let targetUrl = url;
       
-      // 替换所有可能的域名
-      for (const key of apiKeys) {
-        targetUrl = targetUrl.replace(API_CONFIG[key], baseUrl);
-      }
-
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
         rejectUnauthorized: false // 禁用证书验证
       });
 
-      const response = await axios.get(targetUrl, {
+      const response = await axios.get(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': this.getRandomUserAgent(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-          'Referer': baseUrl,
+          'Referer': new URL(url).origin,
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         },
-        timeout: API_CONFIG.TIMEOUT,
-        httpsAgent: targetUrl.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
+        timeout: SITE_CONFIG.TIMEOUT,
+        httpsAgent: url.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
       });
 
       return response.data;
     } catch (error) {
-      // 如果失败且未超过最大重试次数，则尝试使用备用API
-      const maxRetries = Object.keys(API_CONFIG).filter(key => key.includes('PRIMARY') || key.includes('BACKUP')).length;
-      
-      if (retryCount < maxRetries - 1) {
-        logger.warn(`API请求失败，尝试使用备用API ${retryCount + 1}: ${error.message}`);
+      // 如果失败且未超过最大重试次数，则重试
+      if (retryCount < 2) {
+        logger.warn(`请求失败，正在重试(${retryCount + 1}/3): ${error.message}`);
+        // 添加随机延迟
+        await new Promise(resolve => setTimeout(resolve, this.getRandomDelay() * 2));
         return this.fetchWithRetry(url, retryCount + 1);
       }
 
-      logger.error(`所有API请求均失败: ${error.message}`);
+      logger.error(`请求失败: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // 使用反代API获取内容
+  async fetchWithProxy(url) {
+    try {
+      // 对目标URL进行编码
+      const encodedUrl = encodeURIComponent(url);
+      const proxyUrl = `${SITE_CONFIG.PROXY_API}${encodedUrl}`;
+      
+      const response = await axios.get(proxyUrl, {
+        headers: {
+          'User-Agent': this.getRandomUserAgent(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+        },
+        timeout: SITE_CONFIG.TIMEOUT
+      });
+      
+      return response.data;
+    } catch (error) {
+      logger.error(`反代请求失败: ${error.message}`);
       throw error;
     }
   }
