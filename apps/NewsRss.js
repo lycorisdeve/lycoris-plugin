@@ -72,17 +72,42 @@ export class NewsRssPlugin extends plugin {
 
     // 根据关键词搜索RSS新闻
     async searchRss(e) {
-        let keyword = e.msg.replace(/#rss搜索|#RSS搜索/g, "").trim();
+        // 匹配关键词和条数
+        // 支持格式: #rss搜索关键词 数字 或 #rss搜索关键词 数字条
+        const matchResult = e.msg.match(/#rss搜索|#RSS搜索(.*?)(?:\s+(\d+)(?:条)?)?$/);
+        let keyword = '';
+        let limit = API_CONFIG.PARAMS.limit; // 默认条数
+        
+        if (matchResult) {
+            // 提取关键词，去除命令前缀和可能的条数
+            keyword = e.msg.replace(/#rss搜索|#RSS搜索/g, "").trim();
+            
+            // 检查是否包含数字（条数）
+            const limitMatch = keyword.match(/\s+(\d+)(?:条)?$/);
+            if (limitMatch) {
+                limit = parseInt(limitMatch[1]);
+                // 从关键词中移除条数部分
+                keyword = keyword.replace(/\s+\d+(?:条)?$/, "").trim();
+            }
+        }
+        
         if (!keyword) {
             await e.reply("请输入搜索关键词");
             return false;
         }
-
+        
+        // 限制最大条数，防止请求过大
+        if (limit > 50) {
+            await e.reply("单次查询最多支持50条新闻，已自动调整为50条");
+            limit = 50;
+        }
+        
         const params = {
             ...API_CONFIG.PARAMS,
-            keyword: keyword
+            keyword: keyword,
+            limit: limit
         };
-
+        
         return this.handleRssRequest(e, params);
     }
 
@@ -105,9 +130,9 @@ export class NewsRssPlugin extends plugin {
     // 处理RSS请求的通用方法
     async handleRssRequest(e, params) {
         try {
-            await e.reply("正在获取RSS新闻，请稍候...");
+            await e.reply(`正在获取RSS新闻，请稍候...${params.limit ? `(查询${params.limit}条)` : ''}`);
             const news = await this.fetchRssNews(params);
-
+            
             if (news && news.length > 0) {
                 const msgList = this.formatNewsToForwardMsg(news, e);
                 await e.reply(await Bot.makeForwardMsg(msgList));
@@ -195,16 +220,6 @@ export class NewsRssPlugin extends plugin {
             } else if (item.link) {
                 // 兼容旧格式
                 content += `链接: ${item.link}\n`;
-            }
-
-            if (item.description) {
-                // 使用cheerio清理HTML标签
-                const $ = cheerio.load(item.description);
-                content += `${$.text().substring(0, 100)}...\n`;
-            }
-
-            if (item.img) {
-                content += segment.image(item.img);
             }
 
             msgList.push({
