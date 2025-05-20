@@ -4,12 +4,14 @@ import * as cheerio from 'cheerio';
 import { segment } from 'oicq';
 import https from 'https';
 
-// API配置
+// API配置 - 更新为更多可能的网站
 const API_CONFIG = {
-  PRIMARY: 'https://x5.xr5.top', // 更新为证书中包含的域名
+  PRIMARY: 'https://x5.xr5.top',
   BACKUP1: 'http://25.xiuren005.top',
   BACKUP2: 'https://www.xiuren.org',
   BACKUP3: 'https://www.xiurenset.com',
+  BACKUP4: 'https://www.xiuren.vip',
+  BACKUP5: 'https://www.xiuren.cc',
   TIMEOUT: 15000
 }
 
@@ -116,8 +118,18 @@ export class XiuRenPlugin extends plugin {
       const $ = cheerio.load(html);
       const msgList = [];
 
-      // 提取标题
-      const title = $('.entry-title').text().trim();
+      // 提取标题 - 尝试多种可能的选择器
+      const titleSelectors = ['.entry-title', 'h1.title', '.post-title', 'h1', '.article-title'];
+      let title = '';
+      
+      for (const selector of titleSelectors) {
+        const foundTitle = $(selector).first().text().trim();
+        if (foundTitle) {
+          title = foundTitle;
+          break;
+        }
+      }
+      
       if (title) {
         msgList.push({
           message: `【${title}】`,
@@ -126,34 +138,87 @@ export class XiuRenPlugin extends plugin {
         });
       }
 
-      // 提取所有图片
+      // 提取所有图片 - 尝试多种可能的选择器
       let imageCount = 0;
-      $('.entry-content img, .entry-wrapper img').each((index, element) => {
-        let imgSrc = $(element).attr('src') || $(element).attr('data-src');
-
-        // 确保图片链接是完整的URL
-        if (imgSrc && !imgSrc.startsWith('http')) {
-          imgSrc = new URL(imgSrc, url).href;
+      const imageSelectors = [
+        '.entry-content img', 
+        '.entry-wrapper img', 
+        '.article-content img', 
+        '.post-content img', 
+        '.content img',
+        '.main-content img',
+        '.single-content img',
+        '.detail-content img'
+      ];
+      
+      let foundImages = false;
+      
+      for (const selector of imageSelectors) {
+        const images = $(selector);
+        if (images.length > 0) {
+          images.each((index, element) => {
+            let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
+            
+            // 过滤广告图片和小图标
+            if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
+              // 确保图片链接是完整的URL
+              if (imgSrc && !imgSrc.startsWith('http')) {
+                imgSrc = new URL(imgSrc, url).href;
+              }
+              
+              if (imgSrc) {
+                imageCount++;
+                let msg = {
+                  message: segment.image(imgSrc),
+                  nickname: Bot.nickname,
+                  user_id: Bot.uin
+                };
+                msgList.push(msg);
+                foundImages = true;
+              }
+            }
+          });
+          
+          if (foundImages) break;
         }
-
-        if (imgSrc) {
-          imageCount++;
-          let msg = {
-            message: segment.image(imgSrc),
-            nickname: Bot.nickname,
-            user_id: Bot.uin
-          };
-          msgList.push(msg);
-        }
-      });
+      }
 
       if (msgList.length > 0) {
         await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
         await e.reply(await Bot.makeForwardMsg(msgList), false);
         return true;
       } else {
-        await e.reply("未找到图片，可能是网站结构已变更");
-        return false;
+        // 如果常规方法失败，尝试查找所有img标签
+        $('img').each((index, element) => {
+          let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
+          
+          // 过滤广告图片和小图标
+          if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
+            // 确保图片链接是完整的URL
+            if (imgSrc && !imgSrc.startsWith('http')) {
+              imgSrc = new URL(imgSrc, url).href;
+            }
+            
+            if (imgSrc) {
+              imageCount++;
+              let msg = {
+                message: segment.image(imgSrc),
+                nickname: Bot.nickname,
+                user_id: Bot.uin
+              };
+              msgList.push(msg);
+            }
+          }
+        });
+        
+        if (msgList.length > 0) {
+          await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
+          await e.reply(await Bot.makeForwardMsg(msgList), false);
+          return true;
+        } else {
+          await e.reply("未找到图片，可能是网站结构已变更，请尝试手动访问网站查看HTML结构");
+          return false;
+        }
       }
     } catch (err) {
       logger.error(`获取详细图片失败: ${err.message}`);
@@ -168,23 +233,66 @@ export class XiuRenPlugin extends plugin {
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
 
-    // 查找所有文章内容
-    $('.article-content, .post').each((i, ele) => {
-      let obj = {};
-      let href = $(ele).find('a').attr('href');
-      obj.title = $(ele).find('img').attr('alt') || $(ele).find('.entry-title').text().trim();
-      obj.imgSrc = $(ele).find('img').attr('src') || $(ele).find('img').attr('data-src');
-
-      // 确保图片链接是完整的URL
-      if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
-        obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
-      }
-
-      if (href) {
-        xiurenResult.push(href);
-        msgInfos.push(obj);
-      }
-    });
+    // 尝试多种可能的选择器
+    const contentSelectors = [
+      '.article-content', 
+      '.post', 
+      '.post-item', 
+      '.content-item', 
+      '.item', 
+      '.article', 
+      '.post-list .post',
+      '.posts-list .item'
+    ];
+    
+    let foundContent = false;
+    
+    for (const selector of contentSelectors) {
+      $(selector).each((i, ele) => {
+        let obj = {};
+        let href = $(ele).find('a').attr('href');
+        obj.title = $(ele).find('img').attr('alt') || $(ele).find('.entry-title').text().trim() || $(ele).find('h2').text().trim();
+        obj.imgSrc = $(ele).find('img').attr('src') || $(ele).find('img').attr('data-src') || $(ele).find('img').attr('data-original');
+        
+        // 确保图片链接是完整的URL
+        if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
+          obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
+        }
+        
+        if (href && obj.imgSrc) {
+          xiurenResult.push(href);
+          msgInfos.push(obj);
+          foundContent = true;
+        }
+      });
+      
+      if (foundContent) break;
+    }
+    
+    // 如果常规方法失败，尝试查找所有带链接的图片
+    if (msgInfos.length === 0) {
+      $('a').each((i, ele) => {
+        let href = $(ele).attr('href');
+        if (href && href.includes('/')) {
+          let imgElement = $(ele).find('img');
+          if (imgElement.length > 0) {
+            let obj = {};
+            obj.title = imgElement.attr('alt') || $(ele).text().trim();
+            obj.imgSrc = imgElement.attr('src') || imgElement.attr('data-src') || imgElement.attr('data-original');
+            
+            // 确保图片链接是完整的URL
+            if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
+              obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
+            }
+            
+            if (obj.imgSrc) {
+              xiurenResult.push(href);
+              msgInfos.push(obj);
+            }
+          }
+        }
+      });
+    }
 
     if (msgInfos.length > 0) {
       const msgList = [];
@@ -217,7 +325,7 @@ export class XiuRenPlugin extends plugin {
       await e.reply(await Bot.makeForwardMsg(msgList), false);
       return true;
     } else {
-      await e.reply('未找到匹配的内容，请尝试其他关键词');
+      await e.reply('未找到匹配的内容，请尝试其他关键词或手动访问网站查看HTML结构');
       return false;
     }
   }
@@ -227,28 +335,21 @@ export class XiuRenPlugin extends plugin {
     try {
       // 确定使用哪个API
       let baseUrl;
-      switch (retryCount) {
-        case 0:
-          baseUrl = API_CONFIG.PRIMARY;
-          break;
-        case 1:
-          baseUrl = API_CONFIG.BACKUP1;
-          break;
-        case 2:
-          baseUrl = API_CONFIG.BACKUP2;
-          break;
-        case 3:
-          baseUrl = API_CONFIG.BACKUP3;
-          break;
-        default:
-          baseUrl = API_CONFIG.PRIMARY;
+      const apiKeys = Object.keys(API_CONFIG).filter(key => key.includes('PRIMARY') || key.includes('BACKUP'));
+      
+      if (retryCount < apiKeys.length) {
+        baseUrl = API_CONFIG[apiKeys[retryCount]];
+      } else {
+        baseUrl = API_CONFIG.PRIMARY;
       }
 
       // 替换URL中的域名部分
-      const targetUrl = url.replace(API_CONFIG.PRIMARY, baseUrl)
-        .replace(API_CONFIG.BACKUP1, baseUrl)
-        .replace(API_CONFIG.BACKUP2, baseUrl)
-        .replace(API_CONFIG.BACKUP3, baseUrl);
+      let targetUrl = url;
+      
+      // 替换所有可能的域名
+      for (const key of apiKeys) {
+        targetUrl = targetUrl.replace(API_CONFIG[key], baseUrl);
+      }
 
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
@@ -259,7 +360,10 @@ export class XiuRenPlugin extends plugin {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          'Referer': baseUrl,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         timeout: API_CONFIG.TIMEOUT,
         httpsAgent: targetUrl.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
@@ -268,7 +372,9 @@ export class XiuRenPlugin extends plugin {
       return response.data;
     } catch (error) {
       // 如果失败且未超过最大重试次数，则尝试使用备用API
-      if (retryCount < 3) {
+      const maxRetries = Object.keys(API_CONFIG).filter(key => key.includes('PRIMARY') || key.includes('BACKUP')).length;
+      
+      if (retryCount < maxRetries - 1) {
         logger.warn(`API请求失败，尝试使用备用API ${retryCount + 1}: ${error.message}`);
         return this.fetchWithRetry(url, retryCount + 1);
       }
