@@ -2,11 +2,14 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio';
 import { segment } from 'oicq';
+import https from 'https';
 
 // API配置
 const API_CONFIG = {
-  PRIMARY: 'https://b.2xiu.vip',
-  BACKUP: 'http://25.xiuren005.top',
+  PRIMARY: 'https://x5.xr5.top', // 更新为证书中包含的域名
+  BACKUP1: 'http://25.xiuren005.top',
+  BACKUP2: 'https://www.xiuren.org',
+  BACKUP3: 'https://www.xiurenset.com',
   TIMEOUT: 15000
 }
 
@@ -41,7 +44,7 @@ export class XiuRenPlugin extends plugin {
   // 获取首页内容
   async getHomePage(e) {
     await e.reply("正在获取秀人网首页内容，请稍候...");
-    
+
     try {
       // 尝试使用主API获取首页内容
       const html = await this.fetchWithRetry(`${API_CONFIG.PRIMARY}/`);
@@ -57,7 +60,7 @@ export class XiuRenPlugin extends plugin {
   async searchXiuren(e) {
     let message = e.msg;
     let pageNum = 1;
-    
+
     // 处理页码搜索
     if (message.includes("#秀人搜索页码")) {
       pageNum = message.replace(/#秀人搜索页码/g, "").trim();
@@ -73,9 +76,9 @@ export class XiuRenPlugin extends plugin {
         return false;
       }
     }
-    
+
     await e.reply(`正在搜索"${keyword}"，页码: ${pageNum}，请稍候...`);
-    
+
     try {
       // 构建搜索URL
       const searchUrl = `${API_CONFIG.PRIMARY}/page/${pageNum}?s=${encodeURIComponent(keyword)}`;
@@ -91,28 +94,28 @@ export class XiuRenPlugin extends plugin {
   // 查看详情图片
   async viewXiurenDetail(e) {
     const index = e.msg.replace(/#看秀图/g, "").trim();
-    
+
     if (isNaN(index)) {
       e.reply("请输入正确的数字！");
       return false;
     }
-    
+
     const idx = Number(index) - 1;
     const url = xiurenResult[idx];
-    
+
     if (!url) {
       e.reply("结果不存在！请先进行搜索或浏览首页");
       return false;
     }
-    
+
     await e.reply("正在获取详细图片，请稍候...");
-    
+
     try {
       // 获取详情页内容
       const html = await this.fetchWithRetry(url);
       const $ = cheerio.load(html);
       const msgList = [];
-      
+
       // 提取标题
       const title = $('.entry-title').text().trim();
       if (title) {
@@ -122,17 +125,17 @@ export class XiuRenPlugin extends plugin {
           user_id: Bot.uin
         });
       }
-      
+
       // 提取所有图片
       let imageCount = 0;
       $('.entry-content img, .entry-wrapper img').each((index, element) => {
         let imgSrc = $(element).attr('src') || $(element).attr('data-src');
-        
+
         // 确保图片链接是完整的URL
         if (imgSrc && !imgSrc.startsWith('http')) {
           imgSrc = new URL(imgSrc, url).href;
         }
-        
+
         if (imgSrc) {
           imageCount++;
           let msg = {
@@ -143,7 +146,7 @@ export class XiuRenPlugin extends plugin {
           msgList.push(msg);
         }
       });
-      
+
       if (msgList.length > 0) {
         await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
         await e.reply(await Bot.makeForwardMsg(msgList), false);
@@ -164,19 +167,19 @@ export class XiuRenPlugin extends plugin {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
-    
+
     // 查找所有文章内容
     $('.article-content, .post').each((i, ele) => {
       let obj = {};
       let href = $(ele).find('a').attr('href');
       obj.title = $(ele).find('img').attr('alt') || $(ele).find('.entry-title').text().trim();
       obj.imgSrc = $(ele).find('img').attr('src') || $(ele).find('img').attr('data-src');
-      
+
       // 确保图片链接是完整的URL
       if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
         obj.imgSrc = new URL(obj.imgSrc, API_CONFIG.PRIMARY).href;
       }
-      
+
       if (href) {
         xiurenResult.push(href);
         msgInfos.push(obj);
@@ -185,14 +188,14 @@ export class XiuRenPlugin extends plugin {
 
     if (msgInfos.length > 0) {
       const msgList = [];
-      
+
       // 添加标题和使用说明
       msgList.push({
         message: `【${title}】(共${msgInfos.length}条)\n你可以使用 #看秀图1 / #看秀图2 来查看详细图片，或者使用 #秀人搜索页码2 来跳转页码`,
         nickname: Bot.nickname,
         user_id: Bot.uin
       });
-      
+
       // 添加每个图集的预览
       msgInfos.forEach((item, index) => {
         let tmpTitle = item.title || '无标题';
@@ -200,9 +203,9 @@ export class XiuRenPlugin extends plugin {
           tmpTitle += '】';
         }
         tmpTitle = tmpTitle.replace(/\[/g, '【').replace(/\]/g, '】');
-        
+
         let tmpMsg = `${index + 1}、\n${segment.image(item.imgSrc)}\n${tmpTitle}`;
-        
+
         let msgInfo = {
           message: tmpMsg,
           nickname: Bot.nickname,
@@ -210,7 +213,7 @@ export class XiuRenPlugin extends plugin {
         };
         msgList.push(msgInfo);
       });
-      
+
       await e.reply(await Bot.makeForwardMsg(msgList), false);
       return true;
     } else {
@@ -223,24 +226,53 @@ export class XiuRenPlugin extends plugin {
   async fetchWithRetry(url, retryCount = 0) {
     try {
       // 确定使用哪个API
-      const baseUrl = retryCount % 2 === 0 ? API_CONFIG.PRIMARY : API_CONFIG.BACKUP;
-      const targetUrl = url.replace(API_CONFIG.PRIMARY, baseUrl).replace(API_CONFIG.BACKUP, baseUrl);
-      
+      let baseUrl;
+      switch (retryCount) {
+        case 0:
+          baseUrl = API_CONFIG.PRIMARY;
+          break;
+        case 1:
+          baseUrl = API_CONFIG.BACKUP1;
+          break;
+        case 2:
+          baseUrl = API_CONFIG.BACKUP2;
+          break;
+        case 3:
+          baseUrl = API_CONFIG.BACKUP3;
+          break;
+        default:
+          baseUrl = API_CONFIG.PRIMARY;
+      }
+
+      // 替换URL中的域名部分
+      const targetUrl = url.replace(API_CONFIG.PRIMARY, baseUrl)
+        .replace(API_CONFIG.BACKUP1, baseUrl)
+        .replace(API_CONFIG.BACKUP2, baseUrl)
+        .replace(API_CONFIG.BACKUP3, baseUrl);
+
+      // 创建自定义的HTTPS代理，禁用证书验证
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false // 禁用证书验证
+      });
+
       const response = await axios.get(targetUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
         },
-        timeout: API_CONFIG.TIMEOUT
+        timeout: API_CONFIG.TIMEOUT,
+        httpsAgent: targetUrl.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
       });
-      
+
       return response.data;
     } catch (error) {
       // 如果失败且未超过最大重试次数，则尝试使用备用API
-      if (retryCount < 1) {
-        logger.warn(`API请求失败，尝试使用备用API: ${error.message}`);
+      if (retryCount < 3) {
+        logger.warn(`API请求失败，尝试使用备用API ${retryCount + 1}: ${error.message}`);
         return this.fetchWithRetry(url, retryCount + 1);
       }
-      
+
       logger.error(`所有API请求均失败: ${error.message}`);
       throw error;
     }
