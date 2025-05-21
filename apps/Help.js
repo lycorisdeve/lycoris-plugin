@@ -1,4 +1,4 @@
-import { Version, Common } from '../components/Index.js'
+import { Version, Render } from '../components/Index.js'
 import HelpService from '../model/HelpService.js'
 
 
@@ -24,9 +24,9 @@ export class Help extends plugin {
 
     async help(e) {
 
-        let data =await HelpService.help(e)
+        let data = await HelpService.help(e)
 
-        return Common.render(
+        return Render.render(
             'help/index',
             data,
             { e, scale: 1.2 }
@@ -34,7 +34,7 @@ export class Help extends plugin {
     }
 
     async versionInfo(e) {
-        return await Common.render('help/version-info', {
+        return await Render.render('help/version-info', {
             currentVersion: Version.version,
             changelogs: Version.changelogs,
             elem: 'dendro'

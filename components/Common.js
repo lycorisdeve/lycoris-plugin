@@ -1,12 +1,12 @@
 import Config from './Config.js'
-import render from './lib/Render.js'
+import Render from './lib/Render.js'
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export default {
-  render,
+  Render,
   config: Config.All,
   sleep
 }

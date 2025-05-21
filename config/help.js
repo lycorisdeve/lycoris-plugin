@@ -32,7 +32,7 @@ export const helpCfg = {
 
 // 帮助菜单内容
 export const helpList = [{
-    group: '关联功能',
+    group: '日常功能',
     list: [{
         icon: 80,
         title: '签到',
@@ -43,93 +43,96 @@ export const helpList = [{
         desc: '#商店 #购买商品纠缠之缘'
     }]
 }, {
-    group: '小功能',
+    group: '资讯功能',
     list: [{
         icon: 33,
-        title: 'Epic',
-        desc: '#epic 或 在config里配置定时发送'
+        title: 'Epic免费游戏',
+        desc: '#epic 或在config里配置定时发送'
     }, {
         icon: 31,
         title: 'Warframe',
-        desc: 'wf警报 wf地球平原'
+        desc: '#wf赏金 #wf地球平原 #wf警报'
     }, {
-        icon: 22,
-        title: '壁纸',
-        desc: '#来一张壁纸 #壁纸搜索xxx'
-    },
-    {
         icon: 23,
         title: '60S新闻',
         desc: '#news #news1 #news2 #新闻'
-    },
-    {
+    }, {
         icon: 24,
-        title: '摸鱼',
+        title: '摸鱼日历',
         desc: '#摸鱼日历 #摸鱼日报 #日期'
-    },
-    {
+    }, {
         icon: 25,
-        title: '其他',
+        title: '摸鱼视频',
         desc: '#摸鱼视频日报 #内涵段子'
-    },
-    ]
+    }, {
+        icon: 26,
+        title: '查油价',
+        desc: '#油价 [省份]'
+    }]
 }, {
-    group: '隐藏功能',
+    group: '图片功能',
     list: [{
+        icon: 22,
+        title: '壁纸',
+        desc: '#来一张壁纸 #壁纸搜索xxx'
+    }, {
         icon: 57,
         title: '看秀图',
-        desc: '不清楚'
+        desc: '#秀图搜索xx #看秀图xx'
     }, {
         icon: 58,
-        title: 'bt',
-        desc: '不清楚'
+        title: 'BT搜索',
+        desc: '#bt搜索xxx'
     }, {
-        icon: 58,
-        title: '#(动漫)写真',
-        desc: '动漫写真、写真'
-    },
-    {
         icon: 59,
-        title: '#(高清/游戏)壁纸',
-        desc: '高清壁纸、游戏壁纸'
-    },
-    {
+        title: 'Pixiv图片',
+        desc: '#色图 [标签] #r18 [标签]'
+    }, {
         icon: 60,
-        title: '#(高清/游戏)壁纸',
-        desc: '高清壁纸、游戏壁纸'
-    },
-    {
+        title: '动漫写真',
+        desc: '#动漫写真 #写真'
+    }, {
+        icon: 61,
+        title: '高清壁纸',
+        desc: '#高清壁纸 #游戏壁纸'
+    }, {
+        icon: 64,
+        title: 'COS视频',
+        desc: '#来点cos'
+    }, {
+        icon: 65,
+        title: '网页截图',
+        desc: '#网页截图 [网址]'
+    }]
+}, {
+    group: '随机触发',
+    list: [{
         icon: 61,
         title: '随机触发1',
         desc: '酒仙|井空|老猫|猫佬|羊总|猫哥|酒佬'
-    },
-    {
+    }, {
         icon: 62,
         title: '随机触发2',
         desc: '紫卡|灵化|白鸡|大佬|吗喽|捞'
-    },
-    {
+    }, {
         icon: 63,
         title: '随机触发3',
         desc: '原神|电波|声望|买家秀|图'
-    },
-    {
-        icon: 64,
-        title: 'cos视频',
-        desc: '#来点cos'
-    }
-    ]
+    }]
 }, {
     group: '管理功能',
     auth: 'master',
     list: [{
         icon: 95,
         title: '#彼岸花(强制)更新',
-        desc: '更新插件'
+        desc: '更新插件，可选强制更新'
     }, {
-        icon: 95,
+        icon: 97,
         title: '#彼岸花帮助',
         desc: '查看本页面'
-    }
-    ]
+    }, {
+        icon: 98,
+        title: '#彼岸花版本',
+        desc: '查看版本信息'
+    }]
 }]

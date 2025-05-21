@@ -1,9 +1,4 @@
-/*
- * @description: 
- * @author: 名字
- * @date: Do not edit
- */
-/*
+/**
 * 此配置文件为系统使用，请勿修改，否则可能无法正常使用
 *
 * 如需自定义配置请复制修改上一级help_default.js
