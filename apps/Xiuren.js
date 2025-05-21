@@ -215,6 +215,7 @@ export class XiuRenPlugin extends plugin {
           
           if (imgSrc) {
             imageCount++;
+            // 修改这里：直接使用segment.image对象，不要字符串拼接
             msgList.push({
               message: segment.image(imgSrc),
               nickname: Bot.nickname,
