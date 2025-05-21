@@ -284,6 +284,7 @@ export class XiuRenPlugin extends plugin {
               
               if (imgSrc) {
                 imageCount++;
+                // 修复这里，直接使用字符串形式
                 let msg = {
                   message: segment.image(imgSrc),
                   nickname: Bot.nickname,
@@ -317,6 +318,7 @@ export class XiuRenPlugin extends plugin {
             
             if (imgSrc) {
               imageCount++;
+              // 修复这里，直接使用字符串形式
               let msg = {
                 message: segment.image(imgSrc),
                 nickname: Bot.nickname,
@@ -425,31 +427,187 @@ export class XiuRenPlugin extends plugin {
         user_id: Bot.uin
       });
 
-      // 添加每个图集的预览 - 修复这里的消息构建方式
-      msgInfos.forEach((item, index) => {
+      // 添加每个图集的预览 - 修复消息构建方式
+      for (let index = 0; index < msgInfos.length; index++) {
+        const item = msgInfos[index];
         let tmpTitle = item.title || '无标题';
         if (tmpTitle && !tmpTitle.endsWith('】') && !tmpTitle.endsWith(']')) {
           tmpTitle += '】';
         }
         tmpTitle = tmpTitle.replace(/\[/g, '【').replace(/\]/g, '】');
 
-        // 修改这里，不要使用字符串拼接，而是直接构建消息数组
-        let msgInfo = {
-          message: [
-            `${index + 1}、\n`,
-            segment.image(item.imgSrc),
-            `\n${tmpTitle}`
-          ],
-          nickname: Bot.nickname,
-          user_id: Bot.uin
-        };
-        msgList.push(msgInfo);
-      });
+        // 检查图片URL是否有效（避免使用logo.png和404图片）
+        if (item.imgSrc.includes('/logo.png') || item.imgSrc.includes('/template/')) {
+          // 跳过使用logo作为预览图的项目
+          continue;
+        }
+
+        try {
+          // 创建单独的消息对象，不使用数组
+          let msgInfo = {
+            message: `${index + 1}、\n${segment.image(item.imgSrc)}\n${tmpTitle}`,
+            nickname: Bot.nickname,
+            user_id: Bot.uin
+          };
+          msgList.push(msgInfo);
+        } catch (error) {
+          logger.error(`构建消息失败: ${error.message}`);
+          // 使用备用方式构建消息
+          let msgInfo = {
+            message: `${index + 1}、\n${tmpTitle}\n(图片加载失败)`,
+            nickname: Bot.nickname,
+            user_id: Bot.uin
+          };
+          msgList.push(msgInfo);
+        }
+      }
+
+      if (msgList.length <= 1) {
+        await e.reply("未找到有效的图集，请尝试其他关键词");
+        return false;
+      }
 
       await e.reply(await Bot.makeForwardMsg(msgList), false);
       return true;
     } else {
       logger.warn(`从 ${siteUrl} 未找到匹配的内容`);
+      return false;
+    }
+  }
+
+  // 查看详情图片
+  async viewXiurenDetail(e) {
+    const index = e.msg.replace(/#看秀图/g, "").trim();
+
+    if (isNaN(index)) {
+      e.reply("请输入正确的数字！");
+      return false;
+    }
+
+    const idx = Number(index) - 1;
+    const url = xiurenResult[idx];
+
+    if (!url) {
+      e.reply("结果不存在！请先进行搜索或浏览首页");
+      return false;
+    }
+
+    await e.reply("正在获取详细图片，请稍候...");
+
+    try {
+      // 添加随机延迟
+      await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
+      
+      // 获取详情页内容
+      const html = await this.fetchWithRetry(url);
+      const $ = cheerio.load(html);
+      const msgList = [];
+
+      // 提取标题 - 尝试多种可能的选择器
+      let title = '';
+      
+      // 获取当前网站的域名
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname;
+      
+      // 尝试使用特定网站的选择器
+      const titleSelectors = SELECTORS.specific[domain]?.title || SELECTORS.common.title;
+      
+      for (const selector of titleSelectors) {
+        const foundTitle = $(selector).first().text().trim();
+        if (foundTitle) {
+          title = foundTitle;
+          break;
+        }
+      }
+      
+      if (title) {
+        msgList.push({
+          message: `【${title}】`,
+          nickname: Bot.nickname,
+          user_id: Bot.uin
+        });
+      }
+
+      // 提取所有图片 - 尝试多种可能的选择器
+      let imageCount = 0;
+      let foundImages = false;
+      
+      // 尝试使用特定网站的选择器
+      const imageSelectors = SELECTORS.specific[domain]?.image || SELECTORS.common.image;
+      
+      for (const selector of imageSelectors) {
+        const images = $(selector);
+        if (images.length > 0) {
+          images.each((index, element) => {
+            let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
+            
+            // 过滤广告图片和小图标
+            if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
+              // 确保图片链接是完整的URL
+              if (imgSrc && !imgSrc.startsWith('http')) {
+                imgSrc = new URL(imgSrc, url).href;
+              }
+              
+              if (imgSrc) {
+                imageCount++;
+                // 修复这里，直接使用字符串形式
+                let msg = {
+                  message: segment.image(imgSrc),
+                  nickname: Bot.nickname,
+                  user_id: Bot.uin
+                };
+                msgList.push(msg);
+                foundImages = true;
+              }
+            }
+          });
+          
+          if (foundImages) break;
+        }
+      }
+
+      if (msgList.length > 0) {
+        await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
+        await e.reply(await Bot.makeForwardMsg(msgList), false);
+        return true;
+      } else {
+        // 如果常规方法失败，尝试查找所有img标签
+        $('img').each((index, element) => {
+          let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
+          
+          // 过滤广告图片和小图标
+          if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
+            // 确保图片链接是完整的URL
+            if (imgSrc && !imgSrc.startsWith('http')) {
+              imgSrc = new URL(imgSrc, url).href;
+            }
+            
+            if (imgSrc) {
+              imageCount++;
+              // 修复这里，直接使用字符串形式
+              let msg = {
+                message: segment.image(imgSrc),
+                nickname: Bot.nickname,
+                user_id: Bot.uin
+              };
+              msgList.push(msg);
+            }
+          }
+        });
+        
+        if (msgList.length > 0) {
+          await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
+          await e.reply(await Bot.makeForwardMsg(msgList), false);
+          return true;
+        } else {
+          await e.reply("未找到图片，可能是网站结构已变更，请尝试手动访问网站查看HTML结构");
+          return false;
+        }
+      }
+    } catch (err) {
+      logger.error(`获取详细图片失败: ${err.message}`);
+      await e.reply(`获取图片失败，请稍后重试。错误信息: ${err.message}`);
       return false;
     }
   }
