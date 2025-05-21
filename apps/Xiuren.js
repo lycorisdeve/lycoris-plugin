@@ -4,23 +4,9 @@ import * as cheerio from 'cheerio';
 import { segment } from 'oicq';
 import https from 'https';
 
-// 网站配置 - 更新为更多可能的秀人网站点
+// 网站配置 - 只使用一个指定的秀人网站点
 const SITE_CONFIG = {
-  SITES: [
-    'https://x5.xr5.top',
-    'http://25.xiuren005.top',
-    'https://www.xiuren.org',
-    'https://www.xiurenset.com',
-    'https://www.xiuren.vip',
-    'https://www.xiuren.cc',
-    'https://www.xiuren.net',
-    'https://www.xiuren.one',
-    'https://www.xiurenb.net'
-  ],
-  // 反代API，如果有的话
-  PROXY_API: 'https://proxyapi.198143.xyz/',
-  // 是否使用反代
-  USE_PROXY: false,
+  SITE: 'http://25.xiuren005.top',
   // 超时设置
   TIMEOUT: 15000,
   // 随机延迟范围（毫秒）
@@ -41,43 +27,19 @@ const USER_AGENTS = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 ];
 
-// 网站选择器配置 - 针对不同网站的不同选择器
+// 网站选择器配置 - 针对25.xiuren005.top的选择器
 const SELECTORS = {
-  // 通用选择器
-  common: {
-    title: ['.entry-title', 'h1.title', '.post-title', 'h1', '.article-title'],
-    content: [
-      '.article-content', 
-      '.post', 
-      '.post-item', 
-      '.content-item', 
-      '.item', 
-      '.article', 
-      '.post-list .post',
-      '.posts-list .item'
-    ],
-    image: [
-      '.entry-content img', 
-      '.entry-wrapper img', 
-      '.article-content img', 
-      '.post-content img', 
-      '.content img',
-      '.main-content img',
-      '.single-content img',
-      '.detail-content img'
-    ]
+  // 首页和搜索页
+  home: {
+    items: '.update_area .update_area_content .update_area_lists .update_area_list',
+    title: '.update_area_title',
+    image: '.update_area_image img',
+    link: 'a'
   },
-  // 特定网站的选择器
-  specific: {
-    'x5.xr5.top': {
-      content: ['.article-content'],
-      image: ['.entry-content img']
-    },
-    'xiuren.org': {
-      content: ['.post'],
-      image: ['.single-content img']
-    }
-    // 可以根据实际情况添加更多网站的特定选择器
+  // 详情页
+  detail: {
+    title: '.content_left_title',
+    images: '.content_left_content img'
   }
 };
 
@@ -127,16 +89,11 @@ export class XiuRenPlugin extends plugin {
     }
 
     const debugInfo = {
-      sites: SITE_CONFIG.SITES,
-      useProxy: SITE_CONFIG.USE_PROXY,
-      proxyApi: SITE_CONFIG.PROXY_API,
+      site: SITE_CONFIG.SITE,
       timeout: SITE_CONFIG.TIMEOUT,
       delay: `${SITE_CONFIG.DELAY_MIN}-${SITE_CONFIG.DELAY_MAX}ms`,
       userAgents: USER_AGENTS.length,
-      selectors: {
-        common: SELECTORS.common,
-        specific: Object.keys(SELECTORS.specific)
-      }
+      selectors: SELECTORS
     };
 
     await e.reply("秀人网插件调试信息：\n" + JSON.stringify(debugInfo, null, 2));
@@ -148,9 +105,9 @@ export class XiuRenPlugin extends plugin {
     await e.reply("正在获取秀人网首页内容，请稍候...");
 
     try {
-      // 尝试使用第一个站点获取首页内容
-      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITES[0]}/`);
-      return this.parseAndSendGalleryList(e, html, "首页图集", SITE_CONFIG.SITES[0]);
+      // 获取首页内容
+      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/`);
+      return this.parseAndSendGalleryList(e, html, "首页图集");
     } catch (err) {
       logger.error(`秀人网首页请求失败: ${err.message}`);
       await e.reply(`获取首页内容失败，请稍后重试。错误信息: ${err.message}`);
@@ -181,31 +138,28 @@ export class XiuRenPlugin extends plugin {
 
     await e.reply(`正在搜索"${keyword}"，页码: ${pageNum}，请稍候...`);
 
-    // 尝试所有站点进行搜索
-    for (const site of SITE_CONFIG.SITES) {
-      try {
-        // 构建搜索URL
-        const searchUrl = `${site}/page/${pageNum}?s=${encodeURIComponent(keyword)}`;
-        logger.info(`尝试从 ${searchUrl} 搜索`);
-        
-        // 添加随机延迟
-        await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
-        
-        const html = await this.fetchWithRetry(searchUrl);
-        const result = await this.parseAndSendGalleryList(e, html, `"${keyword}"的搜索结果`, site);
-        
-        if (result) {
-          return true; // 如果成功找到结果，就不再尝试其他站点
-        }
-      } catch (err) {
-        logger.warn(`从 ${site} 搜索失败: ${err.message}`);
-        // 继续尝试下一个站点
+    try {
+      // 构建搜索URL
+      const searchUrl = `${SITE_CONFIG.SITE}/search/${encodeURIComponent(keyword)}/${pageNum}.html`;
+      logger.info(`尝试从 ${searchUrl} 搜索`);
+      
+      // 添加随机延迟
+      await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
+      
+      const html = await this.fetchWithRetry(searchUrl);
+      const result = await this.parseAndSendGalleryList(e, html, `"${keyword}"的搜索结果`);
+      
+      if (result) {
+        return true;
+      } else {
+        await e.reply(`搜索"${keyword}"未找到结果，请尝试其他关键词`);
+        return false;
       }
+    } catch (err) {
+      logger.warn(`搜索失败: ${err.message}`);
+      await e.reply(`搜索"${keyword}"失败，请尝试其他关键词或稍后再试`);
+      return false;
     }
-    
-    // 所有站点都尝试失败
-    await e.reply(`搜索"${keyword}"失败，请尝试其他关键词或稍后再试`);
-    return false;
   }
 
   // 查看详情图片
@@ -236,23 +190,8 @@ export class XiuRenPlugin extends plugin {
       const $ = cheerio.load(html);
       const msgList = [];
 
-      // 提取标题 - 尝试多种可能的选择器
-      let title = '';
-      
-      // 获取当前网站的域名
-      const urlObj = new URL(url);
-      const domain = urlObj.hostname;
-      
-      // 尝试使用特定网站的选择器
-      const titleSelectors = SELECTORS.specific[domain]?.title || SELECTORS.common.title;
-      
-      for (const selector of titleSelectors) {
-        const foundTitle = $(selector).first().text().trim();
-        if (foundTitle) {
-          title = foundTitle;
-          break;
-        }
-      }
+      // 提取标题
+      const title = $(SELECTORS.detail.title).text().trim();
       
       if (title) {
         msgList.push({
@@ -262,45 +201,30 @@ export class XiuRenPlugin extends plugin {
         });
       }
 
-      // 提取所有图片 - 尝试多种可能的选择器
+      // 提取所有图片
       let imageCount = 0;
-      let foundImages = false;
-      
-      // 尝试使用特定网站的选择器
-      const imageSelectors = SELECTORS.specific[domain]?.image || SELECTORS.common.image;
-      
-      for (const selector of imageSelectors) {
-        const images = $(selector);
-        if (images.length > 0) {
-          images.each((index, element) => {
-            let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
-            
-            // 过滤广告图片和小图标
-            if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
-              // 确保图片链接是完整的URL
-              if (imgSrc && !imgSrc.startsWith('http')) {
-                imgSrc = new URL(imgSrc, url).href;
-              }
-              
-              if (imgSrc) {
-                imageCount++;
-                // 修复这里，直接使用字符串形式
-                let msg = {
-                  message: segment.image(imgSrc),
-                  nickname: Bot.nickname,
-                  user_id: Bot.uin
-                };
-                msgList.push(msg);
-                foundImages = true;
-              }
-            }
-          });
+      $(SELECTORS.detail.images).each((index, element) => {
+        let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
+        
+        // 过滤广告图片和小图标
+        if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
+          // 确保图片链接是完整的URL
+          if (imgSrc && !imgSrc.startsWith('http')) {
+            imgSrc = new URL(imgSrc, SITE_CONFIG.SITE).href;
+          }
           
-          if (foundImages) break;
+          if (imgSrc) {
+            imageCount++;
+            msgList.push({
+              message: segment.image(imgSrc),
+              nickname: Bot.nickname,
+              user_id: Bot.uin
+            });
+          }
         }
-      }
+      });
 
-      if (msgList.length > 0) {
+      if (msgList.length > 1) { // 至少有标题和一张图片
         await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
         await e.reply(await Bot.makeForwardMsg(msgList), false);
         return true;
@@ -313,23 +237,21 @@ export class XiuRenPlugin extends plugin {
           if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
             // 确保图片链接是完整的URL
             if (imgSrc && !imgSrc.startsWith('http')) {
-              imgSrc = new URL(imgSrc, url).href;
+              imgSrc = new URL(imgSrc, SITE_CONFIG.SITE).href;
             }
             
             if (imgSrc) {
               imageCount++;
-              // 修复这里，直接使用字符串形式
-              let msg = {
+              msgList.push({
                 message: segment.image(imgSrc),
                 nickname: Bot.nickname,
                 user_id: Bot.uin
-              };
-              msgList.push(msg);
+              });
             }
           }
         });
         
-        if (msgList.length > 0) {
+        if (msgList.length > 1) {
           await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
           await e.reply(await Bot.makeForwardMsg(msgList), false);
           return true;
@@ -346,46 +268,35 @@ export class XiuRenPlugin extends plugin {
   }
 
   // 解析并发送图集列表
-  async parseAndSendGalleryList(e, html, title, siteUrl) {
+  async parseAndSendGalleryList(e, html, title) {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
-
-    // 获取当前网站的域名
-    const urlObj = new URL(siteUrl);
-    const domain = urlObj.hostname;
     
-    // 尝试使用特定网站的选择器
-    const contentSelectors = SELECTORS.specific[domain]?.content || SELECTORS.common.content;
-    
-    let foundContent = false;
-    
-    for (const selector of contentSelectors) {
-      $(selector).each((i, ele) => {
-        let obj = {};
-        let href = $(ele).find('a').attr('href');
-        obj.title = $(ele).find('img').attr('alt') || $(ele).find('.entry-title').text().trim() || $(ele).find('h2').text().trim();
-        obj.imgSrc = $(ele).find('img').attr('src') || $(ele).find('img').attr('data-src') || $(ele).find('img').attr('data-original');
-        
-        // 确保图片链接是完整的URL
-        if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
-          obj.imgSrc = new URL(obj.imgSrc, siteUrl).href;
-        }
-        
-        // 确保链接是完整的URL
-        if (href && !href.startsWith('http')) {
-          href = new URL(href, siteUrl).href;
-        }
-        
-        if (href && obj.imgSrc) {
-          xiurenResult.push(href);
-          msgInfos.push(obj);
-          foundContent = true;
-        }
-      });
+    // 查找所有图集项
+    $(SELECTORS.home.items).each((i, ele) => {
+      let obj = {};
+      let href = $(ele).find(SELECTORS.home.link).attr('href');
+      obj.title = $(ele).find(SELECTORS.home.title).text().trim();
+      obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('src') || 
+                  $(ele).find(SELECTORS.home.image).attr('data-src') || 
+                  $(ele).find(SELECTORS.home.image).attr('data-original');
       
-      if (foundContent) break;
-    }
+      // 确保图片链接是完整的URL
+      if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
+        obj.imgSrc = new URL(obj.imgSrc, SITE_CONFIG.SITE).href;
+      }
+      
+      // 确保链接是完整的URL
+      if (href && !href.startsWith('http')) {
+        href = new URL(href, SITE_CONFIG.SITE).href;
+      }
+      
+      if (href && obj.imgSrc && obj.title) {
+        xiurenResult.push(href);
+        msgInfos.push(obj);
+      }
+    });
     
     // 如果常规方法失败，尝试查找所有带链接的图片
     if (msgInfos.length === 0) {
@@ -395,17 +306,17 @@ export class XiuRenPlugin extends plugin {
           let imgElement = $(ele).find('img');
           if (imgElement.length > 0) {
             let obj = {};
-            obj.title = imgElement.attr('alt') || $(ele).text().trim();
+            obj.title = $(ele).text().trim() || imgElement.attr('alt') || '无标题';
             obj.imgSrc = imgElement.attr('src') || imgElement.attr('data-src') || imgElement.attr('data-original');
             
             // 确保图片链接是完整的URL
             if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
-              obj.imgSrc = new URL(obj.imgSrc, siteUrl).href;
+              obj.imgSrc = new URL(obj.imgSrc, SITE_CONFIG.SITE).href;
             }
             
             // 确保链接是完整的URL
             if (href && !href.startsWith('http')) {
-              href = new URL(href, siteUrl).href;
+              href = new URL(href, SITE_CONFIG.SITE).href;
             }
             
             if (obj.imgSrc) {
@@ -427,7 +338,8 @@ export class XiuRenPlugin extends plugin {
         user_id: Bot.uin
       });
 
-      // 添加每个图集的预览 - 修复消息构建方式
+      // 添加每个图集的预览
+      let validCount = 0;
       for (let index = 0; index < msgInfos.length; index++) {
         const item = msgInfos[index];
         let tmpTitle = item.title || '无标题';
@@ -436,29 +348,25 @@ export class XiuRenPlugin extends plugin {
         }
         tmpTitle = tmpTitle.replace(/\[/g, '【').replace(/\]/g, '】');
 
-        // 检查图片URL是否有效（避免使用logo.png和404图片）
-        if (item.imgSrc.includes('/logo.png') || item.imgSrc.includes('/template/')) {
-          // 跳过使用logo作为预览图的项目
+        // 检查图片URL是否有效
+        if (!item.imgSrc || item.imgSrc.includes('/logo.png') || item.imgSrc.includes('/template/')) {
           continue;
         }
 
+        validCount++;
         try {
-          // 创建单独的消息对象，不使用数组
-          let msgInfo = {
-            message: `${index + 1}、\n${segment.image(item.imgSrc)}\n${tmpTitle}`,
+          msgList.push({
+            message: `${validCount}、\n${segment.image(item.imgSrc)}\n${tmpTitle}`,
             nickname: Bot.nickname,
             user_id: Bot.uin
-          };
-          msgList.push(msgInfo);
+          });
         } catch (error) {
           logger.error(`构建消息失败: ${error.message}`);
-          // 使用备用方式构建消息
-          let msgInfo = {
-            message: `${index + 1}、\n${tmpTitle}\n(图片加载失败)`,
+          msgList.push({
+            message: `${validCount}、\n${tmpTitle}\n(图片加载失败)`,
             nickname: Bot.nickname,
             user_id: Bot.uin
-          };
-          msgList.push(msgInfo);
+          });
         }
       }
 
@@ -467,147 +375,20 @@ export class XiuRenPlugin extends plugin {
         return false;
       }
 
+      // 更新xiurenResult数组，确保索引与显示的编号一致
+      const newXiurenResult = [];
+      for (let i = 0; i < msgInfos.length; i++) {
+        if (!msgInfos[i].imgSrc || msgInfos[i].imgSrc.includes('/logo.png') || msgInfos[i].imgSrc.includes('/template/')) {
+          continue;
+        }
+        newXiurenResult.push(xiurenResult[i]);
+      }
+      xiurenResult = newXiurenResult;
+
       await e.reply(await Bot.makeForwardMsg(msgList), false);
       return true;
     } else {
-      logger.warn(`从 ${siteUrl} 未找到匹配的内容`);
-      return false;
-    }
-  }
-
-  // 查看详情图片
-  async viewXiurenDetail(e) {
-    const index = e.msg.replace(/#看秀图/g, "").trim();
-
-    if (isNaN(index)) {
-      e.reply("请输入正确的数字！");
-      return false;
-    }
-
-    const idx = Number(index) - 1;
-    const url = xiurenResult[idx];
-
-    if (!url) {
-      e.reply("结果不存在！请先进行搜索或浏览首页");
-      return false;
-    }
-
-    await e.reply("正在获取详细图片，请稍候...");
-
-    try {
-      // 添加随机延迟
-      await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
-      
-      // 获取详情页内容
-      const html = await this.fetchWithRetry(url);
-      const $ = cheerio.load(html);
-      const msgList = [];
-
-      // 提取标题 - 尝试多种可能的选择器
-      let title = '';
-      
-      // 获取当前网站的域名
-      const urlObj = new URL(url);
-      const domain = urlObj.hostname;
-      
-      // 尝试使用特定网站的选择器
-      const titleSelectors = SELECTORS.specific[domain]?.title || SELECTORS.common.title;
-      
-      for (const selector of titleSelectors) {
-        const foundTitle = $(selector).first().text().trim();
-        if (foundTitle) {
-          title = foundTitle;
-          break;
-        }
-      }
-      
-      if (title) {
-        msgList.push({
-          message: `【${title}】`,
-          nickname: Bot.nickname,
-          user_id: Bot.uin
-        });
-      }
-
-      // 提取所有图片 - 尝试多种可能的选择器
-      let imageCount = 0;
-      let foundImages = false;
-      
-      // 尝试使用特定网站的选择器
-      const imageSelectors = SELECTORS.specific[domain]?.image || SELECTORS.common.image;
-      
-      for (const selector of imageSelectors) {
-        const images = $(selector);
-        if (images.length > 0) {
-          images.each((index, element) => {
-            let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
-            
-            // 过滤广告图片和小图标
-            if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
-              // 确保图片链接是完整的URL
-              if (imgSrc && !imgSrc.startsWith('http')) {
-                imgSrc = new URL(imgSrc, url).href;
-              }
-              
-              if (imgSrc) {
-                imageCount++;
-                // 修复这里，直接使用字符串形式
-                let msg = {
-                  message: segment.image(imgSrc),
-                  nickname: Bot.nickname,
-                  user_id: Bot.uin
-                };
-                msgList.push(msg);
-                foundImages = true;
-              }
-            }
-          });
-          
-          if (foundImages) break;
-        }
-      }
-
-      if (msgList.length > 0) {
-        await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
-        await e.reply(await Bot.makeForwardMsg(msgList), false);
-        return true;
-      } else {
-        // 如果常规方法失败，尝试查找所有img标签
-        $('img').each((index, element) => {
-          let imgSrc = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-original');
-          
-          // 过滤广告图片和小图标
-          if (imgSrc && !imgSrc.includes('ad') && !imgSrc.includes('logo') && !imgSrc.includes('icon')) {
-            // 确保图片链接是完整的URL
-            if (imgSrc && !imgSrc.startsWith('http')) {
-              imgSrc = new URL(imgSrc, url).href;
-            }
-            
-            if (imgSrc) {
-              imageCount++;
-              // 修复这里，直接使用字符串形式
-              let msg = {
-                message: segment.image(imgSrc),
-                nickname: Bot.nickname,
-                user_id: Bot.uin
-              };
-              msgList.push(msg);
-            }
-          }
-        });
-        
-        if (msgList.length > 0) {
-          await e.reply(`共找到 ${imageCount} 张图片，正在发送...`);
-          await e.reply(await Bot.makeForwardMsg(msgList), false);
-          return true;
-        } else {
-          await e.reply("未找到图片，可能是网站结构已变更，请尝试手动访问网站查看HTML结构");
-          return false;
-        }
-      }
-    } catch (err) {
-      logger.error(`获取详细图片失败: ${err.message}`);
-      await e.reply(`获取图片失败，请稍后重试。错误信息: ${err.message}`);
+      logger.warn(`未找到匹配的内容`);
       return false;
     }
   }
@@ -615,11 +396,6 @@ export class XiuRenPlugin extends plugin {
   // 带有重试的请求方法
   async fetchWithRetry(url, retryCount = 0) {
     try {
-      // 如果启用了反代API
-      if (SITE_CONFIG.USE_PROXY) {
-        return await this.fetchWithProxy(url);
-      }
-      
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
         rejectUnauthorized: false // 禁用证书验证
@@ -630,9 +406,8 @@ export class XiuRenPlugin extends plugin {
           'User-Agent': this.getRandomUserAgent(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-          'Referer': new URL(url).origin,
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Referer': SITE_CONFIG.SITE,
+          'Cache-Control': 'no-cache'
         },
         timeout: SITE_CONFIG.TIMEOUT,
         httpsAgent: url.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
@@ -649,29 +424,6 @@ export class XiuRenPlugin extends plugin {
       }
 
       logger.error(`请求失败: ${error.message}`);
-      throw error;
-    }
-  }
-
-  // 使用反代API获取内容
-  async fetchWithProxy(url) {
-    try {
-      // 对目标URL进行编码
-      const encodedUrl = encodeURIComponent(url);
-      const proxyUrl = `${SITE_CONFIG.PROXY_API}${encodedUrl}`;
-      
-      const response = await axios.get(proxyUrl, {
-        headers: {
-          'User-Agent': this.getRandomUserAgent(),
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
-        },
-        timeout: SITE_CONFIG.TIMEOUT
-      });
-      
-      return response.data;
-    } catch (error) {
-      logger.error(`反代请求失败: ${error.message}`);
       throw error;
     }
   }
