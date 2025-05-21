@@ -425,7 +425,7 @@ export class XiuRenPlugin extends plugin {
         user_id: Bot.uin
       });
 
-      // 添加每个图集的预览
+      // 添加每个图集的预览 - 修复这里的消息构建方式
       msgInfos.forEach((item, index) => {
         let tmpTitle = item.title || '无标题';
         if (tmpTitle && !tmpTitle.endsWith('】') && !tmpTitle.endsWith(']')) {
@@ -433,10 +433,13 @@ export class XiuRenPlugin extends plugin {
         }
         tmpTitle = tmpTitle.replace(/\[/g, '【').replace(/\]/g, '】');
 
-        let tmpMsg = `${index + 1}、\n${segment.image(item.imgSrc)}\n${tmpTitle}`;
-
+        // 修改这里，不要使用字符串拼接，而是直接构建消息数组
         let msgInfo = {
-          message: tmpMsg,
+          message: [
+            `${index + 1}、\n`,
+            segment.image(item.imgSrc),
+            `\n${tmpTitle}`
+          ],
           nickname: Bot.nickname,
           user_id: Bot.uin
         };
