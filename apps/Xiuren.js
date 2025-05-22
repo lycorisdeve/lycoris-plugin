@@ -141,13 +141,13 @@ export class XiuRen extends plugin {
       // 构建搜索URL
       const searchUrl = `${SITE_CONFIG.SITE}/plus/search/index.asp?keyword=${encodeURIComponent(keyword)}&page=${pageNum}`;
       logger.info(`尝试从 ${searchUrl} 搜索`);
-      
+
       // 添加随机延迟
       await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
-      
+
       const html = await this.fetchWithRetry(searchUrl);
       const result = await this.parseAndSendGalleryList(e, html, `"${keyword}"的搜索结果`);
-      
+
       if (result) {
         return true;
       } else {
@@ -164,30 +164,30 @@ export class XiuRen extends plugin {
   // 查看详情
   async viewXiurenDetail(e) {
     const index = parseInt(e.msg.replace(/#看秀图/g, "").trim()) - 1;
-    
+
     if (isNaN(index) || index < 0 || !xiurenResult || index >= xiurenResult.length) {
       e.reply("请输入正确的图集序号");
       return false;
     }
-    
+
     const url = xiurenResult[index];
     if (!url) {
       e.reply("未找到对应的图集链接");
       return false;
     }
-    
+
     await e.reply(`正在获取图集详情，请稍候...`);
-    
+
     try {
       // 添加随机延迟
       await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
-      
+
       const html = await this.fetchWithRetry(url);
       const $ = cheerio.load(html);
-      
+
       // 获取标题
       const title = $(SELECTORS.detail.title).text().trim() || $('title').text().trim();
-      
+
       // 获取所有图片
       const images = [];
       $(SELECTORS.detail.images).each((i, ele) => {
@@ -198,36 +198,36 @@ export class XiuRen extends plugin {
           images.push(fullImgSrc);
         }
       });
-      
+
       // 如果没有找到图片，尝试其他选择器
       if (images.length === 0) {
         $('img').each((i, ele) => {
           const imgSrc = $(ele).attr('src') || $(ele).attr('data-src') || $(ele).attr('data-original');
-          if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/') && 
-              !imgSrc.includes('favicon.ico') && imgSrc.includes('.')) {
+          if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/') &&
+            !imgSrc.includes('favicon.ico') && imgSrc.includes('.')) {
             // 确保图片链接是完整的URL
             const fullImgSrc = imgSrc.startsWith('http') ? imgSrc : new URL(imgSrc, SITE_CONFIG.SITE).href;
             images.push(fullImgSrc);
           }
         });
       }
-      
+
       if (images.length === 0) {
         await e.reply("未找到图集中的图片，可能是网站结构已变化");
         return false;
       }
-      
+
       // 限制图片数量，避免消息过大
       const maxImages = Math.min(images.length, 20);
       const msgList = [];
-      
+
       // 添加标题消息
       msgList.push({
         message: `【${title}】\n共${images.length}张图片，显示前${maxImages}张`,
         nickname: Bot.nickname,
         user_id: Bot.uin
       });
-      
+
       // 添加图片消息
       for (let i = 0; i < maxImages; i++) {
         try {
@@ -236,21 +236,21 @@ export class XiuRen extends plugin {
             nickname: Bot.nickname,
             user_id: Bot.uin
           });
-          
+
           // 添加随机延迟，避免请求过快
           await new Promise(resolve => setTimeout(resolve, 300));
         } catch (error) {
           logger.error(`图片加载失败: ${error.message}`);
         }
       }
-      
+
       // 添加原始链接
       msgList.push({
         message: `原始链接: ${url}`,
         nickname: Bot.nickname,
         user_id: Bot.uin
       });
-      
+
       await e.reply(await Bot.makeForwardMsg(msgList));
       return true;
     } catch (err) {
@@ -265,38 +265,38 @@ export class XiuRen extends plugin {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
-    
+
     // 查找所有图集项
     $(SELECTORS.home.items).each((i, ele) => {
       let obj = {};
       let href = $(ele).find(SELECTORS.home.link).attr('href');
       obj.title = $(ele).find(SELECTORS.home.title).text().trim();
-      obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('src') || 
-                  $(ele).find(SELECTORS.home.image).attr('data-src') || 
-                  $(ele).find(SELECTORS.home.image).attr('data-original');
-      
+      obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('src') ||
+        $(ele).find(SELECTORS.home.image).attr('data-src') ||
+        $(ele).find(SELECTORS.home.image).attr('data-original');
+
       // 获取日期和浏览量
       const dateText = $(ele).find(SELECTORS.home.date).parent().text().trim();
       const viewsText = $(ele).find(SELECTORS.home.views).text().trim();
       obj.date = dateText;
       obj.views = viewsText;
-      
+
       // 确保图片链接是完整的URL
       if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
         obj.imgSrc = new URL(obj.imgSrc, SITE_CONFIG.SITE).href;
       }
-      
+
       // 确保链接是完整的URL
       if (href && !href.startsWith('http')) {
         href = new URL(href, SITE_CONFIG.SITE).href;
       }
-      
+
       if (href && obj.imgSrc && obj.title) {
         xiurenResult.push(href);
         msgInfos.push(obj);
       }
     });
-    
+
     // 如果常规方法失败，尝试查找所有带链接的图片
     if (msgInfos.length === 0) {
       $('a').each((i, ele) => {
@@ -307,17 +307,17 @@ export class XiuRen extends plugin {
             let obj = {};
             obj.title = $(ele).text().trim() || imgElement.attr('alt') || '无标题';
             obj.imgSrc = imgElement.attr('src') || imgElement.attr('data-src') || imgElement.attr('data-original');
-            
+
             // 确保图片链接是完整的URL
             if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
               obj.imgSrc = new URL(obj.imgSrc, SITE_CONFIG.SITE).href;
             }
-            
+
             // 确保链接是完整的URL
             if (href && !href.startsWith('http')) {
               href = new URL(href, SITE_CONFIG.SITE).href;
             }
-            
+
             if (obj.imgSrc) {
               xiurenResult.push(href);
               msgInfos.push(obj);
@@ -357,14 +357,16 @@ export class XiuRen extends plugin {
           // 构建消息
           const message = [
             `${validCount}、${tmpTitle}\n`,
-            segment.image(item.imgSrc)
           ];
-          
+          logger.info(`正在处理图集：${tmpTitle}`);
+          logger.info(`图片URL：${item.imgSrc}`);
+          message.push(segment.image(item.imgSrc));
+
           // 添加日期和浏览量信息（如果有）
           if (item.date || item.views) {
             message.push(`\n${item.date || ''} ${item.views || ''}`);
           }
-          
+
           msgList.push({
             message,
             nickname: Bot.nickname,
