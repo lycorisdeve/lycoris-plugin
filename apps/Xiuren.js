@@ -5,6 +5,7 @@ import { segment } from 'icqq';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
+import { pluginResources } from "../components/lib/Path.js";
 
 // 网站配置 - 秀人网站点
 const SITE_CONFIG = {
@@ -21,7 +22,7 @@ let xiurenResult = [];
 let keyword = '';
 
 // 临时图片目录
-const TEMP_DIR = './resources/xiuren/temp';
+const TEMP_DIR = `${pluginResources}/xiuren/temp`;
 
 // 用户代理列表
 const USER_AGENTS = [
@@ -77,11 +78,11 @@ export class XiuRen extends plugin {
         }
       ],
     });
-    
+
     // 初始化时确保临时目录存在
     this.ensureTempDirExists();
   }
-  
+
   // 确保临时目录存在
   ensureTempDirExists() {
     try {
@@ -90,10 +91,10 @@ export class XiuRen extends plugin {
         logger.info(`创建临时目录: ${TEMP_DIR}`);
       }
     } catch (error) {
-      logger.error(`创建临时目录失败: ${error.message}`);
+      logger.error(`创建临时目录失败: ${error.message} `);
     }
   }
-  
+
   // 清理临时目录中的所有文件
   cleanTempDir() {
     try {
@@ -102,30 +103,30 @@ export class XiuRen extends plugin {
         for (const file of files) {
           fs.unlinkSync(path.join(TEMP_DIR, file));
         }
-        logger.info(`清理临时目录: ${TEMP_DIR}`);
+        logger.info(`清理临时目录: ${TEMP_DIR} `);
       }
     } catch (error) {
-      logger.error(`清理临时目录失败: ${error.message}`);
+      logger.error(`清理临时目录失败: ${error.message} `);
     }
   }
-  
+
   // 下载图片到本地
   async downloadImage(url) {
     // 确保URL格式正确
-    url = url.trim().replace(/`/g, '');
-    
+    url = url.trim();
+
     try {
       // 生成唯一的文件名
       const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
       const filePath = path.join(TEMP_DIR, fileName);
-      
+
       logger.info(`开始下载图片: ${url}`);
-      
+
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
         rejectUnauthorized: false // 禁用证书验证
       });
-      
+
       // 下载图片
       const response = await axios.get(url, {
         responseType: 'arraybuffer',
@@ -137,18 +138,18 @@ export class XiuRen extends plugin {
         timeout: SITE_CONFIG.TIMEOUT,
         httpsAgent: url.startsWith('https') ? httpsAgent : undefined
       });
-      
+
       // 写入文件
       fs.writeFileSync(filePath, Buffer.from(response.data));
       logger.info(`图片下载成功: ${filePath}`);
-      
+
       return filePath;
     } catch (error) {
       logger.error(`图片下载失败: ${error.message}, URL: ${url}`);
       return null;
     }
   }
-  
+
   // 删除临时文件
   deleteFile(filePath) {
     try {
@@ -264,7 +265,7 @@ export class XiuRen extends plugin {
     }
 
     await e.reply(`正在获取图集详情，请稍候...`);
-    
+
     // 清理之前的临时文件
     this.cleanTempDir();
 
@@ -333,7 +334,7 @@ export class XiuRen extends plugin {
             });
           } else {
             msgList.push({
-              message: `[图片${i+1}下载失败]`,
+              message: `[图片${i + 1}下载失败]`,
               nickname: Bot.nickname,
               user_id: Bot.uin
             });
@@ -355,12 +356,12 @@ export class XiuRen extends plugin {
 
       // 发送消息
       await e.reply(await Bot.makeForwardMsg(msgList));
-      
+
       // 删除所有临时文件
       for (const file of downloadedFiles) {
         this.deleteFile(file);
       }
-      
+
       return true;
     } catch (err) {
       logger.error(`获取图集详情失败: ${err.message}`);
@@ -376,7 +377,7 @@ export class XiuRen extends plugin {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
-    
+
     // 清理之前的临时文件
     this.cleanTempDir();
 
@@ -473,18 +474,18 @@ export class XiuRen extends plugin {
           const localPath = await this.downloadImage(item.imgSrc);
           if (localPath) {
             downloadedFiles.push(localPath);
-            
+
             // 构建消息
             const message = [
               `${validCount}、${tmpTitle}\n`,
               segment.image(`file://${localPath}`)
             ];
-            
+
             // 添加日期和浏览量信息（如果有）
             if (item.date || item.views) {
               message.push(`\n${item.date || ''} ${item.views || ''}`);
             }
-            
+
             msgList.push({
               message,
               nickname: Bot.nickname,
@@ -528,12 +529,12 @@ export class XiuRen extends plugin {
 
       // 发送消息
       await e.reply(await Bot.makeForwardMsg(msgList));
-      
+
       // 删除所有临时文件
       for (const file of downloadedFiles) {
         this.deleteFile(file);
       }
-      
+
       return true;
     } else {
       logger.warn(`未找到匹配的内容`);
