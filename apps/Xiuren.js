@@ -6,7 +6,6 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import { pluginResources } from "../components/lib/Path.js";
-import { createCanvas, loadImage } from 'canvas';
 
 // 网站配置 - 秀人网站点
 const SITE_CONFIG = {
@@ -111,15 +110,18 @@ export class XiuRen extends plugin {
     }
   }
 
-  // 下载图片到本地并转换格式
+  // 下载图片到本地
   async downloadImage(url) {
     // 确保URL格式正确
     url = url.trim();
     if (!url) return null;
 
     try {
-      // 生成唯一的文件名
-      const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
+      // 生成唯一的文件名 - 使用原始扩展名
+      const urlObj = new URL(url);
+      const urlPath = urlObj.pathname;
+      const extension = path.extname(urlPath).toLowerCase() || '.jpg';
+      const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}${extension}`;
       const filePath = path.join(TEMP_DIR, fileName);
 
       logger.info(`开始下载图片: ${url}`);
@@ -141,41 +143,9 @@ export class XiuRen extends plugin {
         httpsAgent: url.startsWith('https') ? httpsAgent : undefined
       });
 
-      // 检查是否为webp格式
-      const contentType = response.headers['content-type'] || '';
-      const isWebp = contentType.includes('webp') || url.toLowerCase().includes('.webp');
-
-      if (isWebp) {
-        // 使用canvas将webp转换为jpg
-        try {
-          // 创建一个临时的webp文件
-          const tempWebpPath = path.join(TEMP_DIR, `temp_${Date.now()}.webp`);
-          fs.writeFileSync(tempWebpPath, Buffer.from(response.data));
-          
-          // 使用canvas加载webp并转换为jpg
-          const img = await loadImage(tempWebpPath);
-          const canvas = createCanvas(img.width, img.height);
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          
-          // 将canvas保存为jpg
-          const jpgBuffer = canvas.toBuffer('image/jpeg', { quality: 0.9 });
-          fs.writeFileSync(filePath, jpgBuffer);
-          
-          // 删除临时webp文件
-          fs.unlinkSync(tempWebpPath);
-          
-          logger.info(`webp图片已转换为jpg格式: ${filePath}`);
-        } catch (conversionError) {
-          // 如果转换失败，尝试直接保存为jpg
-          logger.warn(`webp转换失败，尝试直接保存: ${conversionError.message}`);
-          fs.writeFileSync(filePath, Buffer.from(response.data));
-        }
-      } else {
-        // 非webp格式，直接写入文件
-        fs.writeFileSync(filePath, Buffer.from(response.data));
-        logger.info(`图片下载成功: ${filePath}`);
-      }
+      // 直接写入文件，不进行格式转换
+      fs.writeFileSync(filePath, Buffer.from(response.data));
+      logger.info(`图片下载成功: ${filePath}`);
 
       return filePath;
     } catch (error) {
@@ -343,15 +313,10 @@ export class XiuRen extends plugin {
       }
 
       // 限制图片数量，避免消息过大
-      const maxImages = Math.min(images.length, 20);
-      const msgList = [];
-
-      // 添加标题消息
-      msgList.push({
-        message: `【${title}】\n共${images.length}张图片，显示前${maxImages}张`,
-        nickname: Bot.nickname,
-        user_id: Bot.uin
-      });
+      const maxImages = Math.min(images.length, 10); // 减少图片数量，避免消息过大
+      
+      // 尝试单独发送图片，而不是使用合并转发
+      await e.reply(`【${title}】\n共${images.length}张图片，显示前${maxImages}张`);
 
       // 添加图片消息
       const downloadedFiles = [];
@@ -361,35 +326,21 @@ export class XiuRen extends plugin {
           const localPath = await this.downloadImage(images[i]);
           if (localPath) {
             downloadedFiles.push(localPath);
-            msgList.push({
-              message: segment.image(localPath),
-              nickname: Bot.nickname,
-              user_id: Bot.uin
-            });
+            // 单独发送每张图片
+            await e.reply(segment.image(localPath));
           } else {
-            msgList.push({
-              message: `[图片${i + 1}下载失败]`,
-              nickname: Bot.nickname,
-              user_id: Bot.uin
-            });
+            await e.reply(`[图片${i + 1}下载失败]`);
           }
 
           // 添加随机延迟，避免请求过快
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
           logger.error(`图片处理失败: ${error.message}`);
         }
       }
 
       // 添加原始链接
-      msgList.push({
-        message: `原始链接: ${url}`,
-        nickname: Bot.nickname,
-        user_id: Bot.uin
-      });
-
-      // 发送消息
-      await e.reply(await Bot.makeForwardMsg(msgList));
+      await e.reply(`原始链接: ${url}`);
 
       // 删除所有临时文件
       for (const file of downloadedFiles) {
@@ -480,19 +431,15 @@ export class XiuRen extends plugin {
     }
 
     if (msgInfos.length > 0) {
-      const msgList = [];
-      const downloadedFiles = [];
-
       // 添加标题和使用说明
-      msgList.push({
-        message: `【${title}】(共${msgInfos.length}条)\n你可以使用 #看秀图1 / #看秀图2 来查看详细图片`,
-        nickname: Bot.nickname,
-        user_id: Bot.uin
-      });
+      await e.reply(`【${title}】(共${msgInfos.length}条)\n你可以使用 #看秀图1 / #看秀图2 来查看详细图片`);
 
-      // 添加每个图集的预览
+      // 添加每个图集的预览 - 限制数量
+      const maxItems = Math.min(msgInfos.length, 5); // 减少显示数量
+      const downloadedFiles = [];
       let validCount = 0;
-      for (let index = 0; index < msgInfos.length; index++) {
+      
+      for (let index = 0; index < msgInfos.length && validCount < maxItems; index++) {
         const item = msgInfos[index];
         let tmpTitle = item.title || '无标题';
         if (tmpTitle && !tmpTitle.endsWith('】') && !tmpTitle.endsWith(']')) {
@@ -512,40 +459,27 @@ export class XiuRen extends plugin {
           if (localPath) {
             downloadedFiles.push(localPath);
 
-            // 构建消息
-            const message = [
-              `${validCount}、${tmpTitle}\n`,
-              segment.image(localPath)
-            ];
-
-            // 添加日期和浏览量信息（如果有）
+            // 构建消息并单独发送
+            let message = `${validCount}、${tmpTitle}\n`;
             if (item.date || item.views) {
-              message.push(`\n${item.date || ''} ${item.views || ''}`);
+              message += `${item.date || ''} ${item.views || ''}`;
             }
-
-            msgList.push({
-              message,
-              nickname: Bot.nickname,
-              user_id: Bot.uin
-            });
+            
+            await e.reply(message);
+            await e.reply(segment.image(localPath));
           } else {
-            msgList.push({
-              message: `${validCount}、${tmpTitle}\n(图片加载失败)`,
-              nickname: Bot.nickname,
-              user_id: Bot.uin
-            });
+            await e.reply(`${validCount}、${tmpTitle}\n(图片加载失败)`);
           }
+          
+          // 添加延迟
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
           logger.error(`构建消息失败: ${error.message}`);
-          msgList.push({
-            message: `${validCount}、${tmpTitle}\n(图片加载失败)`,
-            nickname: Bot.nickname,
-            user_id: Bot.uin
-          });
+          await e.reply(`${validCount}、${tmpTitle}\n(图片加载失败)`);
         }
       }
 
-      if (msgList.length <= 1) {
+      if (validCount === 0) {
         await e.reply("未找到有效的图集，请尝试其他关键词");
         // 清理临时文件
         for (const file of downloadedFiles) {
@@ -563,9 +497,6 @@ export class XiuRen extends plugin {
         newXiurenResult.push(xiurenResult[i]);
       }
       xiurenResult = newXiurenResult;
-
-      // 发送消息
-      await e.reply(await Bot.makeForwardMsg(msgList));
 
       // 删除所有临时文件
       for (const file of downloadedFiles) {
