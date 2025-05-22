@@ -6,10 +6,11 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import { pluginResources } from "../components/lib/Path.js";
+import { createCanvas, loadImage } from 'canvas';
 
 // 网站配置 - 秀人网站点
 const SITE_CONFIG = {
-  SITE: 'http://25.xiuren005.top',
+  SITE: 'https://www.xiurenb.net', // 更新为新的网站地址
   // 超时设置
   TIMEOUT: 15000,
   // 随机延迟范围（毫秒）
@@ -33,16 +34,16 @@ const USER_AGENTS = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 ];
 
-// 网站选择器配置 - 基于HTML结构分析
+// 网站选择器配置 - 基于新网站的HTML结构
 const SELECTORS = {
   // 首页和搜索页
   home: {
-    items: '.i_list',
-    title: '.meta-title',
-    image: 'img',
-    link: 'a',
-    date: '.fa-clock-o',
-    views: '.cx_like'
+    items: '.post-list .item',
+    title: '.item-title',
+    image: '.item-img img',
+    link: '.item-img a',
+    date: '.item-meta',
+    views: '.item-meta .views'
   },
   // 详情页
   detail: {
@@ -91,7 +92,7 @@ export class XiuRen extends plugin {
         logger.info(`创建临时目录: ${TEMP_DIR}`);
       }
     } catch (error) {
-      logger.error(`创建临时目录失败: ${error.message} `);
+      logger.error(`创建临时目录失败: ${error.message}`);
     }
   }
 
@@ -103,28 +104,25 @@ export class XiuRen extends plugin {
         for (const file of files) {
           fs.unlinkSync(path.join(TEMP_DIR, file));
         }
-        logger.info(`清理临时目录: ${TEMP_DIR} `);
+        logger.info(`清理临时目录: ${TEMP_DIR}`);
       }
     } catch (error) {
-      logger.error(`清理临时目录失败: ${error.message} `);
+      logger.error(`清理临时目录失败: ${error.message}`);
     }
   }
 
-  // 下载图片到本地
   // 下载图片到本地并转换格式
   async downloadImage(url) {
     // 确保URL格式正确
     url = url.trim();
+    if (!url) return null;
 
     try {
-      // 检查是否为webp格式
-      const isWebp = url.toLowerCase().includes('.webp');
-      
       // 生成唯一的文件名
       const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
       const filePath = path.join(TEMP_DIR, fileName);
 
-      logger.info(`开始下载图片: ${url}${isWebp ? ' (webp格式，将转换为jpg)' : ''}`);
+      logger.info(`开始下载图片: ${url}`);
 
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
@@ -143,38 +141,35 @@ export class XiuRen extends plugin {
         httpsAgent: url.startsWith('https') ? httpsAgent : undefined
       });
 
-      // 获取响应的Content-Type
+      // 检查是否为webp格式
       const contentType = response.headers['content-type'] || '';
-      const isResponseWebp = contentType.includes('webp') || isWebp;
+      const isWebp = contentType.includes('webp') || url.toLowerCase().includes('.webp');
 
-      if (isResponseWebp) {
+      if (isWebp) {
+        // 使用canvas将webp转换为jpg
         try {
-          // 如果是webp格式，尝试使用sharp库转换（如果可用）
-          try {
-            // 动态导入sharp库（如果已安装）
-            const sharp = await import('sharp').catch(() => null);
-            
-            if (sharp) {
-              // 使用sharp转换webp为jpg
-              await sharp.default(Buffer.from(response.data))
-                .jpeg({ quality: 90 })
-                .toFile(filePath);
-              
-              logger.info(`webp图片已转换为jpg格式: ${filePath}`);
-            } else {
-              // 如果sharp不可用，直接保存为jpg（可能不是最佳方案，但至少保存了数据）
-              fs.writeFileSync(filePath, Buffer.from(response.data));
-              logger.info(`webp图片已保存为jpg格式（未转换）: ${filePath}`);
-            }
-          } catch (sharpError) {
-            // 如果sharp转换失败，直接保存原始数据
-            fs.writeFileSync(filePath, Buffer.from(response.data));
-            logger.warn(`webp转换失败，直接保存原始数据: ${sharpError.message}`);
-          }
+          // 创建一个临时的webp文件
+          const tempWebpPath = path.join(TEMP_DIR, `temp_${Date.now()}.webp`);
+          fs.writeFileSync(tempWebpPath, Buffer.from(response.data));
+          
+          // 使用canvas加载webp并转换为jpg
+          const img = await loadImage(tempWebpPath);
+          const canvas = createCanvas(img.width, img.height);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          // 将canvas保存为jpg
+          const jpgBuffer = canvas.toBuffer('image/jpeg', { quality: 0.9 });
+          fs.writeFileSync(filePath, jpgBuffer);
+          
+          // 删除临时webp文件
+          fs.unlinkSync(tempWebpPath);
+          
+          logger.info(`webp图片已转换为jpg格式: ${filePath}`);
         } catch (conversionError) {
-          // 如果转换过程出错，直接保存原始数据
+          // 如果转换失败，尝试直接保存为jpg
+          logger.warn(`webp转换失败，尝试直接保存: ${conversionError.message}`);
           fs.writeFileSync(filePath, Buffer.from(response.data));
-          logger.warn(`图片格式转换失败: ${conversionError.message}`);
         }
       } else {
         // 非webp格式，直接写入文件
@@ -232,7 +227,7 @@ export class XiuRen extends plugin {
 
     try {
       // 获取热门页内容
-      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/top.html`);
+      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/hot`);
       return this.parseAndSendGalleryList(e, html, "热门图集");
     } catch (err) {
       logger.error(`秀人网热门页请求失败: ${err.message}`);
@@ -266,7 +261,7 @@ export class XiuRen extends plugin {
 
     try {
       // 构建搜索URL
-      const searchUrl = `${SITE_CONFIG.SITE}/plus/search/index.asp?keyword=${encodeURIComponent(keyword)}&page=${pageNum}`;
+      const searchUrl = `${SITE_CONFIG.SITE}/search/${encodeURIComponent(keyword)}/page/${pageNum}`;
       logger.info(`尝试从 ${searchUrl} 搜索`);
 
       // 添加随机延迟
@@ -433,9 +428,9 @@ export class XiuRen extends plugin {
         $(ele).find(SELECTORS.home.image).attr('data-original');
 
       // 获取日期和浏览量
-      const dateText = $(ele).find(SELECTORS.home.date).parent().text().trim();
+      const metaText = $(ele).find(SELECTORS.home.date).text().trim();
       const viewsText = $(ele).find(SELECTORS.home.views).text().trim();
-      obj.date = dateText;
+      obj.date = metaText;
       obj.views = viewsText;
 
       // 确保图片链接是完整的URL
