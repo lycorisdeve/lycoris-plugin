@@ -481,7 +481,7 @@ export class XiuRen extends plugin {
             // 构建消息
             const message = [
               `${validCount}、${tmpTitle}\n`,
-              segment.image(`file://${localPath}`)
+              segment.image(localPath)
             ];
 
             // 添加日期和浏览量信息（如果有）
