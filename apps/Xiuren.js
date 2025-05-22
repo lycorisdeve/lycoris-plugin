@@ -111,16 +111,20 @@ export class XiuRen extends plugin {
   }
 
   // 下载图片到本地
+  // 下载图片到本地并转换格式
   async downloadImage(url) {
     // 确保URL格式正确
     url = url.trim();
 
     try {
+      // 检查是否为webp格式
+      const isWebp = url.toLowerCase().includes('.webp');
+      
       // 生成唯一的文件名
       const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
       const filePath = path.join(TEMP_DIR, fileName);
 
-      logger.info(`开始下载图片: ${url}`);
+      logger.info(`开始下载图片: ${url}${isWebp ? ' (webp格式，将转换为jpg)' : ''}`);
 
       // 创建自定义的HTTPS代理，禁用证书验证
       const httpsAgent = new https.Agent({
@@ -139,9 +143,44 @@ export class XiuRen extends plugin {
         httpsAgent: url.startsWith('https') ? httpsAgent : undefined
       });
 
-      // 写入文件
-      fs.writeFileSync(filePath, Buffer.from(response.data));
-      logger.info(`图片下载成功: ${filePath}`);
+      // 获取响应的Content-Type
+      const contentType = response.headers['content-type'] || '';
+      const isResponseWebp = contentType.includes('webp') || isWebp;
+
+      if (isResponseWebp) {
+        try {
+          // 如果是webp格式，尝试使用sharp库转换（如果可用）
+          try {
+            // 动态导入sharp库（如果已安装）
+            const sharp = await import('sharp').catch(() => null);
+            
+            if (sharp) {
+              // 使用sharp转换webp为jpg
+              await sharp.default(Buffer.from(response.data))
+                .jpeg({ quality: 90 })
+                .toFile(filePath);
+              
+              logger.info(`webp图片已转换为jpg格式: ${filePath}`);
+            } else {
+              // 如果sharp不可用，直接保存为jpg（可能不是最佳方案，但至少保存了数据）
+              fs.writeFileSync(filePath, Buffer.from(response.data));
+              logger.info(`webp图片已保存为jpg格式（未转换）: ${filePath}`);
+            }
+          } catch (sharpError) {
+            // 如果sharp转换失败，直接保存原始数据
+            fs.writeFileSync(filePath, Buffer.from(response.data));
+            logger.warn(`webp转换失败，直接保存原始数据: ${sharpError.message}`);
+          }
+        } catch (conversionError) {
+          // 如果转换过程出错，直接保存原始数据
+          fs.writeFileSync(filePath, Buffer.from(response.data));
+          logger.warn(`图片格式转换失败: ${conversionError.message}`);
+        }
+      } else {
+        // 非webp格式，直接写入文件
+        fs.writeFileSync(filePath, Buffer.from(response.data));
+        logger.info(`图片下载成功: ${filePath}`);
+      }
 
       return filePath;
     } catch (error) {
