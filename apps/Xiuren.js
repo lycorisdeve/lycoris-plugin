@@ -3,6 +3,8 @@ import axios from 'axios'
 import * as cheerio from 'cheerio';
 import { segment } from 'icqq';
 import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
 // 网站配置 - 秀人网站点
 const SITE_CONFIG = {
@@ -17,6 +19,9 @@ const SITE_CONFIG = {
 // 存储搜索结果
 let xiurenResult = [];
 let keyword = '';
+
+// 临时图片目录
+const TEMP_DIR = './resources/xiuren/temp';
 
 // 用户代理列表
 const USER_AGENTS = [
@@ -72,6 +77,88 @@ export class XiuRen extends plugin {
         }
       ],
     });
+    
+    // 初始化时确保临时目录存在
+    this.ensureTempDirExists();
+  }
+  
+  // 确保临时目录存在
+  ensureTempDirExists() {
+    try {
+      if (!fs.existsSync(TEMP_DIR)) {
+        fs.mkdirSync(TEMP_DIR, { recursive: true });
+        logger.info(`创建临时目录: ${TEMP_DIR}`);
+      }
+    } catch (error) {
+      logger.error(`创建临时目录失败: ${error.message}`);
+    }
+  }
+  
+  // 清理临时目录中的所有文件
+  cleanTempDir() {
+    try {
+      if (fs.existsSync(TEMP_DIR)) {
+        const files = fs.readdirSync(TEMP_DIR);
+        for (const file of files) {
+          fs.unlinkSync(path.join(TEMP_DIR, file));
+        }
+        logger.info(`清理临时目录: ${TEMP_DIR}`);
+      }
+    } catch (error) {
+      logger.error(`清理临时目录失败: ${error.message}`);
+    }
+  }
+  
+  // 下载图片到本地
+  async downloadImage(url) {
+    // 确保URL格式正确
+    url = url.trim().replace(/`/g, '');
+    
+    try {
+      // 生成唯一的文件名
+      const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`;
+      const filePath = path.join(TEMP_DIR, fileName);
+      
+      logger.info(`开始下载图片: ${url}`);
+      
+      // 创建自定义的HTTPS代理，禁用证书验证
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false // 禁用证书验证
+      });
+      
+      // 下载图片
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        headers: {
+          'User-Agent': this.getRandomUserAgent(),
+          'Referer': SITE_CONFIG.SITE,
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
+        },
+        timeout: SITE_CONFIG.TIMEOUT,
+        httpsAgent: url.startsWith('https') ? httpsAgent : undefined
+      });
+      
+      // 写入文件
+      fs.writeFileSync(filePath, Buffer.from(response.data));
+      logger.info(`图片下载成功: ${filePath}`);
+      
+      return filePath;
+    } catch (error) {
+      logger.error(`图片下载失败: ${error.message}, URL: ${url}`);
+      return null;
+    }
+  }
+  
+  // 删除临时文件
+  deleteFile(filePath) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        logger.info(`删除临时文件: ${filePath}`);
+      }
+    } catch (error) {
+      logger.error(`删除临时文件失败: ${error.message}, 文件: ${filePath}`);
+    }
   }
 
   // 获取随机延迟
@@ -177,6 +264,9 @@ export class XiuRen extends plugin {
     }
 
     await e.reply(`正在获取图集详情，请稍候...`);
+    
+    // 清理之前的临时文件
+    this.cleanTempDir();
 
     try {
       // 添加随机延迟
@@ -229,18 +319,30 @@ export class XiuRen extends plugin {
       });
 
       // 添加图片消息
+      const downloadedFiles = [];
       for (let i = 0; i < maxImages; i++) {
         try {
-          msgList.push({
-            message: segment.image(images[i]),
-            nickname: Bot.nickname,
-            user_id: Bot.uin
-          });
+          // 下载图片到本地
+          const localPath = await this.downloadImage(images[i]);
+          if (localPath) {
+            downloadedFiles.push(localPath);
+            msgList.push({
+              message: segment.image(`file://${localPath}`),
+              nickname: Bot.nickname,
+              user_id: Bot.uin
+            });
+          } else {
+            msgList.push({
+              message: `[图片${i+1}下载失败]`,
+              nickname: Bot.nickname,
+              user_id: Bot.uin
+            });
+          }
 
           // 添加随机延迟，避免请求过快
           await new Promise(resolve => setTimeout(resolve, 300));
         } catch (error) {
-          logger.error(`图片加载失败: ${error.message}`);
+          logger.error(`图片处理失败: ${error.message}`);
         }
       }
 
@@ -251,11 +353,20 @@ export class XiuRen extends plugin {
         user_id: Bot.uin
       });
 
+      // 发送消息
       await e.reply(await Bot.makeForwardMsg(msgList));
+      
+      // 删除所有临时文件
+      for (const file of downloadedFiles) {
+        this.deleteFile(file);
+      }
+      
       return true;
     } catch (err) {
       logger.error(`获取图集详情失败: ${err.message}`);
       await e.reply(`获取图集详情失败，请稍后重试。错误信息: ${err.message}`);
+      // 清理临时文件
+      this.cleanTempDir();
       return false;
     }
   }
@@ -265,6 +376,9 @@ export class XiuRen extends plugin {
     const $ = cheerio.load(html);
     const msgInfos = [];
     xiurenResult = []; // 清空之前的结果
+    
+    // 清理之前的临时文件
+    this.cleanTempDir();
 
     // 查找所有图集项
     $(SELECTORS.home.items).each((i, ele) => {
@@ -329,6 +443,7 @@ export class XiuRen extends plugin {
 
     if (msgInfos.length > 0) {
       const msgList = [];
+      const downloadedFiles = [];
 
       // 添加标题和使用说明
       msgList.push({
@@ -354,24 +469,34 @@ export class XiuRen extends plugin {
 
         validCount++;
         try {
-          // 构建消息
-          const message = [
-            `${validCount}、${tmpTitle}\n`,
-          ];
-          logger.info(`正在处理图集：${tmpTitle}`);
-          logger.info(`图片URL：${item.imgSrc}`);
-          message.push(segment.image(item.imgSrc));
-
-          // 添加日期和浏览量信息（如果有）
-          if (item.date || item.views) {
-            message.push(`\n${item.date || ''} ${item.views || ''}`);
+          // 下载图片到本地
+          const localPath = await this.downloadImage(item.imgSrc);
+          if (localPath) {
+            downloadedFiles.push(localPath);
+            
+            // 构建消息
+            const message = [
+              `${validCount}、${tmpTitle}\n`,
+              segment.image(`file://${localPath}`)
+            ];
+            
+            // 添加日期和浏览量信息（如果有）
+            if (item.date || item.views) {
+              message.push(`\n${item.date || ''} ${item.views || ''}`);
+            }
+            
+            msgList.push({
+              message,
+              nickname: Bot.nickname,
+              user_id: Bot.uin
+            });
+          } else {
+            msgList.push({
+              message: `${validCount}、${tmpTitle}\n(图片加载失败)`,
+              nickname: Bot.nickname,
+              user_id: Bot.uin
+            });
           }
-
-          msgList.push({
-            message,
-            nickname: Bot.nickname,
-            user_id: Bot.uin
-          });
         } catch (error) {
           logger.error(`构建消息失败: ${error.message}`);
           msgList.push({
@@ -384,6 +509,10 @@ export class XiuRen extends plugin {
 
       if (msgList.length <= 1) {
         await e.reply("未找到有效的图集，请尝试其他关键词");
+        // 清理临时文件
+        for (const file of downloadedFiles) {
+          this.deleteFile(file);
+        }
         return false;
       }
 
@@ -397,7 +526,14 @@ export class XiuRen extends plugin {
       }
       xiurenResult = newXiurenResult;
 
+      // 发送消息
       await e.reply(await Bot.makeForwardMsg(msgList));
+      
+      // 删除所有临时文件
+      for (const file of downloadedFiles) {
+        this.deleteFile(file);
+      }
+      
       return true;
     } else {
       logger.warn(`未找到匹配的内容`);
