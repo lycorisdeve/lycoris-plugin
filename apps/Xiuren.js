@@ -328,7 +328,7 @@ export class XiuRen extends plugin {
           if (localPath) {
             downloadedFiles.push(localPath);
             msgList.push({
-              message: segment.image(`file://${localPath}`),
+              message: segment.image(localPath),
               nickname: Bot.nickname,
               user_id: Bot.uin
             });
@@ -369,6 +369,9 @@ export class XiuRen extends plugin {
       // 清理临时文件
       this.cleanTempDir();
       return false;
+    } finally {
+      // 清理临时文件
+      this.cleanTempDir();
     }
   }
 
