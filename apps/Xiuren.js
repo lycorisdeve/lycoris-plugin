@@ -1,10 +1,10 @@
 
 import axios from 'axios'
 import * as cheerio from 'cheerio';
-import { segment } from 'oicq';
+import { segment } from 'icqq';
 import https from 'https';
 
-// 网站配置 - 只使用一个指定的秀人网站点
+// 网站配置 - 秀人网站点
 const SITE_CONFIG = {
   SITE: 'http://25.xiuren005.top',
   // 超时设置
@@ -27,45 +27,48 @@ const USER_AGENTS = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 ];
 
-// 网站选择器配置 - 针对25.xiuren005.top的选择器
+// 网站选择器配置 - 基于HTML结构分析
 const SELECTORS = {
   // 首页和搜索页
   home: {
-    items: '.update_area .update_area_content .update_area_lists .update_area_list',
-    title: '.update_area_title',
-    image: '.update_area_image img',
-    link: 'a'
+    items: '.i_list',
+    title: '.meta-title',
+    image: 'img',
+    link: 'a',
+    date: '.fa-clock-o',
+    views: '.cx_like'
   },
   // 详情页
   detail: {
-    title: '.content_left_title',
-    images: '.content_left_content img'
+    title: '.article-title',
+    images: '.article-content img',
+    pagination: '.pagination a'
   }
 };
 
-export class XiuRenPlugin extends plugin {
+export class XiuRen extends plugin {
   constructor() {
     super({
-      name: '秀人网', // 插件名称
-      dsc: '秀人网图集浏览', // 插件描述
-      event: 'message', // 监听事件类型
-      priority: 1000, // 优先级
+      name: '秀人网',
+      dsc: '秀人网图集浏览',
+      event: 'message',
+      priority: 1000,
       rule: [
         {
-          reg: "^#秀人$", // 匹配规则 - 首页
+          reg: "^#秀人$",
           fnc: 'getHomePage',
         },
         {
-          reg: "^#秀人搜索(.*)$|^#秀人搜索页码(.*)$", // 匹配规则 - 搜索
+          reg: "^#秀人热门$",
+          fnc: 'getHotPage',
+        },
+        {
+          reg: "^#秀人搜索(.*)$|^#秀人搜索页码(.*)$",
           fnc: 'searchXiuren',
         },
         {
-          reg: "^#看秀图(.*)", // 匹配规则 - 查看详情
+          reg: "^#看秀图(.*)",
           fnc: 'viewXiurenDetail',
-        },
-        {
-          reg: "^#秀人调试$", // 匹配规则 - 调试
-          fnc: 'debugXiuren',
         }
       ],
     });
@@ -81,25 +84,6 @@ export class XiuRenPlugin extends plugin {
     return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
   }
 
-  // 调试功能
-  async debugXiuren(e) {
-    if (!e.isMaster) {
-      e.reply("只有主人才能使用调试功能");
-      return false;
-    }
-
-    const debugInfo = {
-      site: SITE_CONFIG.SITE,
-      timeout: SITE_CONFIG.TIMEOUT,
-      delay: `${SITE_CONFIG.DELAY_MIN}-${SITE_CONFIG.DELAY_MAX}ms`,
-      userAgents: USER_AGENTS.length,
-      selectors: SELECTORS
-    };
-
-    await e.reply("秀人网插件调试信息：\n" + JSON.stringify(debugInfo, null, 2));
-    return true;
-  }
-
   // 获取首页内容
   async getHomePage(e) {
     await e.reply("正在获取秀人网首页内容，请稍候...");
@@ -111,6 +95,21 @@ export class XiuRenPlugin extends plugin {
     } catch (err) {
       logger.error(`秀人网首页请求失败: ${err.message}`);
       await e.reply(`获取首页内容失败，请稍后重试。错误信息: ${err.message}`);
+      return false;
+    }
+  }
+
+  // 获取热门内容
+  async getHotPage(e) {
+    await e.reply("正在获取秀人网热门内容，请稍候...");
+
+    try {
+      // 获取热门页内容
+      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/top.html`);
+      return this.parseAndSendGalleryList(e, html, "热门图集");
+    } catch (err) {
+      logger.error(`秀人网热门页请求失败: ${err.message}`);
+      await e.reply(`获取热门内容失败，请稍后重试。错误信息: ${err.message}`);
       return false;
     }
   }
@@ -140,7 +139,7 @@ export class XiuRenPlugin extends plugin {
 
     try {
       // 构建搜索URL
-      const searchUrl = `${SITE_CONFIG.SITE}/search/${encodeURIComponent(keyword)}/${pageNum}.html`;
+      const searchUrl = `${SITE_CONFIG.SITE}/plus/search/index.asp?keyword=${encodeURIComponent(keyword)}&page=${pageNum}`;
       logger.info(`尝试从 ${searchUrl} 搜索`);
       
       // 添加随机延迟
@@ -162,6 +161,105 @@ export class XiuRenPlugin extends plugin {
     }
   }
 
+  // 查看详情
+  async viewXiurenDetail(e) {
+    const index = parseInt(e.msg.replace(/#看秀图/g, "").trim()) - 1;
+    
+    if (isNaN(index) || index < 0 || !xiurenResult || index >= xiurenResult.length) {
+      e.reply("请输入正确的图集序号");
+      return false;
+    }
+    
+    const url = xiurenResult[index];
+    if (!url) {
+      e.reply("未找到对应的图集链接");
+      return false;
+    }
+    
+    await e.reply(`正在获取图集详情，请稍候...`);
+    
+    try {
+      // 添加随机延迟
+      await new Promise(resolve => setTimeout(resolve, this.getRandomDelay()));
+      
+      const html = await this.fetchWithRetry(url);
+      const $ = cheerio.load(html);
+      
+      // 获取标题
+      const title = $(SELECTORS.detail.title).text().trim() || $('title').text().trim();
+      
+      // 获取所有图片
+      const images = [];
+      $(SELECTORS.detail.images).each((i, ele) => {
+        const imgSrc = $(ele).attr('src') || $(ele).attr('data-src') || $(ele).attr('data-original');
+        if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/')) {
+          // 确保图片链接是完整的URL
+          const fullImgSrc = imgSrc.startsWith('http') ? imgSrc : new URL(imgSrc, SITE_CONFIG.SITE).href;
+          images.push(fullImgSrc);
+        }
+      });
+      
+      // 如果没有找到图片，尝试其他选择器
+      if (images.length === 0) {
+        $('img').each((i, ele) => {
+          const imgSrc = $(ele).attr('src') || $(ele).attr('data-src') || $(ele).attr('data-original');
+          if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/') && 
+              !imgSrc.includes('favicon.ico') && imgSrc.includes('.')) {
+            // 确保图片链接是完整的URL
+            const fullImgSrc = imgSrc.startsWith('http') ? imgSrc : new URL(imgSrc, SITE_CONFIG.SITE).href;
+            images.push(fullImgSrc);
+          }
+        });
+      }
+      
+      if (images.length === 0) {
+        await e.reply("未找到图集中的图片，可能是网站结构已变化");
+        return false;
+      }
+      
+      // 限制图片数量，避免消息过大
+      const maxImages = Math.min(images.length, 20);
+      const msgList = [];
+      
+      // 添加标题消息
+      msgList.push({
+        message: `【${title}】\n共${images.length}张图片，显示前${maxImages}张`,
+        nickname: Bot.nickname,
+        user_id: Bot.uin
+      });
+      
+      // 添加图片消息
+      for (let i = 0; i < maxImages; i++) {
+        try {
+          msgList.push({
+            message: segment.image(images[i]),
+            nickname: Bot.nickname,
+            user_id: Bot.uin
+          });
+          
+          // 添加随机延迟，避免请求过快
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          logger.error(`图片加载失败: ${error.message}`);
+        }
+      }
+      
+      // 添加原始链接
+      msgList.push({
+        message: `原始链接: ${url}`,
+        nickname: Bot.nickname,
+        user_id: Bot.uin
+      });
+      
+      await e.reply(await Bot.makeForwardMsg(msgList));
+      return true;
+    } catch (err) {
+      logger.error(`获取图集详情失败: ${err.message}`);
+      await e.reply(`获取图集详情失败，请稍后重试。错误信息: ${err.message}`);
+      return false;
+    }
+  }
+
   // 解析并发送图集列表
   async parseAndSendGalleryList(e, html, title) {
     const $ = cheerio.load(html);
@@ -176,6 +274,12 @@ export class XiuRenPlugin extends plugin {
       obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('src') || 
                   $(ele).find(SELECTORS.home.image).attr('data-src') || 
                   $(ele).find(SELECTORS.home.image).attr('data-original');
+      
+      // 获取日期和浏览量
+      const dateText = $(ele).find(SELECTORS.home.date).parent().text().trim();
+      const viewsText = $(ele).find(SELECTORS.home.views).text().trim();
+      obj.date = dateText;
+      obj.views = viewsText;
       
       // 确保图片链接是完整的URL
       if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
@@ -197,7 +301,7 @@ export class XiuRenPlugin extends plugin {
     if (msgInfos.length === 0) {
       $('a').each((i, ele) => {
         let href = $(ele).attr('href');
-        if (href && href.includes('/')) {
+        if (href && href.includes('/') && !href.includes('javascript:')) {
           let imgElement = $(ele).find('img');
           if (imgElement.length > 0) {
             let obj = {};
@@ -228,7 +332,7 @@ export class XiuRenPlugin extends plugin {
 
       // 添加标题和使用说明
       msgList.push({
-        message: `【${title}】(共${msgInfos.length}条)\n你可以使用 #看秀图1 / #看秀图2 来查看详细图片，或者使用 #秀人搜索页码2 来跳转页码`,
+        message: `【${title}】(共${msgInfos.length}条)\n你可以使用 #看秀图1 / #看秀图2 来查看详细图片`,
         nickname: Bot.nickname,
         user_id: Bot.uin
       });
@@ -250,23 +354,26 @@ export class XiuRenPlugin extends plugin {
 
         validCount++;
         try {
-          // 修改这里：使用数组形式构建消息，而不是字符串拼接
-          // 确保图片URL没有多余的空格和反引号
-          const cleanImgSrc = item.imgSrc.trim().replace(/`/g, '');
+          // 构建消息
+          const message = [
+            `${validCount}、${tmpTitle}\n`,
+            segment.image(item.imgSrc)
+          ];
+          
+          // 添加日期和浏览量信息（如果有）
+          if (item.date || item.views) {
+            message.push(`\n${item.date || ''} ${item.views || ''}`);
+          }
           
           msgList.push({
-            message: [
-              `${validCount}、\n`,
-              segment.image(cleanImgSrc),
-              `\n${tmpTitle}`
-            ],
+            message,
             nickname: Bot.nickname,
             user_id: Bot.uin
           });
         } catch (error) {
           logger.error(`构建消息失败: ${error.message}`);
           msgList.push({
-            message: `${validCount}、\n${tmpTitle}\n(图片加载失败)`,
+            message: `${validCount}、${tmpTitle}\n(图片加载失败)`,
             nickname: Bot.nickname,
             user_id: Bot.uin
           });
@@ -288,7 +395,7 @@ export class XiuRenPlugin extends plugin {
       }
       xiurenResult = newXiurenResult;
 
-      await e.reply(await Bot.makeForwardMsg(msgList), false);
+      await e.reply(await Bot.makeForwardMsg(msgList));
       return true;
     } else {
       logger.warn(`未找到匹配的内容`);
