@@ -53,7 +53,7 @@ export class AiNews extends plugin {
     try {
       const res = await fetch(url);
       const json = await res.json();
-      newsList = json.data || [];
+      newsList = (json.data && Array.isArray(json.data.news)) ? json.data.news.filter(item => item && item.title) : [];
     } catch (err) {
       return null;
     }
