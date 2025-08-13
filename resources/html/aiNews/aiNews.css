@@ -47,14 +47,16 @@
   box-shadow: 0 2px 8px rgba(66,153,225,0.08);
   transition: box-shadow 0.2s;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 }
 .news-item:hover {
   box-shadow: 0 4px 16px rgba(66,153,225,0.18);
   background: #e3f0fc;
 }
 .news-index {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 32px;
   height: 32px;
   background: #4299e1;
@@ -63,7 +65,6 @@
   font-weight: bold;
   border-radius: 50%;
   text-align: center;
-  line-height: 32px;
   margin-right: 18px;
   box-shadow: 0 2px 8px rgba(66,153,225,0.12);
 }
