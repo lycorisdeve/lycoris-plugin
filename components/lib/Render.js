@@ -67,7 +67,7 @@ const Render = {
       sys: {
         scale: scale(params?.scale || 1)
       },
-      copyright: `${BotName}<span class="version"> v${Version.pluginVersion}</span> & ${Version}<span class="version"> v${Version.version}</span>${await gitstatus()}`,
+      copyright: `${Version.BotName}<span class="version"> v${Version.pluginVersion}</span> & ${Version}<span class="version"> v${Version.version}</span>${await gitstatus()}`,
       pageGotoParams: {
         waitUntil: 'load'
       },
@@ -79,7 +79,7 @@ const Render = {
       multiPageHeight: 12000,
       ...params
     }
-    return await puppeteer.screenshots(BotName === 'Karin' ? savePath : pluginRootPath + savePath, data)
+    return await puppeteer.screenshots(Version.BotName === 'Karin' ? savePath : pluginRootPath + savePath, data)
   }
 }
 
