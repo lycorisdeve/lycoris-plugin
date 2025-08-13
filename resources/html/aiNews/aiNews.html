@@ -1,0 +1,19 @@
+{{extend defaultLayout}}
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/html/aiNews/aiNews.css" />
+{{/block}}
+
+{{block 'main'}}
+<div class="ai-news-container">
+  <h1>AI新闻推送</h1>
+  <ul class="news-list">
+    {{each news as item}}
+    <li class="news-item">
+      <h2>{{item.title}}</h2>
+      <p>{{item.summary || item.content}}</p>
+    </li>
+    {{/each}}
+  </ul>
+  <div class="copyright">{{copyright}}</div>
+</div>
+{{/block}}
