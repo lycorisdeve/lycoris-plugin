@@ -7,10 +7,9 @@
 <div class="ai-news-container">
   <h1>AI新闻推送</h1>
   <ul class="news-list">
-    {{each news as item}}
+    {{each news item index}}
     <li class="news-item">
-      <h2>{{item.title}}</h2>
-      <p>{{item.summary || item.content}}</p>
+      <h2>{{index}}、{{item.title}}</h2>
     </li>
     {{/each}}
   </ul>
