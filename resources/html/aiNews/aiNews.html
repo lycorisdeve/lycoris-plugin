@@ -8,9 +8,12 @@
   <h1>AI新闻推送</h1>
   <ul class="news-list">
     {{each news item index}}
-    <li class="news-item">
-      <h2>{{index}}、{{item.title}}</h2>
-    </li>
+          <li class="news-item">
+            <span class="news-index">{{index + 1}}</span>
+            <div class="news-content">
+              <h2>{{item.title}}</h2>
+            </div>
+          </li>
     {{/each}}
   </ul>
   <div class="copyright">{{copyright}}</div>

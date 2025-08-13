@@ -47,11 +47,28 @@
   box-shadow: 0 2px 8px rgba(66,153,225,0.08);
   transition: box-shadow 0.2s;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 .news-item:hover {
   box-shadow: 0 4px 16px rgba(66,153,225,0.18);
   background: #e3f0fc;
+}
+.news-index {
+  display: inline-block;
+  min-width: 32px;
+  height: 32px;
+  background: #4299e1;
+  color: #fff;
+  font-size: 1.3em;
+  font-weight: bold;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32px;
+  margin-right: 18px;
+  box-shadow: 0 2px 8px rgba(66,153,225,0.12);
+}
+.news-content {
+  flex: 1;
 }
 .news-item .font-bold {
   font-weight: bold;
