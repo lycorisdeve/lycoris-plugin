@@ -7,7 +7,7 @@ const config = Config.getConfig('config').aiNews || {
   isPush: true,
   schedule: {
     hour: '8',
-    minute: '20',
+    minute: '30',
     second: '0'
   },
   group_ids: [],
@@ -59,7 +59,7 @@ export class AiNews extends plugin {
     }
     const data = {
       news: newsList,
-      copyright: 'Lycoris-Plugin',
+      copyright: `${pluginName}`,
       sys: {
         scale: 100,
         width: 1200,
