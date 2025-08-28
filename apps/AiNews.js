@@ -58,7 +58,7 @@ export class AiNews extends plugin {
       return null;
     }
     const data = {
-      newsTitle: `${date}AI新闻`,
+      newsTitle: `AI新闻_${date}`,
       news: newsList,
       copyright: `${pluginName}`,
       sys: {
