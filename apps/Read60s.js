@@ -9,7 +9,7 @@ import Config from '../components/Config.js'
 const config = Config.getConfig('config')
 
 const API_CONFIG = {
-    DEFAULT: 'https://api.2xb.cn/zaob',
+    DEFAULT: 'https://60s-api.viki.moe/v2/60s?type=json',
     BACKUP1: 'https://api.jun.la/60s.php?format=imgapi',
     BACKUP2: {
         url: 'https://v2.alapi.cn/api/zaobao',
@@ -171,7 +171,14 @@ async function getNewsImage() {
     const apis = [
         {
             url: API_CONFIG.DEFAULT,
-            process: data => segment.image(data.imageUrl)
+            // 新的默认 API 返回结构: { code, message, data: { image, news: [...], tip, cover, ... } }
+            process: data => {
+                if (data && data.data && data.data.image) {
+                    return segment.image(data.data.image);
+                }
+                // 如果结构不匹配，抛错交给后续备份源处理
+                throw new Error('默认 API 返回格式异常');
+            }
         },
         {
             url: API_CONFIG.BACKUP1,
