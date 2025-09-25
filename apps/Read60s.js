@@ -30,25 +30,10 @@ export class Read60sPlugin extends plugin {
             event: 'message',
             priority: 1200,
             rule: [
+                // 支持：#news、news、今日新闻、60S新闻、早报，大小写容错；可选尾号 1-4（例如：#news2 或 今日新闻3）
                 {
-                    reg: '^#news$|^今日新闻$|^#新闻$|^60S新闻$',
+                    reg: '^#?\\s*(?:今日\\s*)?(?:60S|60s|News|news|NEWS|新闻|早报)(?:[1-4])?$',
                     fnc: 'getRead60sNews'
-                },
-                {
-                    reg: '^#news1$|^今日新闻1$|^#新闻1$|^60S新闻1$',
-                    fnc: 'getRead60sNews1'
-                },
-                {
-                    reg: '^#news2$|^今日新闻2$|^#新闻2$|^60S新闻2$',
-                    fnc: 'getRead60sNews2'
-                },
-                {
-                    reg: '^#news3$|^今日新闻3$|^#新闻3$|^60S新闻3$',
-                    fnc: 'getRead60sNews3'
-                },
-                {
-                    reg: '^#news4$|^今日新闻4$|^#新闻4$|^60S新闻4$',
-                    fnc: 'getRead60sNews4'
                 }
             ]
         })
@@ -81,7 +66,22 @@ export class Read60sPlugin extends plugin {
     }
 
     async getRead60sNews(e) {
-        return this.handleNewsRequest(e, getNewsImage);
+        const text = (e.msg || e.message || '').trim();
+        // 匹配末尾数字 1-4
+        const m = text.match(/([1-4])\s*$/);
+        const idx = m ? parseInt(m[1], 10) : 0;
+        switch (idx) {
+            case 1:
+                return this.getRead60sNews1(e);
+            case 2:
+                return this.getRead60sNews2(e);
+            case 3:
+                return this.getRead60sNews3(e);
+            case 4:
+                return this.getRead60sNews4(e);
+            default:
+                return this.handleNewsRequest(e, getNewsImage);
+        }
     }
 
     async getRead60sNews1(e) {
