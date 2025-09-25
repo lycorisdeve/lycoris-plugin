@@ -22,6 +22,10 @@ const API_CONFIG = {
 const plugin_config = config.read60s
 const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * *`;
 
+// 请求超时与重试配置
+const REQUEST_TIMEOUT = 5000 // ms
+const REQUEST_RETRY = 2
+
 export class Read60sPlugin extends plugin {
     constructor() {
         super({
@@ -190,12 +194,29 @@ async function getNewsImage() {
         }
     ];
 
+    // helper: sleep
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // helper: axios get with retries and timeout
+    async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_TIMEOUT) {
+        for (let i = 0; i < attempts; i++) {
+            try {
+                const response = await axios.get(url, { timeout });
+                return response;
+            } catch (err) {
+                logger.warn(`Request to ${url} failed (attempt ${i + 1}/${attempts}): ${err.code || err.message}`);
+                if (i < attempts - 1) await sleep(300);
+            }
+        }
+        throw new Error(`Failed to fetch ${url} after ${attempts} attempts`);
+    }
+
     for (const api of apis) {
         try {
-            const response = await axios.get(api.url);
+            const response = await fetchWithRetry(api.url);
             return api.process(response.data);
         } catch (error) {
-            logger.error(`API ${api.url} failed:`, error);
+            logger.error(`API ${api.url} failed: ${error.message}`);
             continue;
         }
     }
