@@ -82,7 +82,15 @@ export class Read60sPlugin extends plugin {
   async handleNewsRequest(e, fetchFunction) {
     try {
       const imgMsg = await fetchFunction();
+      // 防止发送空图片（e.g. {type:'image', data:{}}）
       if (imgMsg) {
+        if (typeof imgMsg === 'object' && imgMsg.type === 'image') {
+          const d = imgMsg.data || {};
+          if (!d || Object.keys(d).length === 0) {
+            logger && logger.warn && logger.warn('fetchFunction 返回了空的 image payload, 将视为无效');
+            throw new Error('空图片返回');
+          }
+        }
         await e.reply(imgMsg);
         return true;
       }
@@ -123,6 +131,7 @@ export class Read60sPlugin extends plugin {
       const response = await fetchWithRetry(API_CONFIG.BACKUP1);
       const data = await response.json();
       let imageUrl = data.imageBaidu || data.imageUrl || data.data?.image;
+      if (!imageUrl) throw new Error('备份源1未返回有效图片');
       return segment.image(imageUrl);
     };
     return this.handleNewsRequest(e, fetchImage);
@@ -133,7 +142,9 @@ export class Read60sPlugin extends plugin {
       const url = `${API_CONFIG.BACKUP2.url}?format=json&token=${API_CONFIG.BACKUP2.token}`;
       const response = await fetchWithRetry(url);
       const data = await response.json();
-      return segment.image(data.data?.image || data.image);
+      const imageUrl = data.data?.image || data.image;
+      if (!imageUrl) throw new Error('备份源2未返回有效图片');
+      return segment.image(imageUrl);
     };
     return this.handleNewsRequest(e, fetchImage);
   }
@@ -142,7 +153,9 @@ export class Read60sPlugin extends plugin {
     const fetchImage = async () => {
       const response = await fetchWithRetry(API_CONFIG.BACKUP3);
       const data = await response.json();
-      return segment.image(data.data?.imageurl || data.imageurl || data.image);
+      const imageUrl = data.data?.imageurl || data.imageurl || data.image;
+      if (!imageUrl) throw new Error('备份源3未返回有效图片');
+      return segment.image(imageUrl);
     };
     return this.handleNewsRequest(e, fetchImage);
   }
@@ -152,6 +165,7 @@ export class Read60sPlugin extends plugin {
       const response = await fetchWithRetry(API_CONFIG.BACKUP4);
       const data = (await response.json()).data;
       const dateInfo = this.formatDateInfo(data);
+      if (!data || !data.image) throw new Error('备份源4未返回有效图片');
       const imgMsg = segment.image(data.image);
       return { imgMsg, dateInfo };
     };
@@ -235,9 +249,17 @@ async function getNewsImage() {
     }});
   }
 
-  // 备份源（保留原有解析行为）
-  apis.push({ url: API_CONFIG.BACKUP1, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => segment.image(data.imageBaidu || data.imageUrl) });
-  apis.push({ url: `${API_CONFIG.BACKUP2.url}?format=json&token=${API_CONFIG.BACKUP2.token}`, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => segment.image(data.data.image) });
+  // 备份源（保留原有解析行为），并做有效性校验以避免返回空图片
+  apis.push({ url: API_CONFIG.BACKUP1, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => {
+    const imageUrl = data?.imageBaidu || data?.imageUrl || data?.data?.image || data?.image;
+    if (!imageUrl) throw new Error('备份1未返回有效图片');
+    return segment.image(imageUrl);
+  }});
+  apis.push({ url: `${API_CONFIG.BACKUP2.url}?format=json&token=${API_CONFIG.BACKUP2.token}`, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => {
+    const imageUrl = data?.data?.image || data?.image;
+    if (!imageUrl) throw new Error('备份2未返回有效图片');
+    return segment.image(imageUrl);
+  }});
 
   // use module-level sleep and fetchWithRetry helpers
 
