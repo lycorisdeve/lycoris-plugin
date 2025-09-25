@@ -1,4 +1,4 @@
-import axios from 'axios'
+import fetch from 'node-fetch'
 import Config from '../components/Config.js'
 
 /*
@@ -90,8 +90,9 @@ export class Read60sPlugin extends plugin {
 
     async getRead60sNews1(e) {
         const fetchImage = async () => {
-            const response = await axios.get(API_CONFIG.BACKUP1);
-            let imageUrl = response.data.imageBaidu || response.data.imageUrl;
+            const response = await fetchWithRetry(API_CONFIG.BACKUP1);
+            const data = await response.json();
+            let imageUrl = data.imageBaidu || data.imageUrl || data.data?.image;
             return segment.image(imageUrl);
         };
         return this.handleNewsRequest(e, fetchImage);
@@ -100,24 +101,26 @@ export class Read60sPlugin extends plugin {
     async getRead60sNews2(e) {
         const fetchImage = async () => {
             const url = `${API_CONFIG.BACKUP2.url}?format=json&token=${API_CONFIG.BACKUP2.token}`;
-            const response = await axios.get(url);
-            return segment.image(response.data.data.image);
+            const response = await fetchWithRetry(url);
+            const data = await response.json();
+            return segment.image(data.data?.image || data.image);
         };
         return this.handleNewsRequest(e, fetchImage);
     }
 
     async getRead60sNews3(e) {
         const fetchImage = async () => {
-            const response = await axios.get(API_CONFIG.BACKUP3);
-            return segment.image(response.data.data.imageurl);
+            const response = await fetchWithRetry(API_CONFIG.BACKUP3);
+            const data = await response.json();
+            return segment.image(data.data?.imageurl || data.imageurl || data.image);
         };
         return this.handleNewsRequest(e, fetchImage);
     }
 
     async getRead60sNews4(e) {
         const fetchImage = async () => {
-            const response = await axios.get(API_CONFIG.BACKUP4);
-            const data = response.data.data;
+            const response = await fetchWithRetry(API_CONFIG.BACKUP4);
+            const data = (await response.json()).data;
             const dateInfo = this.formatDateInfo(data);
             const imgMsg = segment.image(data.image);
             return { imgMsg, dateInfo };
@@ -194,27 +197,34 @@ async function getNewsImage() {
         }
     ];
 
-    // helper: sleep
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        // helper: sleep
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // helper: axios get with retries and timeout
-    async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_TIMEOUT) {
-        for (let i = 0; i < attempts; i++) {
-            try {
-                const response = await axios.get(url, { timeout });
-                return response;
-            } catch (err) {
-                logger.warn(`Request to ${url} failed (attempt ${i + 1}/${attempts}): ${err.code || err.message}`);
-                if (i < attempts - 1) await sleep(300);
+        // helper: fetch with retries and timeout using AbortController
+        async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_TIMEOUT) {
+            for (let i = 0; i < attempts; i++) {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const response = await fetch(url, { signal: controller.signal });
+                    clearTimeout(id);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response;
+                } catch (err) {
+                    clearTimeout(id);
+                    logger.warn(`Request to ${url} failed (attempt ${i + 1}/${attempts}): ${err.name || err.message}`);
+                    if (i < attempts - 1) await sleep(300);
+                    logger.warn(err);
+                }
             }
+            throw new Error(`Failed to fetch ${url} after ${attempts} attempts`);
         }
-        throw new Error(`Failed to fetch ${url} after ${attempts} attempts`);
-    }
 
     for (const api of apis) {
         try {
             const response = await fetchWithRetry(api.url);
-            return api.process(response.data);
+            const data = await response.json();
+            return api.process(data);
         } catch (error) {
             logger.error(`API ${api.url} failed: ${error.message}`);
             continue;
