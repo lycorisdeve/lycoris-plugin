@@ -34,6 +34,28 @@ const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedu
 const REQUEST_TIMEOUT = 5000; // ms
 const REQUEST_RETRY = 2;
 
+// helper: sleep
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// helper: fetch with retries and timeout using AbortController (module-level)
+async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_TIMEOUT) {
+  for (let i = 0; i < attempts; i++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response;
+    } catch (err) {
+      clearTimeout(id);
+      logger && logger.warn && logger.warn(`Request to ${url} failed (attempt ${i + 1}/${attempts}): ${err.name || err.message}`);
+      if (i < attempts - 1) await sleep(300);
+    }
+  }
+  throw new Error(`Failed to fetch ${url} after ${attempts} attempts`);
+}
+
 export class Read60sPlugin extends plugin {
   constructor() {
     super({
@@ -217,36 +239,7 @@ async function getNewsImage() {
   apis.push({ url: API_CONFIG.BACKUP1, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => segment.image(data.imageBaidu || data.imageUrl) });
   apis.push({ url: `${API_CONFIG.BACKUP2.url}?format=json&token=${API_CONFIG.BACKUP2.token}`, attempts: REQUEST_RETRY, timeout: REQUEST_TIMEOUT, process: (data) => segment.image(data.data.image) });
 
-  // helper: sleep
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  // helper: fetch with retries and timeout using AbortController
-  async function fetchWithRetry(
-    url,
-    attempts = REQUEST_RETRY,
-    timeout = REQUEST_TIMEOUT
-  ) {
-    for (let i = 0; i < attempts; i++) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      try {
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(id);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response;
-      } catch (err) {
-        clearTimeout(id);
-        logger.warn(
-          `Request to ${url} failed (attempt ${i + 1}/${attempts}): ${
-            err.name || err.message
-          }`
-        );
-        if (i < attempts - 1) await sleep(300);
-        logger.warn(err);
-      }
-    }
-    throw new Error(`Failed to fetch ${url} after ${attempts} attempts`);
-  }
+  // use module-level sleep and fetchWithRetry helpers
 
   for (const api of apis) {
     try {
