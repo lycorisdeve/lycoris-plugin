@@ -557,24 +557,130 @@ WIKI 信  息:#wfwiki 绿陶
 
 
     }
-    // 赏金
+    // 地球赏金任务
     async getEarthBounty(e) {
-        let data = await getTextData("wf/robot/Ostrons")
-        let temp_bounty = "         地球赏金        \n==================\n" + data +
-            "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的"
-        e.reply(temp_bounty)
+        try {
+            if (isNationalService) {
+                const data = await api.get("alerts");
+                const bounties = data?.bountys?.find(b => b.tag === "赛特斯");
+                let msg = "         地球赏金        \n==================\n";
+                
+                if (!bounties) {
+                    await e.reply(msg + "当前没有赏金任务\n==================");
+                    return;
+                }
+
+                const expiryTime = bounties.expiry * 1000;
+                const remainingTime = expiryTime - Date.now();
+                
+                msg += `剩余时间：${formatTime.diff(remainingTime)}\n`;
+                
+                for (const job of bounties.jobs) {
+                    if (job.jobType === "未知") continue;
+                    
+                    msg += `\n${job.jobType}\n` +
+                          `等级：${job.minEnemyLevel} ~ ${job.maxEnemyLevel}\n` +
+                          `段位要求：${job.masteryReq}\n` +
+                          `奖励：${job.rewards.replace(/<br \/>/g, "、")}\n` +
+                          "==================\n";
+                }
+                
+                msg += "\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            } else {
+                const data = await api.getText("wf/robot/Ostrons");
+                let msg = "         地球赏金        \n==================\n" + 
+                         data + "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            }
+        } catch (error) {
+            logger.error(`地球赏金信息获取失败: ${error.message}`);
+            await e.reply("地球赏金信息获取失败，请稍后重试");
+        }
     }
+
+    // 金星赏金任务
     async getSolarisBounty(e) {
-        let data = await getTextData("wf/robot/Solaris")
-        let temp_bounty = "         金星赏金        \n==================\n" + data +
-            "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的"
-        e.reply(temp_bounty)
+        try {
+            if (isNationalService) {
+                const data = await api.get("alerts");
+                const bounties = data?.bountys?.find(b => b.tag === "索拉里斯");
+                let msg = "         金星赏金        \n==================\n";
+                
+                if (!bounties) {
+                    await e.reply(msg + "当前没有赏金任务\n==================");
+                    return;
+                }
+
+                const expiryTime = bounties.expiry * 1000;
+                const remainingTime = expiryTime - Date.now();
+                
+                msg += `剩余时间：${formatTime.diff(remainingTime)}\n`;
+                
+                for (const job of bounties.jobs) {
+                    if (job.jobType === "未知") continue;
+                    
+                    msg += `\n${job.jobType}\n` +
+                          `等级：${job.minEnemyLevel} ~ ${job.maxEnemyLevel}\n` +
+                          `段位要求：${job.masteryReq}\n` +
+                          `奖励：${job.rewards.replace(/<br \/>/g, "、")}\n` +
+                          "==================\n";
+                }
+                
+                msg += "\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            } else {
+                const data = await api.getText("wf/robot/Solaris");
+                let msg = "         金星赏金        \n==================\n" + 
+                         data + "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            }
+        } catch (error) {
+            logger.error(`金星赏金信息获取失败: ${error.message}`);
+            await e.reply("金星赏金信息获取失败，请稍后重试");
+        }
     }
+
+    // 火卫二赏金任务
     async getEntratiSyndicateBounty(e) {
-        let data = await getTextData("wf/robot/EntratiSyndicate")
-        let temp_bounty = "         火卫二赏金        \n==================\n" + data +
-            "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的"
-        e.reply(temp_bounty)
+        try {
+            if (isNationalService) {
+                const data = await api.get("alerts");
+                const bounties = data?.bountys?.find(b => b.tag === "EntratiSyndicate");
+                let msg = "         火卫二赏金        \n==================\n";
+                
+                if (!bounties) {
+                    await e.reply(msg + "当前没有赏金任务\n==================");
+                    return;
+                }
+
+                const expiryTime = bounties.expiry * 1000;
+                const remainingTime = expiryTime - Date.now();
+                
+                msg += `剩余时间：${formatTime.diff(remainingTime)}\n`;
+                
+                for (const job of bounties.jobs) {
+                    if (job.jobType === "未知") continue;
+                    
+                    msg += `\n${job.jobType}\n` +
+                          `等级：${job.minEnemyLevel} ~ ${job.maxEnemyLevel}\n` +
+                          `段位要求：${job.masteryReq}\n` +
+                          `奖励：${job.rewards}\n` +
+                          "==================\n";
+                }
+                
+                msg += "\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            } else {
+                const data = await api.getText("wf/robot/EntratiSyndicate");
+                let msg = "         火卫二赏金        \n==================\n" + 
+                         data + "\n==================\n\t\t\t\t\t\t奖励列表的遗物不一定是正确的";
+                await e.reply(msg);
+            }
+        } catch (error) {
+            logger.error(`火卫二赏金信息获取失败: ${error.message}`);
+            await e.reply("火卫二赏金信息获取失败，请稍后重试");
+        }
     }
 
 
@@ -827,57 +933,6 @@ async function getFormatHms(time) {
 }
 
 
-//  API 获取 Json 数据
-async function getJsonData(url_arg) {
-
-    let api_url = url + url_arg
-
-    let data1 = await fetch(api_url, {
-        timeout: 10000,// 设置5秒超时时间
-        headers: {
-            "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
-        }
-    })
-
-    return await data1.json()
-
-}
-//  API 获取 Json 数据
-async function getTextData(url_arg) {
-
-    let api_url = url + url_arg
-
-    let data1 = await fetch(api_url, {
-        timeout: 10000,// 设置5秒超时时间
-        headers: {
-            "User-Agent": user_agent[Math.floor((Math.random() * user_agent.length))]
-        }
-    })
-
-    return await data1.text()
-
-}
-
-async function calculationTimeDifference(timeDifference) {
-    let hours = Math.floor(timeDifference / (1000 * 60 * 60));
-    let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-    let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-    hours = hours < 10 ? '0' + hours : hours
-    minutes = minutes < 10 ? '0' + minutes : minutes
-    seconds = seconds < 10 ? '0' + seconds : seconds
-    return hours + "时" + minutes + "分" + seconds + "秒"
-}
-async function getFormatDhms(timeDifference) {
-    let days = Math.floor((timeDifference / (1000 * 60 * 60 * 24)))
-    let hours = Math.floor(timeDifference / (1000 * 60 * 60) % 24);
-    let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-    let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-    days = days < 10 ? '0' + days : days
-    hours = hours < 10 ? '0' + hours : hours
-    minutes = minutes < 10 ? '0' + minutes : minutes
-    seconds = seconds < 10 ? '0' + seconds : seconds
-
-    return days + "天" + hours + "时" + minutes + "分" + seconds + "秒"
-}
+// 已移除旧的API获取函数，使用api对象替代
 
 
