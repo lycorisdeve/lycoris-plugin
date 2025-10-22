@@ -14,58 +14,101 @@ created by lycoris!
 */
 
 
-const user_agent = [
-    "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
-    "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
-    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
-    "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko",
-    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
-    "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)",
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-    "Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-    "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11",
-    "Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; The World)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
-    "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-    "Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-    "Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5",
-    "Mozilla/5.0 (Linux; U; Android 2.3.7; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
-    "MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
-    "Opera/9.80 (Android 2.3.4; Linux; Opera Mobi/build-1107180945; U; en-GB) Presto/2.8.149 Version/11.10",
-    "Mozilla/5.0 (Linux; U; Android 3.0; en-us; Xoom Build/HRI39) AppleWebKit/534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13",
-    "Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en) AppleWebKit/534.1+ (KHTML, like Gecko) Version/6.0.0.337 Mobile Safari/534.1+",
-    "Mozilla/5.0 (hp-tablet; Linux; hpwOS/3.0.0; U; en-US) AppleWebKit/534.6 (KHTML, like Gecko) wOSBrowser/233.70 Safari/534.6 TouchPad/1.0",
-    "Mozilla/5.0 (SymbianOS/9.4; Series60/5.0 NokiaN97-1/20.0.019; Profile/MIDP-2.1 Configuration/CLDC-1.1) AppleWebKit/525 (KHTML, like Gecko) BrowserNG/7.1.18124",
-    "Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0; HTC; Titan)",
-    "UCWEB7.0.2.37/28/999",
-    "NOKIA5700/ UCWEB7.0.2.37/28/999",
-    "Openwave/ UCWEB7.0.2.37/28/999",
-    "Mozilla/4.0 (compatible; MSIE 6.0; ) Opera/UCWEB7.0.2.37/28/999",
-    //  iPhone 6：
-    "Mozilla/6.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/8.0 Mobile/10A5376e Safari/8536.25",
-]
-const config = Config.getConfig('warframe')
-let isNationalService = config.isNationalService
+const USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+];
+// 配置管理
+const config = Config.getConfig('warframe');
+let isNationalService = config.isNationalService;
 if (typeof isNationalService !== 'boolean') {
-    logger.error('配置错误，已默认设置为国服')
-    isNationalService = true
+    logger.error('配置错误，已默认设置为国服');
+    isNationalService = true;
 }
-let url
-if (isNationalService) {
-    url = 'https://api.null00.com/world/ZHCN/'
-} else {
-    url = 'http://nymph.rbq.life:3000/'
-}
+
+const BASE_URL = isNationalService ? 'https://api.null00.com/world/ZHCN/' : 'http://nymph.rbq.life:3000/';
+
+// 工具函数
+const formatTime = {
+    // 格式化完整时间
+    full: (time) => {
+        const date = new Date(time);
+        const pad = num => String(num).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    },
+
+    // 格式化时分秒
+    hms: (time) => {
+        const date = new Date(time);
+        const pad = num => String(num).padStart(2, '0');
+        return `${pad(date.getHours())}时${pad(date.getMinutes())}分${pad(date.getSeconds())}秒`;
+    },
+
+    // 计算时间差
+    diff: (timeDifference) => {
+        const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        const pad = num => String(num).padStart(2, '0');
+        return `${pad(hours)}时${pad(minutes)}分${pad(seconds)}秒`;
+    },
+
+    // 计算天时分秒
+    dhms: (timeDifference) => {
+        const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        const pad = num => String(num).padStart(2, '0');
+        return `${pad(days)}天${pad(hours)}时${pad(minutes)}分${pad(seconds)}秒`;
+    }
+};
+
+// API请求工具
+const api = {
+    async get(endpoint) {
+        try {
+            const response = await fetch(BASE_URL + endpoint, {
+                timeout: 10000,
+                headers: {
+                    "User-Agent": USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            logger.error(`API请求错误: ${error.message}`);
+            throw error;
+        }
+    },
+
+    async getText(endpoint) {
+        try {
+            const response = await fetch(BASE_URL + endpoint, {
+                timeout: 10000,
+                headers: {
+                    "User-Agent": USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.status}`);
+            }
+
+            return await response.text();
+        } catch (error) {
+            logger.error(`API请求错误: ${error.message}`);
+            throw error;
+        }
+    }
+};
 
 //1.定义命令规则
 export class warframe extends plugin {
@@ -319,61 +362,92 @@ WIKI 信  息:#wfwiki 绿陶
 `
         e.reply(msg)
     }
-    // 警报
+    // 警报信息处理
     async getAlerts(e) {
-        if (isNationalService) {
-            let data = await getJsonData("alerts")
-            let temp_alerts = "         警报        \n=================="
-            for (let alert in data) {
-                temp_alerts += "\n" + data[alert].location + "\n" +
-                    "\n" + data[alert].missionType + "丨" + data[alert].faction + "（" + data[alert].minEnemyLevel + " ~ " + data[alert].maxEnemyLevel + "）" + "\n" +
-                    "\n奖励丨星币 * " + data[alert].credits
-                let temp_reward = ""
-
-                for (let alert_reward in data[alert].rewards) {
-                    temp_reward += "\n\t" + data[alert].rewards[alert_reward].item + "*" + data[alert].rewards[alert_reward].itemCount
-                    temp_alerts += temp_reward + "\n=================="
+        try {
+            if (isNationalService) {
+                const data = await api.get("alerts");
+                let alertsMsg = "         警报        \n==================";
+                
+                if (!data?.alerts || data.alerts.length === 0) {
+                    await e.reply(alertsMsg + "\n当前没有警报任务\n==================");
+                    return;
                 }
+                
+                for (const alert of data.alerts) {
+                    const activationTime = moment.unix(alert.activation).format("YYYY-MM-DD HH:mm:ss");
+                    const expiryTime = moment.unix(alert.expiry).format("YYYY-MM-DD HH:mm:ss");
+                    const remainingTime = alert.expiry * 1000 - Date.now();
+                    
+                    alertsMsg += `\n${alert.location}\n` +
+                        `\n${alert.missionType}丨${alert.faction}（${alert.minEnemyLevel} ~ ${alert.maxEnemyLevel}）\n` +
+                        `\n剩余时间丨${formatTime.diff(remainingTime)}\n` +
+                        `\n奖励丨星币 * ${alert.credits}`;
+                    
+                    if (alert.rewards?.length) {
+                        for (const reward of alert.rewards) {
+                            alertsMsg += `\n\t${reward.item} * ${reward.itemCount}`;
+                        }
+                    }
+                    alertsMsg += "\n==================";
+                }
+                
+                await e.reply(alertsMsg);
+            } else {
+                const data = await api.getText("wf/robot/alerts");
+                await e.reply("         警报        \n==================\n" + data + "\n==================");
             }
-            e.reply(temp_alerts)
-        } else {
-            let data = await getTextData("wf/robot/alerts")
-            let temp_alerts = "         警报        \n==================\n"
-            temp_alerts += data + "\n=================="
-            e.reply(temp_alerts)
+        } catch (error) {
+            logger.error(`警报信息获取失败: ${error.message}`);
+            await e.reply("警报信息获取失败，请稍后重试");
         }
-
     }
 
-    //  新闻
+    // 新闻处理
     async getNews(e) {
-        if (isNationalService) {
-            let data = await getJsonData("news")
-            let temp_news = "        飞船新闻       \n=================="
-            for (let newIndex in data) {
-                let nTime = new Date(moment.unix(data[newIndex].date).format("YYYY-MM-DD HH:mm:ss"))
-                temp_news += "\n" + data[newIndex].defaultMessages + "\n" +
-                    "\n时间丨" + await getFormatTime(nTime.getTime()) + " \n" +
-                    "\n链接丨" + data[newIndex].prop + "\n" +
-                    "\n=================="
+        try {
+            if (isNationalService) {
+                const data = await api.get("news");
+                let newsMsg = "        飞船新闻       \n==================";
+                
+                if (!data?.news || data.news.length === 0) {
+                    await e.reply(newsMsg + "\n当前没有新闻\n==================");
+                    return;
+                }
+
+                // 按日期降序排序
+                const sortedNews = data.news.sort((a, b) => b.date - a.date);
+                
+                // 只显示最近的10条新闻
+                const recentNews = sortedNews.slice(0, 10);
+                
+                for (const news of recentNews) {
+                    const newsTime = moment.unix(news.date).format("YYYY-MM-DD HH:mm:ss");
+                    newsMsg += `\n${news.defaultMessages}\n` +
+                        `\n时间丨${newsTime}\n` +
+                        `\n链接丨${news.prop}\n` +
+                        "\n==================";
+                }
+
+                await e.reply(newsMsg);
+            } else {
+                const data = await api.get("wf/detail/news");
+                let newsMsg = "        飞船新闻       \n==================";
+                
+                for (const news of data) {
+                    const newsTime = new Date(news.date);
+                    newsMsg += `\n${news.message}\n` +
+                        `\n时间丨${formatTime.full(newsTime)}\n` +
+                        `\n链接丨${news.link}\n` +
+                        "\n==================";
+                }
+
+                await e.reply(newsMsg);
             }
-
-            e.reply(temp_news)
-
-        } else {
-            let data = await getJsonData("wf/detail/news")
-            let temp_news = "        飞船新闻       \n=================="
-            for (let newIndex in data) {
-                let nTime = new Date(data[newIndex].date)
-                temp_news += "\n" + data[newIndex].message + "\n" +
-                    "\n时间丨" + await getFormatTime(nTime.getTime()) + " \n" +
-                    "\n链接丨" + data[newIndex].link + "\n" +
-                    "\n=================="
-            }
-
-            e.reply(temp_news)
+        } catch (error) {
+            logger.error(`新闻获取失败: ${error.message}`);
+            await e.reply("新闻获取失败，请稍后重试");
         }
-
     }
 
 
