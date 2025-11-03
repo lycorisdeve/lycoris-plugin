@@ -54,7 +54,7 @@ const user_agent = [
     //  iPhone 6：
     "Mozilla/6.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/8.0 Mobile/10A5376e Safari/8536.25",
 ]
-const config = Config.getConfig('warframe')
+const config = Config.getConfig('config')
 let isNationalService = config.isNationalService
 if (typeof isNationalService !== 'boolean') {
     logger.error('配置错误，已默认设置为国服')
