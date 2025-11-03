@@ -57,5 +57,19 @@ oilPrice:
 warframe:
   server: "CN" # 选择服务器，ZHCN为国服，ZH为国际服
 
+screenshot:
+  fullScreen: true
+  quality: 80
+  minWidth: 800
+  maxWidth: 1920
+  padding: 80
+  timeout:
+    page: 60000
+    resource: 30000
+    render: 10000
+  proxyApi:
+    url: "https://proxyapi.198143.xyz/"
+    enabled: true
+
 # Html渲染精度，可选值50~200，建议100。设置高精度会提高图片的精细度，过高可能会影响渲染与发送速度
 renderScale: 100
