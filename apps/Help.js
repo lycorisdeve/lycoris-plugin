@@ -24,7 +24,7 @@ export class Help extends plugin {
   async help(e) {
     let data = await HelpService.help(e);
 
-    let img = Render.render("help/index.html", data, { e, scale: 1.2 });
+    let img = await Render.render("help/index.html", data, { e, scale: 1.2 });
     e.reply(img);
     return;
   }
