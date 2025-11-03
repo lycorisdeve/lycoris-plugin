@@ -53,6 +53,11 @@ oilPrice:
   #需要推送的省份
   provinces: ["江苏"]
 
+# Warframe
+warframe:
+  server: "CN" # 选择服务器，ZHCN为国服，ZH为国际服
+
+
 
 # Html渲染精度，可选值50~200，建议100。设置高精度会提高图片的精细度，过高可能会影响渲染与发送速度
 renderScale: 100
