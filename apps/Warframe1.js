@@ -6,6 +6,7 @@ import moment from "moment";
 import puppeteer from "puppeteer";
 import { pluginRootPath } from "../components/lib/Path.js";
 import plugin from "../../../lib/plugins/plugin.js";
+import HelpService from "../model/HelpService.js";
 
 const config = Config.getConfig("config");
 let server = config.warframe.server;
@@ -35,11 +36,19 @@ export class warframe extends plugin {
       rule: [
         {
           /** 命令正则匹配 */
-          reg: "#wf帮助|wfhelp|wf菜单|wf帮助", //匹配消息正则,命令正则
+          reg: "#wf帮助|wfhelp|wf菜单|wf帮助|wf菜单", //匹配消息正则,命令正则
           /** 执行方法 */
           fnc: "menu",
         },
       ],
     });
+  }
+
+  async menu(e) {
+    let data = await HelpService.customHelp(e, "warframe_help");
+
+    let img = await Render.render("help/index.html", data, { e, scale: 1.2 });
+    e.reply(img);
+    return;
   }
 }
