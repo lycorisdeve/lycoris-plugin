@@ -3,6 +3,7 @@ import fs from "node:fs";
 import yaml from "yaml";
 import Config from "../components/Config.js";
 import moment from "moment";
+import https from "https";
 import puppeteer from "puppeteer";
 import { pluginRootPath } from "../components/lib/Path.js";
 import { Render } from "../components/Index.js";
@@ -347,13 +348,16 @@ async function bounty() {
 // ----- 通用工具 -----
 async function getJsonData(url_arg) {
   const api_url = url + url_arg;
-  const resp = await fetch(api_url, { timeout: 10000 });
+  // 如果目标为 https，使用允许过期/自签名证书的 agent（仅针对此请求），以支持证书过期场景
+  const agent = api_url.startsWith("https:") ? new https.Agent({ rejectUnauthorized: false }) : undefined;
+  const resp = await fetch(api_url, { timeout: 10000, agent });
   return await resp.json();
 }
 
 async function getTextData(url_arg) {
   const api_url = url + url_arg;
-  const resp = await fetch(api_url, { timeout: 10000 });
+  const agent = api_url.startsWith("https:") ? new https.Agent({ rejectUnauthorized: false }) : undefined;
+  const resp = await fetch(api_url, { timeout: 10000, agent });
   return await resp.text();
 }
 
