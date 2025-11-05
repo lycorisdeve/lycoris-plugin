@@ -114,6 +114,12 @@ class HelpService {
       diyCfg = {};
     }
 
+    const mergedHelpCfg = lodash.defaults(
+      diyCfg.helpCfg || {},
+      {},
+      sysCfg.helpCfg
+    );
+
     const mergedHelpList = diyCfg.helpList || {};
 
     // 过滤和转换帮助项目组数组
