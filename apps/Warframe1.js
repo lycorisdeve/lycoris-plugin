@@ -5,6 +5,7 @@ import Config from "../components/Config.js";
 import moment from "moment";
 import puppeteer from "puppeteer";
 import { pluginRootPath } from "../components/lib/Path.js";
+import { Render } from "../components/Index.js";
 import plugin from "../../../lib/plugins/plugin.js";
 import HelpService from "../model/HelpService.js";
 
