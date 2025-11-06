@@ -156,11 +156,7 @@ export class warframe extends plugin {
           result = "未实现的查询类型：" + endpoint;
       }
 
-      // 限制长度再回复
-      const MAX = 1500;
       if (typeof result === "string") {
-        if (result.length > MAX)
-          result = result.slice(0, MAX) + "\n...[已截断]";
         e.reply(result);
       } else {
         e.reply(JSON.stringify(result));
@@ -187,9 +183,10 @@ async function alerts() {
     }
     // 计算剩余时间
     const expiry = a.expiry;
-    const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `开始时间丨${a.activation ? moment.unix(a.activation).format("YYYY-MM-DD HH:mm:ss") : "-"}\n`;
-    out += `剩余时间丨${diff ? moment.unix(expiry).format("YYYY-MM-DD HH:mm:ss") : "-"}\n`;
+    out += `开始时间丨${
+      a.activation ? moment.unix(a.activation).format(`llll`) : "-"
+    }\n`;
+    out += `剩余时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
     out += "==================\n";
   }
   return out;
@@ -200,7 +197,7 @@ async function news() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无新闻";
   let out = "        飞船新闻       \n==================\n";
   for (const n of data) {
-    let time = n.date ? moment.unix(n.data).format("YYYY-MM-DD HH:mm:ss") : "";
+    let time = n.date ? moment.unix(n.date).format(`llll`) : "";
     const msg = n.message || n.defaultMessages || n.body || "(无正文)";
     const link = n.link || n.prop || "";
     out += `${msg}\n\n时间丨${time}\n链接丨${link}\n==================\n`;
@@ -212,35 +209,48 @@ async function cetusTime() {
   const data = await getJsonData("cetus");
   if (!data) return "暂无数据";
 
-  const isDay = data.day ?? data.isDay ?? null; // 当前是否白天
-  const expiry = data.expiry; // 结束时间字符串
+  const cetusIsDay = data.day ?? data.isDay ?? null; // 当前是否白天
   const cetusTime = data.cetusTime; // 结束时间戳（秒）
   if (!cetusTime) return "赛特斯时间数据无效";
+  let expiryTime = cetusTime;
+  const currentTime = moment().unix();
+  if (currentTime > expiryTime) {
+    cetusIsDay = !cetusIsDay;
+    if (cetusIsDay) {
+      expiryTime = moment(expiryTime * 1000)
+        .add(100, `m`)
+        .unix();
+    } else {
+      expiryTime = moment(expiryTime * 1000)
+        .add(50, `m`)
+        .unix();
+    }
+  }
 
   // 判断状态
-  const state = isDay ? "白天 ☀️" : "黑夜 🌙";
+  const state = cetusIsDay ? "白天 ☀️" : "黑夜 🌙";
 
   // 格式化交替时间
-  const nextChange = moment.unix(expiry).format("YYYY-MM-DD HH:mm:ss");
+  const nextChange = expiryTime.format(`llll`);
 
   return `🌍地球平原
 ====================
 当前状态：${state}
-剩余时间：${formatTimeDiff(cetusTime)}
+剩余时间：${calculationNowTimeDiff(expiryTime)}
 交替时间：${nextChange}`;
 }
 
 async function earthTime() {
   const data = await getJsonData("earth");
   if (!data) return "暂无地球时间数据";
-  const day = data.day ?? data.isDay ?? false;
-  const earthTime = data.earthDate ?? data.expiry ?? null;
+  const day = data.day;
+  const earthTime = data.earthDate;
   const changeTime = earthTime ? moment().add(earthTime, "milliseconds") : null;
 
   return `         地球        \n======================\n\n${
     day ? "白天" : "黑夜"
-  }剩余丨${t ? formatTimeDiff(earthTime) : "-"}\n\n交替将于丨${
-    changeTime ? changeTime.format("YYYY-MM-DD HH:mm:ss") : ""
+  }剩余丨${earthTime ? formatTimeDiff(earthTime) : "-"}\n\n交替将于丨${
+    changeTime ? changeTime.format(`llll`) : ""
   }`;
 }
 
