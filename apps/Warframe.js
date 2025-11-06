@@ -263,8 +263,7 @@ async function cetusTime() {
 
   const nextChange = expiryTime.format("llll");
 
-  return `
-🌍地球平原🌍
+  return `         🌍地球平原🌍
 ========================
 当前状态：${state}
 剩余时间：${calculationNowTimeDiff(expiryTime.unix())}
