@@ -67,7 +67,9 @@ export class warframe extends plugin {
   async ordis(e) {
     const keyword = e.msg.replace(/奥迪斯/, "").trim();
     if (!keyword) {
-      e.reply("请在命令后输入要查询的内容，例如：奥迪斯 阴阳双子 或 奥迪斯 平原时间");
+      e.reply(
+        "请在命令后输入要查询的内容，例如：奥迪斯 阴阳双子 或 奥迪斯 平原时间"
+      );
       return;
     }
     const url = "https://api.null00.com/ordis/getTextMessage";
@@ -77,7 +79,7 @@ export class warframe extends plugin {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({ text }),
+      body: new URLSearchParams({ keyword }),
     });
     const data = await res.json();
     if (data.msg) {
