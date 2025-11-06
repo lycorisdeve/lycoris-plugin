@@ -183,6 +183,8 @@ async function alerts() {
     }
     // 计算剩余时间
     const expiry = a.expiry;
+    out += `剩余时间丨${calculationNowTimeDiff(expiry)}\n`;
+
     out += `开始时间丨${
       a.activation ? moment.unix(a.activation).format(`llll`) : "-"
     }\n`;
@@ -200,7 +202,7 @@ async function news() {
     let time = n.date ? moment.unix(n.date).format(`llll`) : "";
     const msg = n.message || n.defaultMessages || n.body || "(无正文)";
     const link = n.link || n.prop || "";
-    out += `${msg}\n\n时间丨${time}\n链接丨${link}\n==================\n`;
+    out += `${msg}\n\n    链接丨${link}\n==================\n    时间丨${time}\n`;
   }
   return out;
 }
@@ -233,75 +235,148 @@ async function cetusTime() {
   // 格式化交替时间
   const nextChange = expiryTime.format(`llll`);
 
-  return `🌍地球平原
-====================
+  return `
+     🌍地球平原🌍
+=========================
 当前状态：${state}
 剩余时间：${calculationNowTimeDiff(expiryTime)}
-交替时间：${nextChange}`;
+交替时间：${nextChange}
+=========================
+☀️时间可能会有1~2分钟误差🌙
+`;
 }
 
 async function earthTime() {
   const data = await getJsonData("earth");
   if (!data) return "暂无地球时间数据";
   const day = data.day;
-  const earthTime = data.earthDate;
-  const changeTime = earthTime ? moment().add(earthTime, "milliseconds") : null;
+  let expiryTime = data.earthDate;
+  const currentTime = moment().unix();
+  if (currentTime > expiryTime) {
+    cetusIsDay = !cetusIsDay;
+    expiryTime = moment(expiryTime * 1000)
+      .add(4, `h`)
+      .unix();
+  }
 
-  return `         地球        \n======================\n\n${
-    day ? "白天" : "黑夜"
-  }剩余丨${earthTime ? formatTimeDiff(earthTime) : "-"}\n\n交替将于丨${
-    changeTime ? changeTime.format(`llll`) : ""
-  }`;
+  return `         🌍地球 🌍       \n======================\n\n${
+    day ? "白天 ☀️" : "黑夜 🌙"
+  }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${expiryTime.format(
+    `llll`
+  )}`;
 }
 
 async function fissures() {
   const data = await getJsonData("fissures");
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无裂隙信息";
   let out = "         裂隙        \n";
+  let t1 = "";
+  let t2 = "";
+  let t3 = "";
+  let t4 = "";
+  let t5 = "";
   for (const f of data) {
-    const expiry = f.expiry;
-    out += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-      expiry ? calculationNowTimeDiff(expiry) : "-"
-    }\n`;
+    if (f.modifier.includes("T1")) {
+      t1 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+      }\n`;
+      continue;
+    } else if (f.modifier.includes("T2")) {
+      t2 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+      }\n`;
+      continue;
+    } else if (f.modifier.includes("T3")) {
+      t3 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+      }\n`;
+      continue;
+    } else if (f.modifier.includes("T4")) {
+      t4 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+      }\n`;
+      continue;
+    } else {
+      t5 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+      }\n`;
+    }
   }
+  out +=
+    "-----丽斯(古纪)-----\n" +
+    t1 +
+    "-----美索(前纪)-----\n" +
+    t2 +
+    "-----尼奥(中纪)-----\n" +
+    t3 +
+    "-----亚希(后记)-----\n" +
+    t4 +
+    "-----安魂......-----\n" +
+    t5;
+
   return out;
 }
 
 async function trader() {
-  const data = await getJsonData("trader");
-  if (!data) return "暂无奸商信息";
-  const now = Date.now();
-  let remain = "-";
-  try {
-    const act = data.activation ?? data.activationnew ?? null;
-    const exp = data.expiry ?? null;
-    if (act && now < act) remain = formatTimeDiff(act - now);
-    else if (exp) remain = formatTimeDiff(exp - now);
-  } catch (e) {}
-  return `         奸商        \n==================\n\n${
-    data.character || data.name || "(未知)"
-  }\n\n地点丨${
-    data.node || data.location || "-"
-  }\n\n剩余丨${remain}\n\n==================`;
+  const voidTrader = await getJsonData("trader");
+  let arriveTitle;
+  let arriveNode;
+  let arriveTime;
+  if (voidTrader) {
+    const expiryTime = voidTrader.expiry;
+    const activateTime = voidTrader.activation;
+    const currentTime = moment().unix();
+
+    if (currentTime < activateTime) {
+      arriveTime = moment.unix(activateTime).format(`llll`);
+      arriveTitle = `${voidTrader.character} 预计到达:`;
+      arriveNode = `到达在:${voidTrader.node}`;
+    } else if (currentTime > activateTime && currentTime < expiryTime) {
+      arriveTitle = `${voidTrader.character} 滞留时间:`;
+      arriveTime = `离开在:` + moment.unix(expiryTime).format(`llll`);
+    } else {
+      arriveTitle = `${voidTrader.character} 已离开`;
+      arriveTime = ``;
+    }
+  } else {
+    return "暂无奸商信息";
+  }
+
+  return `
+    💰奸商💰       
+==================
+${arriveTitle}\n
+${arriveNode}\n
+${arriveTime}\n
+==================`;
 }
 
 async function sortie() {
-  const data = await getJsonData("sortie");
-  if (!data) return "暂无突击信息";
-  const expiry = data.expiry;
-  let out = `         突击        \n==================\n\n${
-    data.boss || ""
-  } : ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n\n${
-    data.faction || ""
-  }\n`;
-  if (data.variants && data.variants.length) {
-    for (const v of data.variants) {
-      out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${
-        v.modifierType || v.modifier
-      }\n`;
+  const sortie = await getJsonData("sortie");
+  if (!sortie) return "暂无突击信息";
+  if (sortie.variants.length !== 0) {
+    let startTime = sortie.activation;
+    let expiry = sortie.expiry;
+
+    let out = `
+          突击        
+  ==================
+  ${sortie.boss || ""} : ${expiry ? calculationNowTimeDiff(expiry) : "-"}
+  \n${sortie.faction || ""}\n`;
+    if (sortie.variants && sortie.variants.length) {
+      for (const v of sortie.variants) {
+        out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${
+          v.modifierType || v.modifier
+        }\n`;
+      }
     }
+    out += `\n  开始时间丨${
+      startTime ? moment.unix(startTime).format(`llll`) : "-"
+    }\n  结束时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
+    return out;
+  } else {
+    return "暂无突击信息";
   }
-  return out;
 }
 
 async function deals() {
@@ -313,23 +388,39 @@ async function deals() {
     out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${
       d.salePrice || "-"
     } 白金 丨 剩余 ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n`;
+    out +=
+      "上次刷新时间丨" +
+      (d.activation ? moment.unix(d.activation).format(`llll`) : "-") +
+      "\n";
+    out +=
+      "结束时间丨" + (expiry ? moment.unix(expiry).format(`llll`) : "-") + "\n";
+    out += "==================\n";
   }
+
   return out;
 }
 
 async function invasions() {
-  const data = await getJsonData("invasions");
-  if (!data || !Array.isArray(data) || data.length === 0) return "暂无入侵信息";
+  const invasions = await getJsonData("invasions");
+  if (!invasions || !Array.isArray(invasions) || invasions.length === 0)
+    return "暂无入侵信息";
+  let attackPercent = Math.floor(
+    ((invasions.count + invasions.goal) / (invasions.goal * 2)) * 100
+  );
+  let defendPercent = 100 - attackPercent;
+
   let out = "         入侵        \n==================\n";
-  for (const inv of data) {
+  for (const inv of invasions) {
     out += `${inv.node || "-"} 丨 ${inv.locTag || "-"} \n`;
     if (inv.attacker && inv.attacker.rewards) {
-      out += "攻击方奖励：\n";
+      out += `攻击方${inv.attacker.faction} 进度：${attackPercent}%`;
+      out += "奖励：\n";
       for (const r of inv.attacker.rewards)
         out += `  ${r.item} * ${r.itemCount}\n`;
     }
     if (inv.defender && inv.defender.rewards) {
-      out += "防守方奖励：\n";
+      out += `防守方${inv.defender.faction} 进度：${defendPercent}%`;
+      out += "奖励：\n";
       for (const r of inv.defender.rewards)
         out += `  ${r.item} * ${r.itemCount}\n`;
     }
@@ -341,12 +432,12 @@ async function invasions() {
 async function events() {
   const data = await getJsonData("events");
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无事件";
-  let out = "         事件        \n";
+  let out = "         事件        \n==================\n";
   for (const ev of data) {
     const expiry = ev.expiry;
     out += `(${ev.tag || ev.name}) 距离结束丨${
       expiry ? calculationNowTimeDiff(expiry) : "-"
-    } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}\n`;
+    } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}%\n`;
   }
   return out;
 }
@@ -355,9 +446,9 @@ async function season() {
   const data = await getJsonData("season");
   if (!data) return "暂无电波任务";
   if (data.challenges && data.challenges.length) {
-    let out = "         电波任务        \n";
+    let out = "         电波任务        \n==================\n";
     for (const c of data.challenges) {
-      out += `${c.cycle || ""} 丨 ${c.xp || ""}xp 丨 ${
+      out += `${c.cycle || ""} 丨 ${c.xp || ""} xp 丨 ${
         c.challenge || c.description || ""
       }\n`;
     }
@@ -396,54 +487,6 @@ async function getJsonData(url_arg) {
     : undefined;
   const resp = await fetch(api_url, { timeout: 10000, agent });
   return await resp.json();
-}
-
-async function getFormatHms(time) {
-  var myDate = new Date(time);
-  var H = myDate.getHours();
-  var i = myDate.getMinutes();
-  var s = myDate.getSeconds();
-  if (H < 10) H = "0" + H;
-  if (i < 10) i = "0" + i;
-  if (s < 10) s = "0" + s;
-  return H + "时" + i + "分" + s + "秒";
-}
-
-function formatTimeDiff(diff) {
-  const units = [
-    { unit: 86400000, suffix: "天" }, // 天
-    { unit: 3600000, suffix: "小时" }, // 小时
-    { unit: 60000, suffix: "分钟" }, // 分钟
-    { unit: 1000, suffix: "秒" }, // 秒
-  ];
-
-  const stringArray = [];
-
-  // 通过单位数组进行遍历，计算时间差
-  for (const { unit, suffix } of units) {
-    const time = Math.floor(diff / unit); // 计算当前时间单位
-    if (time > 0 || stringArray.length > 0) {
-      // 如果当前时间单位大于0，或者已经有结果
-      stringArray.push(time.toString().padStart(2, "0") + suffix); // 格式化并加入结果数组
-    }
-    diff -= time * unit; // 减去已计算的时间部分
-  }
-
-  return stringArray.join(" "); // 用空格连接最终的时间字符串
-}
-
-function calculationTimeDifference(time1, time2) {
-  moment.unix(time1);
-  moment.unix(time2);
-  const diff = moment.duration(time2 - time1);
-  const days = diff.days();
-  const hours = diff.hours();
-  const minutes = diff.minutes();
-  const seconds = diff.seconds();
-  return {
-    diff: diff,
-    stringDate: `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`,
-  };
 }
 
 // 计算目标时间与当前时间的差值
