@@ -126,8 +126,10 @@ export class warframe extends plugin {
           result = await earthTime();
           break;
         case "cetus":
+          result = await cetusTime();
+          break;
         case "solaris":
-          result = await plainCycle(endpoint);
+          result = await solarisTime();
           break;
         case "bounty":
           result = await bounty();
@@ -174,7 +176,6 @@ async function alerts() {
   const data = await getJsonData("alerts");
   if (!data || !Array.isArray(data) || data.length === 0)
     return "当前没有警报信息";
-
   let out = "         警报        \n==================\n";
   for (const a of data) {
     out += `${a.location}\n${a.missionType} 丨 ${a.faction} （${a.minEnemyLevel} ~ ${a.maxEnemyLevel}）\n奖励丨星币 * ${a.credits}\n`;
@@ -187,7 +188,8 @@ async function alerts() {
     // 计算剩余时间
     const expiry = a.expiry;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `剩余时间丨${diff ? calculationNowTimeDiff(diff) : "-"}\n`;
+    out += `开始时间丨${a.activation ? moment.unix(a.activation).format("YYYY-MM-DD HH:mm:ss") : "-"}\n`;
+    out += `剩余时间丨${diff ? moment.unix(expiry).format("YYYY-MM-DD HH:mm:ss") : "-"}\n`;
     out += "==================\n";
   }
   return out;
@@ -211,30 +213,20 @@ async function cetusTime() {
   if (!data) return "暂无数据";
 
   const isDay = data.day ?? data.isDay ?? null; // 当前是否白天
-  const cetusTime = data.cetusTime ?? data.expiry ?? null; // 结束时间戳（秒）
+  const expiry = data.expiry; // 结束时间字符串
+  const cetusTime = data.cetusTime; // 结束时间戳（秒）
   if (!cetusTime) return "赛特斯时间数据无效";
-
-  // 当前时间（秒）
-  const now = moment().unix();
-
-  // 计算剩余时间
-  const diff = (cetusTime - now) * 1000; // 转为毫秒
-  const duration = moment.duration(diff);
-
-  const hours = Math.floor(duration.asHours());
-  const minutes = duration.minutes();
-  const seconds = duration.seconds();
 
   // 判断状态
   const state = isDay ? "白天 ☀️" : "黑夜 🌙";
 
   // 格式化交替时间
-  const nextChange = moment.unix(cetusTime).format("YYYY-MM-DD HH:mm:ss");
+  const nextChange = moment.unix(expiry).format("YYYY-MM-DD HH:mm:ss");
 
   return `🌍地球平原
 ====================
 当前状态：${state}
-剩余时间：${hours}小时 ${minutes}分 ${seconds}秒
+剩余时间：${formatTimeDiff(cetusTime)}
 交替时间：${nextChange}`;
 }
 
