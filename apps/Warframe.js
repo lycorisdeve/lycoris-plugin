@@ -238,42 +238,36 @@ async function news() {
   }
   return out;
 }
+
 async function cetusTime() {
-  // 获取赛特斯数据
   const data = await getJsonData("cetus");
   if (!data) return "暂无数据";
 
-  const cetusIsDay = data.day ?? data.isDay ?? null; // 当前是否白天
-  const cetusTime = data.cetusTime; // 结束时间戳（秒）
+  const cetusIsDay = data.day ?? data.isDay ?? null;
+  const cetusTime = data.cetusTime;
   if (!cetusTime) return "赛特斯时间数据无效";
-  let expiryTime = cetusTime;
-  const currentTime = moment().unix();
-  if (currentTime > expiryTime) {
+
+  let expiryTime = moment.unix(cetusTime);
+  const currentTime = moment();
+
+  if (currentTime.isAfter(expiryTime)) {
     cetusIsDay = !cetusIsDay;
     if (cetusIsDay) {
-      expiryTime = moment(expiryTime * 1000)
-        .add(100, `m`)
-        .unix();
+      expiryTime = expiryTime.add(100, "m");
     } else {
-      expiryTime = moment(expiryTime * 1000)
-        .add(50, `m`)
-        .unix();
+      expiryTime = expiryTime.add(50, "m");
     }
-  }else{
-    expiryTime = moment(expiryTime);
   }
 
-  // 判断状态
   const state = cetusIsDay ? "白天 ☀️" : "黑夜 🌙";
 
-  // 格式化交替时间
-  const nextChange = expiryTime.format(`llll`);
+  const nextChange = expiryTime.format("llll");
 
   return `
-     🌍地球平原🌍
+🌍地球平原🌍
 ========================
 当前状态：${state}
-剩余时间：${calculationNowTimeDiff(expiryTime)}
+剩余时间：${calculationNowTimeDiff(expiryTime.unix())}
 交替时间：${nextChange}
 ========================
 ☀️时间可能会有1~2分钟误差🌙
