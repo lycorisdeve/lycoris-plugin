@@ -73,13 +73,16 @@ export class warframe extends plugin {
       return;
     }
     const url = "https://api.null00.com/ordis/getTextMessage";
-
+    const agent = url.startsWith("https:")
+      ? new https.Agent({ rejectUnauthorized: false })
+      : undefined;
     const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({ keyword }),
+      agent,
     });
     const data = await res.json();
     if (data.msg) {
