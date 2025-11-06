@@ -259,6 +259,8 @@ async function cetusTime() {
         .add(50, `m`)
         .unix();
     }
+  }else{
+    expiryTime = moment(expiryTime);
   }
 
   // 判断状态
