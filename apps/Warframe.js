@@ -288,9 +288,9 @@ async function earthTime() {
 
   return `         🌍地球 🌍       \n======================\n\n${
     day ? "白天 ☀️" : "黑夜 🌙"
-  }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${expiryTime.format(
-    `llll`
-  )}`;
+  }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${moment(
+    expiryTime
+  ).format(`llll`)}`;
 }
 
 async function fissures() {

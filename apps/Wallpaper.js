@@ -37,7 +37,7 @@ export class Wallpaper extends plugin {
                 e.reply(segment.image(`base64://${imgInfo}`))
             } else {
                 const prefix = link.substring(0, 2);
-                const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${link}`;
+                const url = `https://proxyapi.198143.xyz/https://w.wallhaven.cc/full/${prefix}/wallhaven-${link}`;
                 e.reply(`图片太大获取失败！！~~~ \n 原图：${url}`)
             }
 
@@ -76,7 +76,7 @@ export class Wallpaper extends plugin {
         let msgs = []
         imgInfos.forEach(img => {
             const prefix = img.imgName.substring(0, 2);
-            const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${img.imgName}`;
+            const url = `https://proxyapi.198143.xyz/https://w.wallhaven.cc/full/${prefix}/wallhaven-${img.imgName}`;
             let msg = `[CQ:image,file=${img.imgUrl}]\n原图:${url}`
             msgs.push(msg);
         })
