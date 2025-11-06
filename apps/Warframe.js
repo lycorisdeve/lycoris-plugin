@@ -48,6 +48,10 @@ export class warframe extends plugin {
           /** 执行方法 */
           fnc: "wfquery",
         },
+        {
+          reg: "奥迪斯(.*)",
+          fnc: "ordis",
+        },
       ],
     });
   }
@@ -58,6 +62,29 @@ export class warframe extends plugin {
     let img = await Render.render("help/index.html", data, { e, scale: 1.2 });
     e.reply(img);
     return;
+  }
+
+  async ordis(e) {
+    const keyword = e.msg.replace(/奥迪斯/, "").trim();
+    if (!keyword) {
+      e.reply("请在命令后输入要查询的内容，例如：奥迪斯 阴阳双子 或 奥迪斯 平原时间");
+      return;
+    }
+    const url = "https://api.null00.com/ordis/getTextMessage";
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ text }),
+    });
+    const data = await res.json();
+    if (data.msg) {
+      e.reply(data.msg);
+    } else {
+      e.reply("查询失败，请稍后重试");
+    }
   }
 
   async wfquery(e) {
