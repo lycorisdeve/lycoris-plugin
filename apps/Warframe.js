@@ -81,7 +81,7 @@ export class warframe extends plugin {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({ keyword }),
+      body: new URLSearchParams({ text: keyword }),
       agent,
     });
     const data = await res.json();
