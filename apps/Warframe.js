@@ -185,11 +185,9 @@ async function alerts() {
       }
     }
     // 计算剩余时间
-    const expiry = a.expiry
-      ? new Date(moment.unix(a.expiry).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
+    const expiry = a.expiry;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `剩余时间丨${diff ? await calculationTimeDifference(diff) : "-"}\n`;
+    out += `剩余时间丨${diff ? calculationNowTimeDiff(diff) : "-"}\n`;
     out += "==================\n";
   }
   return out;
@@ -200,56 +198,57 @@ async function news() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无新闻";
   let out = "        飞船新闻       \n==================\n";
   for (const n of data) {
-    let time = n.date ? await getFormatTime(new Date(n.date).getTime()) : "";
+    let time = n.date ? moment.unix(n.data).format("YYYY-MM-DD HH:mm:ss") : "";
     const msg = n.message || n.defaultMessages || n.body || "(无正文)";
     const link = n.link || n.prop || "";
     out += `${msg}\n\n时间丨${time}\n链接丨${link}\n==================\n`;
   }
   return out;
 }
-
-async function plainCycle(end) {
-  // 用于 cetus/solaris 等昼夜/平原状态
-  const data = await getJsonData(end);
+async function cetusTime() {
+  // 获取赛特斯数据
+  const data = await getJsonData("cetus");
   if (!data) return "暂无数据";
-  const isDay = data.day ?? data.isDay ?? null;
-  const expiryUnix =
-    data.cetusTime ??
-    data.earthDate ??
-    data.solarisExpiry ??
-    data.expiry ??
-    null;
-  let state = "";
-  if (end === "cetus") {
-    state = isDay ? "白天" : "黑夜";
-  }
-  try {
-    const t = expiryUnix
-      ? new Date(moment.unix(expiryUnix).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
-    if (t) {
-      const diff = t.getTime() - Date.now();
-      return `       ${end}      \n==================\n${state}剩余时间丨${await calculationTimeDifference(
-        diff
-      )}\n交替时间丨${await getFormatHms(t.getTime())}`;
-    }
-  } catch (e) {}
-  return JSON.stringify(data, null, 2);
+
+  const isDay = data.day ?? data.isDay ?? null; // 当前是否白天
+  const cetusTime = data.cetusTime ?? data.expiry ?? null; // 结束时间戳（秒）
+  if (!cetusTime) return "赛特斯时间数据无效";
+
+  // 当前时间（秒）
+  const now = moment().unix();
+
+  // 计算剩余时间
+  const diff = (cetusTime - now) * 1000; // 转为毫秒
+  const duration = moment.duration(diff);
+
+  const hours = Math.floor(duration.asHours());
+  const minutes = duration.minutes();
+  const seconds = duration.seconds();
+
+  // 判断状态
+  const state = isDay ? "白天 ☀️" : "黑夜 🌙";
+
+  // 格式化交替时间
+  const nextChange = moment.unix(cetusTime).format("YYYY-MM-DD HH:mm:ss");
+
+  return `🌍地球平原
+====================
+当前状态：${state}
+剩余时间：${hours}小时 ${minutes}分 ${seconds}秒
+交替时间：${nextChange}`;
 }
 
 async function earthTime() {
   const data = await getJsonData("earth");
   if (!data) return "暂无地球时间数据";
   const day = data.day ?? data.isDay ?? false;
-  const timeKey = data.earthDate ?? data.expiry ?? null;
-  const t = timeKey
-    ? new Date(moment.unix(timeKey).format("YYYY-MM-DD HH:mm:ss"))
-    : null;
-  const diff = t ? t.getTime() - Date.now() : null;
+  const earthTime = data.earthDate ?? data.expiry ?? null;
+  const changeTime = earthTime ? moment().add(earthTime, "milliseconds") : null;
+
   return `         地球        \n======================\n\n${
     day ? "白天" : "黑夜"
-  }剩余丨${diff ? await calculationTimeDifference(diff) : "-"}\n\n交替将于丨${
-    t ? await getFormatHms(t.getTime()) : "-"
+  }剩余丨${t ? formatTimeDiff(earthTime) : "-"}\n\n交替将于丨${
+    changeTime ? changeTime.format("YYYY-MM-DD HH:mm:ss") : ""
   }`;
 }
 
@@ -258,12 +257,9 @@ async function fissures() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无裂隙信息";
   let out = "         裂隙        \n";
   for (const f of data) {
-    const expiry = f.expiry
-      ? new Date(moment.unix(f.expiry).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
-    const diff = expiry ? expiry.getTime() - Date.now() : null;
+    const expiry = f.expiry;
     out += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-      diff ? await calculationTimeDifference(diff) : "-"
+      expiry ? calculationNowTimeDiff(expiry) : "-"
     }\n`;
   }
   return out;
@@ -277,8 +273,8 @@ async function trader() {
   try {
     const act = data.activation ?? data.activationnew ?? null;
     const exp = data.expiry ?? null;
-    if (act && now < act) remain = await getFormatDhms(act - now);
-    else if (exp) remain = await getFormatDhms(exp - now);
+    if (act && now < act) remain = formatTimeDiff(act - now);
+    else if (exp) remain = formatTimeDiff(exp - now);
   } catch (e) {}
   return `         奸商        \n==================\n\n${
     data.character || data.name || "(未知)"
@@ -290,13 +286,10 @@ async function trader() {
 async function sortie() {
   const data = await getJsonData("sortie");
   if (!data) return "暂无突击信息";
-  const expiry = data.expiry
-    ? new Date(moment.unix(data.expiry).format("YYYY-MM-DD HH:mm:ss"))
-    : null;
-  const diff = expiry ? expiry.getTime() - Date.now() : null;
+  const expiry = data.expiry;
   let out = `         突击        \n==================\n\n${
     data.boss || ""
-  } : ${diff ? await calculationTimeDifference(diff) : "-"}\n\n${
+  } : ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n\n${
     data.faction || ""
   }\n`;
   if (data.variants && data.variants.length) {
@@ -314,13 +307,10 @@ async function deals() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无今日优惠";
   let out = "         今日优惠        \n==================\n";
   for (const d of data) {
-    const expiry = d.expiry
-      ? new Date(moment.unix(d.expiry).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
-    const diff = expiry ? expiry.getTime() - Date.now() : null;
+    const expiry = d.expiry;
     out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${
       d.salePrice || "-"
-    } 白金 丨 剩余 ${diff ? await calculationTimeDifference(diff) : "-"}\n`;
+    } 白金 丨 剩余 ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n`;
   }
   return out;
 }
@@ -351,12 +341,9 @@ async function events() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无事件";
   let out = "         事件        \n";
   for (const ev of data) {
-    const expiry = ev.expiry
-      ? new Date(moment.unix(ev.expiry).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
-    const diff = expiry ? expiry.getTime() - Date.now() : null;
+    const expiry = ev.expiry;
     out += `(${ev.tag || ev.name}) 距离结束丨${
-      diff ? await calculationTimeDifference(diff) : "-"
+      expiry ? calculationNowTimeDiff(expiry) : "-"
     } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}\n`;
   }
   return out;
@@ -382,12 +369,9 @@ async function bounty() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无赏金信息";
   let out = "         赏金        \n==================\n";
   for (const b of data) {
-    const expiry = b.expiry
-      ? new Date(moment.unix(b.expiry).format("YYYY-MM-DD HH:mm:ss"))
-      : null;
-    const diff = expiry ? expiry.getTime() - Date.now() : null;
+    const expiry = b.expiry;
     out += `${b.tag || b.name}   剩余时间：${
-      diff ? await calculationTimeDifference(diff) : "-"
+      expiry ? calculationNowTimeDiff(expiry) : "-"
     }\n`;
     if (b.jobs) {
       for (const job of b.jobs) {
@@ -412,30 +396,6 @@ async function getJsonData(url_arg) {
   return await resp.json();
 }
 
-async function calculationTimeDifference(timeDifference) {
-  if (timeDifference == null || isNaN(timeDifference)) return "-";
-  let hours = Math.floor(timeDifference / (1000 * 60 * 60));
-  let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-  let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-  hours = hours < 10 ? "0" + hours : hours;
-  minutes = minutes < 10 ? "0" + minutes : minutes;
-  seconds = seconds < 10 ? "0" + seconds : seconds;
-  return hours + "时" + minutes + "分" + seconds + "秒";
-}
-
-async function getFormatDhms(timeDifference) {
-  if (timeDifference == null || isNaN(timeDifference)) return "-";
-  let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-  let hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
-  let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-  let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-  days = days < 10 ? "0" + days : days;
-  hours = hours < 10 ? "0" + hours : hours;
-  minutes = minutes < 10 ? "0" + minutes : minutes;
-  seconds = seconds < 10 ? "0" + seconds : seconds;
-  return days + "天" + hours + "时" + minutes + "分" + seconds + "秒";
-}
-
 async function getFormatHms(time) {
   var myDate = new Date(time);
   var H = myDate.getHours();
@@ -447,18 +407,59 @@ async function getFormatHms(time) {
   return H + "时" + i + "分" + s + "秒";
 }
 
-async function getFormatTime(time) {
-  var myDate = new Date(time);
-  var Y = myDate.getFullYear();
-  var M = myDate.getMonth() + 1;
-  var D = myDate.getDate();
-  var H = myDate.getHours();
-  var i = myDate.getMinutes();
-  var s = myDate.getSeconds();
-  if (M < 10) M = "0" + M;
-  if (D < 10) D = "0" + D;
-  if (H < 10) H = "0" + H;
-  if (i < 10) i = "0" + i;
-  if (s < 10) s = "0" + s;
-  return Y + "-" + M + "-" + D + " " + H + ":" + i + ":" + s;
+function formatTimeDiff(diff) {
+  const units = [
+    { unit: 86400000, suffix: "天" }, // 天
+    { unit: 3600000, suffix: "小时" }, // 小时
+    { unit: 60000, suffix: "分钟" }, // 分钟
+    { unit: 1000, suffix: "秒" }, // 秒
+  ];
+
+  const stringArray = [];
+
+  // 通过单位数组进行遍历，计算时间差
+  for (const { unit, suffix } of units) {
+    const time = Math.floor(diff / unit); // 计算当前时间单位
+    if (time > 0 || stringArray.length > 0) {
+      // 如果当前时间单位大于0，或者已经有结果
+      stringArray.push(time.toString().padStart(2, "0") + suffix); // 格式化并加入结果数组
+    }
+    diff -= time * unit; // 减去已计算的时间部分
+  }
+
+  return stringArray.join(" "); // 用空格连接最终的时间字符串
+}
+
+function calculationTimeDifference(time1, time2) {
+  moment.unix(time1);
+  moment.unix(time2);
+  const diff = moment.duration(time2 - time1);
+  const days = diff.days();
+  const hours = diff.hours();
+  const minutes = diff.minutes();
+  const seconds = diff.seconds();
+  return {
+    diff: diff,
+    stringDate: `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`,
+  };
+}
+
+// 计算目标时间与当前时间的差值
+function calculationNowTimeDiff(time) {
+  // 兼容时间戳（秒）或时间字符串
+  const target =
+    typeof time === "number" && time < 1e12
+      ? moment(time * 1000)
+      : moment(time);
+
+  let diff = target.diff(moment()); // 目标时间 - 当前时间
+  if (diff < 0) diff = -diff; // 如果是过去时间，取绝对值
+
+  const duration = moment.duration(diff);
+  const days = Math.floor(duration.asDays());
+  const hours = duration.hours();
+  const minutes = duration.minutes();
+  const seconds = duration.seconds();
+
+  return `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
 }
