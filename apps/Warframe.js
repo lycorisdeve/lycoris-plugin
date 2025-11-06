@@ -157,7 +157,8 @@ export class warframe extends plugin {
       // 限制长度再回复
       const MAX = 1500;
       if (typeof result === "string") {
-        if (result.length > MAX) result = result.slice(0, MAX) + "\n...[已截断]";
+        if (result.length > MAX)
+          result = result.slice(0, MAX) + "\n...[已截断]";
         e.reply(result);
       } else {
         e.reply(JSON.stringify(result));
@@ -165,14 +166,14 @@ export class warframe extends plugin {
     } catch (err) {
       e.reply("查询出错：" + (err && err.message ? err.message : err));
     }
-
   }
 }
 
 // ----- 查询处理函数与工具 -----
 async function alerts() {
   const data = await getJsonData("alerts");
-  if (!data || !Array.isArray(data) || data.length === 0) return "当前没有警报信息";
+  if (!data || !Array.isArray(data) || data.length === 0)
+    return "当前没有警报信息";
 
   let out = "         警报        \n==================\n";
   for (const a of data) {
@@ -183,6 +184,12 @@ async function alerts() {
         out += `  ${r.item} * ${r.itemCount}\n`;
       }
     }
+    // 计算剩余时间
+    const expiry = a.expiry
+      ? new Date(moment.unix(a.expiry).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
+    const diff = expiry ? expiry.getTime() - Date.now() : null;
+    out += `剩余时间丨${diff ? await calculationTimeDifference(diff) : "-"}\n`;
     out += "==================\n";
   }
   return out;
@@ -206,16 +213,25 @@ async function plainCycle(end) {
   const data = await getJsonData(end);
   if (!data) return "暂无数据";
   const isDay = data.day ?? data.isDay ?? null;
-  const expiryUnix = data.cetusTime ?? data.earthDate ?? data.solarisExpiry ?? data.expiry ?? null;
+  const expiryUnix =
+    data.cetusTime ??
+    data.earthDate ??
+    data.solarisExpiry ??
+    data.expiry ??
+    null;
   let state = "";
   if (end === "cetus") {
     state = isDay ? "白天" : "黑夜";
   }
   try {
-    const t = expiryUnix ? new Date(moment.unix(expiryUnix).format("YYYY-MM-DD HH:mm:ss")) : null;
+    const t = expiryUnix
+      ? new Date(moment.unix(expiryUnix).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
     if (t) {
       const diff = t.getTime() - Date.now();
-      return `       ${end}      \n==================\n${state}剩余时间丨${await calculationTimeDifference(diff)}\n交替时间丨${await getFormatHms(t.getTime())}`;
+      return `       ${end}      \n==================\n${state}剩余时间丨${await calculationTimeDifference(
+        diff
+      )}\n交替时间丨${await getFormatHms(t.getTime())}`;
     }
   } catch (e) {}
   return JSON.stringify(data, null, 2);
@@ -226,9 +242,15 @@ async function earthTime() {
   if (!data) return "暂无地球时间数据";
   const day = data.day ?? data.isDay ?? false;
   const timeKey = data.earthDate ?? data.expiry ?? null;
-  const t = timeKey ? new Date(moment.unix(timeKey).format("YYYY-MM-DD HH:mm:ss")) : null;
+  const t = timeKey
+    ? new Date(moment.unix(timeKey).format("YYYY-MM-DD HH:mm:ss"))
+    : null;
   const diff = t ? t.getTime() - Date.now() : null;
-  return `         地球        \n======================\n\n${day ? "白天" : "黑夜"}剩余丨${diff ? await calculationTimeDifference(diff) : "-"}\n\n交替将于丨${t ? await getFormatHms(t.getTime()) : "-"}`;
+  return `         地球        \n======================\n\n${
+    day ? "白天" : "黑夜"
+  }剩余丨${diff ? await calculationTimeDifference(diff) : "-"}\n\n交替将于丨${
+    t ? await getFormatHms(t.getTime()) : "-"
+  }`;
 }
 
 async function fissures() {
@@ -236,9 +258,13 @@ async function fissures() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无裂隙信息";
   let out = "         裂隙        \n";
   for (const f of data) {
-    const expiry = f.expiry ? new Date(moment.unix(f.expiry).format("YYYY-MM-DD HH:mm:ss")) : null;
+    const expiry = f.expiry
+      ? new Date(moment.unix(f.expiry).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${diff ? await calculationTimeDifference(diff) : "-"}\n`;
+    out += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
+      diff ? await calculationTimeDifference(diff) : "-"
+    }\n`;
   }
   return out;
 }
@@ -254,18 +280,30 @@ async function trader() {
     if (act && now < act) remain = await getFormatDhms(act - now);
     else if (exp) remain = await getFormatDhms(exp - now);
   } catch (e) {}
-  return `         奸商        \n==================\n\n${data.character || data.name || "(未知)"}\n\n地点丨${data.node || data.location || "-"}\n\n剩余丨${remain}\n\n==================`;
+  return `         奸商        \n==================\n\n${
+    data.character || data.name || "(未知)"
+  }\n\n地点丨${
+    data.node || data.location || "-"
+  }\n\n剩余丨${remain}\n\n==================`;
 }
 
 async function sortie() {
   const data = await getJsonData("sortie");
   if (!data) return "暂无突击信息";
-  const expiry = data.expiry ? new Date(moment.unix(data.expiry).format("YYYY-MM-DD HH:mm:ss")) : null;
+  const expiry = data.expiry
+    ? new Date(moment.unix(data.expiry).format("YYYY-MM-DD HH:mm:ss"))
+    : null;
   const diff = expiry ? expiry.getTime() - Date.now() : null;
-  let out = `         突击        \n==================\n\n${data.boss || ""} : ${diff ? await calculationTimeDifference(diff) : "-"}\n\n${data.faction || ""}\n`;
+  let out = `         突击        \n==================\n\n${
+    data.boss || ""
+  } : ${diff ? await calculationTimeDifference(diff) : "-"}\n\n${
+    data.faction || ""
+  }\n`;
   if (data.variants && data.variants.length) {
     for (const v of data.variants) {
-      out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${v.modifierType || v.modifier}\n`;
+      out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${
+        v.modifierType || v.modifier
+      }\n`;
     }
   }
   return out;
@@ -276,9 +314,13 @@ async function deals() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无今日优惠";
   let out = "         今日优惠        \n==================\n";
   for (const d of data) {
-    const expiry = d.expiry ? new Date(moment.unix(d.expiry).format("YYYY-MM-DD HH:mm:ss")) : null;
+    const expiry = d.expiry
+      ? new Date(moment.unix(d.expiry).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${d.salePrice || "-"} 白金 丨 剩余 ${diff ? await calculationTimeDifference(diff) : "-"}\n`;
+    out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${
+      d.salePrice || "-"
+    } 白金 丨 剩余 ${diff ? await calculationTimeDifference(diff) : "-"}\n`;
   }
   return out;
 }
@@ -291,11 +333,13 @@ async function invasions() {
     out += `${inv.node || "-"} 丨 ${inv.locTag || "-"} \n`;
     if (inv.attacker && inv.attacker.rewards) {
       out += "攻击方奖励：\n";
-      for (const r of inv.attacker.rewards) out += `  ${r.item} * ${r.itemCount}\n`;
+      for (const r of inv.attacker.rewards)
+        out += `  ${r.item} * ${r.itemCount}\n`;
     }
     if (inv.defender && inv.defender.rewards) {
       out += "防守方奖励：\n";
-      for (const r of inv.defender.rewards) out += `  ${r.item} * ${r.itemCount}\n`;
+      for (const r of inv.defender.rewards)
+        out += `  ${r.item} * ${r.itemCount}\n`;
     }
     out += "------------------\n";
   }
@@ -307,9 +351,13 @@ async function events() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无事件";
   let out = "         事件        \n";
   for (const ev of data) {
-    const expiry = ev.expiry ? new Date(moment.unix(ev.expiry).format("YYYY-MM-DD HH:mm:ss")) : null;
+    const expiry = ev.expiry
+      ? new Date(moment.unix(ev.expiry).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `(${ev.tag || ev.name}) 距离结束丨${diff ? await calculationTimeDifference(diff) : "-"} | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}\n`;
+    out += `(${ev.tag || ev.name}) 距离结束丨${
+      diff ? await calculationTimeDifference(diff) : "-"
+    } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}\n`;
   }
   return out;
 }
@@ -320,7 +368,9 @@ async function season() {
   if (data.challenges && data.challenges.length) {
     let out = "         电波任务        \n";
     for (const c of data.challenges) {
-      out += `${c.cycle || ""} 丨 ${c.xp || ""}xp 丨 ${c.challenge || c.description || ""}\n`;
+      out += `${c.cycle || ""} 丨 ${c.xp || ""}xp 丨 ${
+        c.challenge || c.description || ""
+      }\n`;
     }
     return out;
   }
@@ -332,12 +382,18 @@ async function bounty() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无赏金信息";
   let out = "         赏金        \n==================\n";
   for (const b of data) {
-    const expiry = b.expiry ? new Date(moment.unix(b.expiry).format("YYYY-MM-DD HH:mm:ss")) : null;
+    const expiry = b.expiry
+      ? new Date(moment.unix(b.expiry).format("YYYY-MM-DD HH:mm:ss"))
+      : null;
     const diff = expiry ? expiry.getTime() - Date.now() : null;
-    out += `${b.tag || b.name}   剩余时间：${diff ? await calculationTimeDifference(diff) : "-"}\n`;
+    out += `${b.tag || b.name}   剩余时间：${
+      diff ? await calculationTimeDifference(diff) : "-"
+    }\n`;
     if (b.jobs) {
       for (const job of b.jobs) {
-        out += `\t${job.jobType} \n\t\t奖励：${(job.rewards || job.reward || "").toString().replaceAll('<br />','、')}\n`;
+        out += `\t${job.jobType} \n\t\t奖励：${(job.rewards || job.reward || "")
+          .toString()
+          .replaceAll("<br />", "、")}\n`;
       }
     }
     out += "==================\n";
@@ -349,16 +405,11 @@ async function bounty() {
 async function getJsonData(url_arg) {
   const api_url = url + url_arg;
   // 如果目标为 https，使用允许过期/自签名证书的 agent（仅针对此请求），以支持证书过期场景
-  const agent = api_url.startsWith("https:") ? new https.Agent({ rejectUnauthorized: false }) : undefined;
+  const agent = api_url.startsWith("https:")
+    ? new https.Agent({ rejectUnauthorized: false })
+    : undefined;
   const resp = await fetch(api_url, { timeout: 10000, agent });
   return await resp.json();
-}
-
-async function getTextData(url_arg) {
-  const api_url = url + url_arg;
-  const agent = api_url.startsWith("https:") ? new https.Agent({ rejectUnauthorized: false }) : undefined;
-  const resp = await fetch(api_url, { timeout: 10000, agent });
-  return await resp.text();
 }
 
 async function calculationTimeDifference(timeDifference) {
