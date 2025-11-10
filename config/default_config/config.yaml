@@ -55,7 +55,7 @@ oilPrice:
 
 # Warframe
 warframe:
-  server: "CN" # 选择服务器，ZHCN为国服，ZH为国际服
+  server: "ZHCN" # 选择服务器，ZHCN为国服，ZH为国际服
 
 screenshot:
   fullScreen: true

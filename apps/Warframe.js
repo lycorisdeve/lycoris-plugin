@@ -1,11 +1,7 @@
 import fetch from "node-fetch";
-import fs from "node:fs";
-import yaml from "yaml";
 import Config from "../components/Config.js";
 import moment from "moment";
 import https from "https";
-import puppeteer from "puppeteer";
-import { pluginRootPath } from "../components/lib/Path.js";
 import { Render } from "../components/Index.js";
 import plugin from "../../../lib/plugins/plugin.js";
 import HelpService from "../model/HelpService.js";
@@ -23,79 +19,9 @@ if (server === "ZHCN") {
   logger.error("warframe插件配置错误，服务器默认设置为国服");
   url = "https://api.null00.com/world/ZHCN/";
 }
-
-//1.定义命令规则
 export class warframe extends plugin {
   constructor() {
-    super({
-      /** 功能名称 */
-      name: "warframe",
-      /** 功能描述 */
-      dsc: "warframe信息查询",
-      /** https://oicqjs.github.io/oicq/#events */
-      event: "message",
-      /** 优先级,数字越小等级越高 */
-      priority: 2000,
-      rule: [
-        {
-          /** 命令正则匹配 */
-          reg: "#wf帮助|wfhelp|wf菜单|wf帮助|wf菜单", //匹配消息正则,命令正则
-          /** 执行方法 */
-          fnc: "menu",
-        },
-        {
-          reg: "#wf(.*)", //匹配消息正则,命令正则
-          /** 执行方法 */
-          fnc: "wfquery",
-        },
-        {
-          reg: "奥迪斯(.*)",
-          fnc: "ordis",
-        },
-      ],
-    });
-  }
-
-  async menu(e) {
-    let data = await HelpService.customHelp(e, "warframe_help");
-
-    let img = await Render.render("help/index.html", data, { e, scale: 1.2 });
-    e.reply(img);
-    return;
-  }
-
-  async ordis(e) {
-    const keyword = e.msg.replace(/奥迪斯/, "").trim();
-    if (!keyword) {
-      e.reply(
-        "请在命令后输入要查询的内容，例如：奥迪斯 阴阳双子 或 奥迪斯 平原时间"
-      );
-      return;
-    }
-    const url = "https://api.null00.com/ordis/getTextMessage";
-    const agent = url.startsWith("https:")
-      ? new https.Agent({ rejectUnauthorized: false })
-      : undefined;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({ text: keyword }),
-      agent,
-    });
-    const data = await res.json();
-    if (data.msg) {
-      e.reply(data.msg);
-    } else {
-      e.reply("查询失败，请稍后重试");
-    }
-  }
-
-  async wfquery(e) {
-    let keyword = e.msg.replace(/#wf/, "").trim();
-
-    // 别名映射：每个 endpoint 对应常见的别名/变体
+    // 定义别名映射（放在构造器顶部，方便复用）
     const queryAliases = {
       alerts: ["警报", "警报信息", "警报列表", "alerts"],
       events: ["活动", "事件", "事件信息", "热美亚", "活动信息"],
@@ -112,21 +38,92 @@ export class warframe extends plugin {
       season: ["电波", "电波任务", "电波信息", "nightwave", "season"],
     };
 
+    // 动态生成正则（去重 + 按长度倒序，避免“地球”比“地球时间”先匹配）
+    const allKeywords = [
+      ...new Set(
+        Object.values(queryAliases)
+          .flat()
+          .sort((a, b) => b.length - a.length)
+      ),
+    ];
+
+    // 拼接正则：支持 “#wf警报”“wf警报”“警报” 等格式
+    const dynamicReg = new RegExp(
+      `^(#?wf)?(${allKeywords.join("|")})`,
+      "i" // 忽略大小写
+    );
+
+    super({
+      name: "warframe",
+      dsc: "warframe信息查询",
+      event: "message",
+      priority: 2000,
+      rule: [
+        {
+          reg: "#wf帮助|wfhelp|wf菜单|wf帮助|wf菜单",
+          fnc: "menu",
+        },
+        {
+          reg: dynamicReg,
+          fnc: "wfquery",
+        },
+        {
+          reg: "^奥迪斯(.*)",
+          fnc: "ordis",
+        },
+      ],
+    });
+
+    // 把 queryAliases 挂到实例上，供 wfquery() 使用
+    this.queryAliases = queryAliases;
+  }
+
+  async menu(e) {
+    let data = await HelpService.customHelp(e, "warframe_help");
+    let img = await Render.render("help/index.html", data, { e, scale: 1.2 });
+    e.reply(img);
+  }
+
+  async ordis(e) {
+    const keyword = e.msg.replace(/^奥迪斯/, "").trim();
     if (!keyword) {
-      e.reply("请在命令后输入要查询的内容，例如：#wf警报 或 #wf赛特斯");
+      e.reply(
+        "请在命令后输入要查询的内容，例如：奥迪斯 阴阳双子 或 奥迪斯 平原时间"
+      );
+      return;
+    }
+    const url = "https://api.null00.com/ordis/getTextMessage";
+    const agent = url.startsWith("https:")
+      ? new https.Agent({ rejectUnauthorized: false })
+      : undefined;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ text: keyword }),
+      agent,
+    });
+    const data = await res.json();
+    e.reply(data.msg || "查询失败，请稍后重试");
+  }
+
+  async wfquery(e) {
+    // 去掉 #wf / wf 前缀
+    let keyword = e.msg.replace(/^#?wf/, "").trim();
+    const queryAliases = this.queryAliases;
+
+    if (!keyword) {
+      e.reply("请在命令后输入要查询的内容，例如：#wf警报 或 赛特斯");
       return;
     }
 
-    // 统一化关键词：去掉空格并转小写（方便匹配英文别名）
     const kw = keyword.replace(/\s+/g, "").toLowerCase();
 
-    // 支持包含匹配（优先匹配更长的别名，避免短别名抢匹配）
     let endpoint = null;
     const aliasList = [];
     for (const ep of Object.keys(queryAliases)) {
       for (const a of queryAliases[ep]) aliasList.push({ alias: a, ep });
     }
-    // 按别名长度降序，优先匹配长别名（例如“地球平原时间”优先于“地球”）
+
     aliasList.sort((x, y) => y.alias.length - x.alias.length);
     for (const item of aliasList) {
       if (kw.indexOf(item.alias.toLowerCase()) !== -1) {
@@ -137,7 +134,8 @@ export class warframe extends plugin {
 
     if (!endpoint) {
       e.reply(
-        "无法识别的查询类型。请使用以下关键字之一：警报、活动、新闻、地球时间、地球平原/赛特斯、金星平原、赏金、裂隙、商人、突击、入侵、特惠、电波"
+        "无法识别的查询类型。请使用以下关键字之一：" +
+          Object.values(queryAliases).flat().join("、")
       );
       return;
     }
@@ -184,15 +182,9 @@ export class warframe extends plugin {
         case "season":
           result = await season();
           break;
-        default:
-          result = "未实现的查询类型：" + endpoint;
       }
 
-      if (typeof result === "string") {
-        e.reply(result);
-      } else {
-        e.reply(JSON.stringify(result));
-      }
+      e.reply(typeof result === "string" ? result : JSON.stringify(result));
     } catch (err) {
       e.reply("查询出错：" + (err && err.message ? err.message : err));
     }
