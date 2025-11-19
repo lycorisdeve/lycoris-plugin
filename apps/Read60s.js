@@ -8,11 +8,14 @@ import Config from "../components/Config.js";
 const config = Config.getConfig("config");
 
 const DEFAULT_SUFFIX = [
-  "https://60s.tmini.net",
-  "https://cqxx.site",
-  "https://60s.crystelf.top",
+  "https://60api.09cdn.xyz",
   "https://60s.zeabur.app",
-  "http://60api.09cdn.xyz",
+  "https://60s.crystelf.top",
+  "https://cqxx.site",
+  "https://api.yanyua.icu",
+  "https://60s.tmini.net",
+  "https://60s.7se.cn",
+  "https://60s.mizhoubaobei.top",
 ];
 
 const API_CONFIG = {
@@ -33,7 +36,11 @@ const REQUEST_TIMEOUT = 5000; // ms
 const REQUEST_RETRY = 2;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_TIMEOUT) {
+async function fetchWithRetry(
+  url,
+  attempts = REQUEST_RETRY,
+  timeout = REQUEST_TIMEOUT
+) {
   for (let i = 0; i < attempts; i++) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
@@ -44,7 +51,11 @@ async function fetchWithRetry(url, attempts = REQUEST_RETRY, timeout = REQUEST_T
       return response;
     } catch (err) {
       clearTimeout(id);
-      logger?.warn?.(`Request to ${url} failed (${i + 1}/${attempts}): ${err.name || err.message}`);
+      logger?.warn?.(
+        `Request to ${url} failed (${i + 1}/${attempts}): ${
+          err.name || err.message
+        }`
+      );
       if (i < attempts - 1) await sleep(300);
     }
   }
@@ -80,7 +91,11 @@ export class Read60sPlugin extends plugin {
         if (typeof imgMsg === "object" && imgMsg.type === "image") {
           const filePath = imgMsg.file || imgMsg.data?.file;
           if (!filePath) {
-            logger?.warn?.(`fetchFunction 返回了无效的 image payload: ${JSON.stringify(imgMsg)}`);
+            logger?.warn?.(
+              `fetchFunction 返回了无效的 image payload: ${JSON.stringify(
+                imgMsg
+              )}`
+            );
             throw new Error("空图片返回");
           }
         }
@@ -248,7 +263,8 @@ async function getNewsImage() {
     attempts: REQUEST_RETRY,
     timeout: REQUEST_TIMEOUT,
     process: (data) => {
-      const imageUrl = data?.imageBaidu || data?.imageUrl || data?.data?.image || data?.image;
+      const imageUrl =
+        data?.imageBaidu || data?.imageUrl || data?.data?.image || data?.image;
       if (!imageUrl) throw new Error("备份1未返回有效图片");
       return segment.image(imageUrl);
     },
