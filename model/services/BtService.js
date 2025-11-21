@@ -1,1 +1,44 @@
-(function (_0x65c2d, _0xb1c362) { const _0x4d8d34 = _0x51d3, _0x9270b6 = _0x65c2d(); while (!![]) { try { const _0x4b6b6c = -parseInt(_0x4d8d34(0x15d)) / 0x1 * (-parseInt(_0x4d8d34(0x158)) / 0x2) + parseInt(_0x4d8d34(0x152)) / 0x3 * (-parseInt(_0x4d8d34(0x163)) / 0x4) + parseInt(_0x4d8d34(0x164)) / 0x5 * (parseInt(_0x4d8d34(0x167)) / 0x6) + parseInt(_0x4d8d34(0x165)) / 0x7 + -parseInt(_0x4d8d34(0x168)) / 0x8 * (parseInt(_0x4d8d34(0x151)) / 0x9) + -parseInt(_0x4d8d34(0x169)) / 0xa + -parseInt(_0x4d8d34(0x150)) / 0xb; if (_0x4b6b6c === _0xb1c362) break; else _0x9270b6['push'](_0x9270b6['shift']()); } catch (_0x13c8fb) { _0x9270b6['push'](_0x9270b6['shift']()); } } }(_0x2006, 0xb8027)); import _0x2f231b from 'node-fetch'; function _0x2006() { const _0x14026f = ['text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'error', 'max-age=0', 'map', 'Mozilla/5.0\x20(Windows\x20NT\x2010.0;\x20Win64;\x20x64)\x20AppleWebKit/537.36\x20(KHTML,\x20like\x20Gecko)\x20Chrome/107.0.0.0\x20Safari/537.36', '10086758LlAjhk', '701586nGcDJD', '33HInBvX', 'isArray', 'API请求失败：', 'w=jie&name=', 'time', 'keep-alive', '40084bnGGvC', 'zh-CN,zh;q=0.9', 'type', '209.141.34.64:4117/so/clso.php?', 'http://', '72iEJYbt', '/so/clso.php?w=jie&name=%E9%92%A2%E9%93%81%E4%BE%A0&page=0', 'gzip,\x20deflate', 'name', 'json', 'statusText', '282108uErRGp', '935xOPDVL', '1895096uHXuTT', '&page=', '37446DVQIOd', '8HtCKgq', '3563870kagPlm']; _0x2006 = function () { return _0x14026f; }; return _0x2006(); } function _0x51d3(_0x56d0bd, _0x5e3e61) { const _0x2006ec = _0x2006(); return _0x51d3 = function (_0x51d378, _0x4f0b24) { _0x51d378 = _0x51d378 - 0x14d; let _0x39bc4d = _0x2006ec[_0x51d378]; return _0x39bc4d; }, _0x51d3(_0x56d0bd, _0x5e3e61); } export async function btApi(_0x141d9a, _0x3fe82e) { const _0x3c4339 = _0x51d3, _0x20db50 = _0x3c4339(0x15c), _0x3e8aa5 = { 'GET': _0x3c4339(0x15e), 'Accept': _0x3c4339(0x16a), 'Accept-Encoding': _0x3c4339(0x15f), 'Accept-Language': _0x3c4339(0x159), 'Cache-Control': _0x3c4339(0x14d), 'Host': '209.141.34.64:4117', 'Proxy-Connection': _0x3c4339(0x157), 'Upgrade-Insecure-Requests': '1', 'User-Agent': _0x3c4339(0x14f) }; try { let _0x5566bb = _0x3c4339(0x155) + _0x141d9a + _0x3c4339(0x166) + _0x3fe82e; const _0x163e5d = _0x20db50 + _0x3c4339(0x15b) + _0x5566bb, _0x230107 = await _0x2f231b(_0x163e5d, { 'headers': _0x3e8aa5 }); if (!_0x230107['ok']) throw new Error(_0x3c4339(0x154) + _0x230107[_0x3c4339(0x162)]); const _0x5977c1 = await _0x230107[_0x3c4339(0x161)](), _0x2133d0 = Array[_0x3c4339(0x153)](_0x5977c1) ? _0x5977c1[_0x3c4339(0x14e)](_0x58f1b8 => ({ 'magnet': _0x58f1b8['hash'], 'name': _0x58f1b8[_0x3c4339(0x160)], 'type': _0x58f1b8[_0x3c4339(0x15a)], 'time': _0x58f1b8[_0x3c4339(0x156)] })) : []; return _0x2133d0; } catch (_0x48691a) { return logger[_0x3c4339(0x16b)](_0x48691a), null; } }
+
+import axios from 'axios';
+
+/**
+ * Search for torrents using apibay.org
+ * @param {string} keyword - The search keyword
+ * @param {number} page - The page number (not used by apibay in this simple implementation, but kept for signature compatibility)
+ * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string}>>}
+ */
+export async function btApi(keyword, page = 0) {
+    try {
+        // apibay.org uses q.php?q=keyword
+        // It returns a JSON array
+        const url = `https://apibay.org/q.php?q=${encodeURIComponent(keyword)}`;
+        const response = await axios.get(url);
+        const data = response.data;
+
+        if (!Array.isArray(data) || (data.length === 1 && data[0].name === 'No results returned')) {
+            return [];
+        }
+
+        // Map apibay format to our expected format
+        // apibay returns: { id, name, info_hash, leechers, seeders, num_files, size, username, added, status, category, imdb }
+        return data.map(item => ({
+            name: item.name,
+            magnet: `magnet:?xt=urn:btih:${item.info_hash}`,
+            time: new Date(parseInt(item.added) * 1000).toLocaleString(),
+            type: item.category, // apibay uses numeric categories, we'll just use that for now or map it if needed
+            size: formatSize(parseInt(item.size))
+        }));
+
+    } catch (err) {
+        console.error('BT API Error:', err);
+        return [];
+    }
+}
+
+function formatSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
