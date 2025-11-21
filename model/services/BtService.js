@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 class BtProvider {
     constructor(name) {
@@ -16,6 +17,47 @@ class BtProvider {
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+}
+
+class SukebeiProvider extends BtProvider {
+    constructor() {
+        super('Sukebei');
+    }
+
+    async search(keyword) {
+        try {
+            // Use RSS feed for easier parsing
+            const url = `https://sukebei.nyaa.si/?page=rss&q=${encodeURIComponent(keyword)}`;
+            const response = await axios.get(url, { timeout: 10000 });
+            const $ = cheerio.load(response.data, { xmlMode: true });
+            
+            const results = [];
+            $('item').each((i, elem) => {
+                const title = $(elem).find('title').text();
+                // Nyaa RSS usually has nyaa:infoHash
+                const infoHash = $(elem).find('nyaa\\:infoHash').text() || $(elem).find('infoHash').text();
+                const size = $(elem).find('nyaa\\:size').text() || $(elem).find('size').text();
+                const pubDate = $(elem).find('pubDate').text();
+                const category = $(elem).find('nyaa\\:category').text() || $(elem).find('category').text();
+                
+                if (infoHash) {
+                    results.push({
+                        name: title,
+                        magnet: `magnet:?xt=urn:btih:${infoHash}`,
+                        time: new Date(pubDate).toLocaleString(),
+                        type: category,
+                        size: size,
+                        source: this.name
+                    });
+                }
+            });
+
+            return results;
+        } catch (err) {
+            // logger.debug(`[${this.name}] Search failed: ${err.message}`);
+            return [];
+        }
     }
 }
 
@@ -50,6 +92,7 @@ class ApibayProvider extends BtProvider {
 }
 
 const providers = [
+    new SukebeiProvider(),
     new ApibayProvider()
 ];
 
