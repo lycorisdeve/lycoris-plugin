@@ -53,10 +53,43 @@ async function searchSukebei(keyword) {
 }
 
 /**
- * Search for torrents using Sukebei
+ * Search Apibay
+ * @param {string} keyword 
+ * @returns {Promise<Array>}
+ */
+async function searchApibay(keyword) {
+    try {
+        const url = `https://apibay.org/q.php?q=${encodeURIComponent(keyword)}`;
+        const response = await axios.get(url, { timeout: 10000 });
+        const results = response.data;
+        
+        if (results[0] && results[0].name === 'No results found') {
+            return [];
+        }
+
+        return results.map(item => ({
+            name: item.name,
+            magnet: `magnet:?xt=urn:btih:${item.info_hash}`,
+            time: new Date(parseInt(item.added) * 1000).toLocaleString(),
+            type: item.category,
+            size: formatSize(parseInt(item.size)),
+            source: 'Apibay'
+        }));
+    } catch (err) {
+        // logger.debug(`[Apibay] Search failed: ${err.message}`);
+        return [];
+    }
+}
+
+/**
+ * Search for torrents using Sukebei with Apibay fallback
  * @param {string} keyword - The search keyword
  * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string, source: string}>>}
  */
 export async function btApi(keyword) {
-    return await searchSukebei(keyword);
+    let results = await searchSukebei(keyword);
+    if (results.length === 0) {
+        results = await searchApibay(keyword);
+    }
+    return results;
 }
