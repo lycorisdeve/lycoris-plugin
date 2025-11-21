@@ -49,44 +49,8 @@ class ApibayProvider extends BtProvider {
     }
 }
 
-class YtsProvider extends BtProvider {
-    constructor() {
-        super('YTS');
-    }
-
-    async search(keyword) {
-        try {
-            const url = `https://yts.mx/api/v2/list_movies.json?query_term=${encodeURIComponent(keyword)}`;
-            const response = await axios.get(url, { timeout: 10000 });
-            const data = response.data;
-
-            if (!data || !data.data || !data.data.movies) {
-                return [];
-            }
-
-            return data.data.movies.map(movie => {
-                // YTS movies usually have multiple torrents (720p, 1080p, etc.)
-                // We'll pick the first one for simplicity or map all
-                const torrent = movie.torrents[0];
-                return {
-                    name: `${movie.title} (${movie.year}) [${torrent.quality}]`,
-                    magnet: `magnet:?xt=urn:btih:${torrent.hash}`,
-                    time: movie.date_uploaded || new Date().toLocaleString(),
-                    type: 'Movie',
-                    size: torrent.size,
-                    source: this.name
-                };
-            });
-        } catch (err) {
-            logger.error(`[${this.name}] Search failed: ${err.message}`);
-            return [];
-        }
-    }
-}
-
 const providers = [
-    new ApibayProvider(),
-    new YtsProvider()
+    new ApibayProvider()
 ];
 
 /**
@@ -97,8 +61,7 @@ const providers = [
 export async function btApi(keyword) {
     let allResults = [];
     
-    // Execute all providers in parallel to be faster, or sequential if we want to prioritize?
-    // Parallel is better for user experience.
+    // Execute all providers in parallel
     const promises = providers.map(p => p.search(keyword));
     const results = await Promise.allSettled(promises);
 
