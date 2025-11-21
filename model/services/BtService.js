@@ -1,44 +1,112 @@
 
 import axios from 'axios';
 
-/**
- * Search for torrents using apibay.org
- * @param {string} keyword - The search keyword
- * @param {number} page - The page number (not used by apibay in this simple implementation, but kept for signature compatibility)
- * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string}>>}
- */
-export async function btApi(keyword, page = 0) {
-    try {
-        // apibay.org uses q.php?q=keyword
-        // It returns a JSON array
-        const url = `https://apibay.org/q.php?q=${encodeURIComponent(keyword)}`;
-        const response = await axios.get(url);
-        const data = response.data;
+class BtProvider {
+    constructor(name) {
+        this.name = name;
+    }
 
-        if (!Array.isArray(data) || (data.length === 1 && data[0].name === 'No results returned')) {
-            return [];
-        }
+    async search(keyword) {
+        throw new Error('Method not implemented');
+    }
 
-        // Map apibay format to our expected format
-        // apibay returns: { id, name, info_hash, leechers, seeders, num_files, size, username, added, status, category, imdb }
-        return data.map(item => ({
-            name: item.name,
-            magnet: `magnet:?xt=urn:btih:${item.info_hash}`,
-            time: new Date(parseInt(item.added) * 1000).toLocaleString(),
-            type: item.category, // apibay uses numeric categories, we'll just use that for now or map it if needed
-            size: formatSize(parseInt(item.size))
-        }));
-
-    } catch (err) {
-        console.error('BT API Error:', err);
-        return [];
+    formatSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 }
 
-function formatSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+class ApibayProvider extends BtProvider {
+    constructor() {
+        super('Apibay');
+    }
+
+    async search(keyword) {
+        try {
+            const url = `https://apibay.org/q.php?q=${encodeURIComponent(keyword)}`;
+            const response = await axios.get(url, { timeout: 10000 });
+            const data = response.data;
+
+            if (!Array.isArray(data) || (data.length === 1 && data[0].name === 'No results returned')) {
+                return [];
+            }
+
+            return data.map(item => ({
+                name: item.name,
+                magnet: `magnet:?xt=urn:btih:${item.info_hash}`,
+                time: new Date(parseInt(item.added) * 1000).toLocaleString(),
+                type: item.category,
+                size: this.formatSize(parseInt(item.size)),
+                source: this.name
+            }));
+        } catch (err) {
+            logger.error(`[${this.name}] Search failed: ${err.message}`);
+            return [];
+        }
+    }
+}
+
+class YtsProvider extends BtProvider {
+    constructor() {
+        super('YTS');
+    }
+
+    async search(keyword) {
+        try {
+            const url = `https://yts.mx/api/v2/list_movies.json?query_term=${encodeURIComponent(keyword)}`;
+            const response = await axios.get(url, { timeout: 10000 });
+            const data = response.data;
+
+            if (!data || !data.data || !data.data.movies) {
+                return [];
+            }
+
+            return data.data.movies.map(movie => {
+                // YTS movies usually have multiple torrents (720p, 1080p, etc.)
+                // We'll pick the first one for simplicity or map all
+                const torrent = movie.torrents[0];
+                return {
+                    name: `${movie.title} (${movie.year}) [${torrent.quality}]`,
+                    magnet: `magnet:?xt=urn:btih:${torrent.hash}`,
+                    time: movie.date_uploaded || new Date().toLocaleString(),
+                    type: 'Movie',
+                    size: torrent.size,
+                    source: this.name
+                };
+            });
+        } catch (err) {
+            logger.error(`[${this.name}] Search failed: ${err.message}`);
+            return [];
+        }
+    }
+}
+
+const providers = [
+    new ApibayProvider(),
+    new YtsProvider()
+];
+
+/**
+ * Search for torrents using multiple providers
+ * @param {string} keyword - The search keyword
+ * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string, source: string}>>}
+ */
+export async function btApi(keyword) {
+    let allResults = [];
+    
+    // Execute all providers in parallel to be faster, or sequential if we want to prioritize?
+    // Parallel is better for user experience.
+    const promises = providers.map(p => p.search(keyword));
+    const results = await Promise.allSettled(promises);
+
+    for (const result of results) {
+        if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+            allResults = allResults.concat(result.value);
+        }
+    }
+
+    return allResults;
 }

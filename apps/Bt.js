@@ -30,15 +30,15 @@ export class bt extends plugin {
             rule: [
                 {
                     /** 命令正则匹配 */
-                    reg: '^#bt搜索(.*)$',
+                    reg: '^(#)?bt搜索(.*)$',
                     /** 执行方法 */
-                    fnc: 'btInfo',
+                    fnc: 'search',
                 },
                 {
                     /** 命令正则匹配 */
                     reg: '^bt(.*)$',
                     /** 执行方法 */
-                    fnc: 'btSearch',
+                    fnc: 'search',
                 }
             ]
         })
@@ -47,19 +47,25 @@ export class bt extends plugin {
     /**
      * @param e oicq传递的事件参数e
      */
-    async btSearch(e) {
+    async search(e) {
         if (e.isGroup) {
             if (!IS_GROUPS) {
                 e.reply('群聊搜索已关闭，请联系机主开通！')
                 return
             }
         }
-        /** e.msg 用户的命令消息 */
-        logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/bt/g, "").trim()
         
-        // Use the new API
-        let results = await btApi(keyword)
+        // Clean keyword
+        let keyword = e.msg.replace(/^(#)?bt(搜索)?/g, "").trim();
+        
+        if (!keyword) {
+            return; // Ignore empty keyword
+        }
+
+        logger.info('[BT搜索] 用户命令:', keyword);
+        
+        // Use the new API service
+        let results = await btApi(keyword);
         
         let userInfo = {
             nickname: this.e.sender.card || this.e.user_id,
@@ -72,56 +78,22 @@ export class bt extends plugin {
             return
         }
 
-        for (let i = 0; i < results.length; i++) {
-            let item = results[i];
-            let msg = `标题 :: ${item.name}\n磁力链接 :: ${item.magnet}\n大小 :: ${item.size}\n时间 :: ${item.time}\n`;
+        // Limit results to avoid message too long
+        const MAX_RESULTS = 20;
+        const displayResults = results.slice(0, MAX_RESULTS);
+
+        msgList.push({
+            ...userInfo, 
+            message: `搜索到 ${results.length} 条结果 (显示前${displayResults.length}条)：\n请自行复制磁力链接下载。`
+        });
+
+        for (let i = 0; i < displayResults.length; i++) {
+            let item = displayResults[i];
+            let msg = `[${item.source}] ${item.name}\n大小: ${item.size}\n时间: ${item.time}\n磁力: ${item.magnet}`;
             msgList.push({ ...userInfo, message: msg })
         }
 
         const res = await this.e.reply(await Bot.makeForwardMsg(msgList), false, {
-            recallMsg: -1,
-        });
-        
-        this.handleReplyResult(res);
-    }
-
-    async btInfo(e) {
-        if (e.isGroup) {
-            if (!IS_GROUPS) {
-                e.reply('群聊搜索已关闭，请联系机主开通！')
-                return
-            }
-        }
-        /** e.msg 用户的命令消息 */
-        logger.info('[用户命令]', e.msg)
-        let keyword = e.msg.replace(/#bt搜索/g, "").trim()
-
-        let myMagnet = await btApi(keyword, 0)
-        let msgs = []
-        let userInfo = {
-            nickname: this.e.sender.card || this.e.user_id,
-            user_id: this.e.user_id,
-        }
-        if (myMagnet && myMagnet.length > 0) {
-            msgs.push({
-                ...userInfo, message: `你已经长大了，需要学会自己加磁力头了：
-magnet:?xt=urn:btih: 
-\n`})
-            for (let i = 0; i < myMagnet.length; i++) {
-                let msg = `
-标题：${myMagnet[i].name}
-类型：${myMagnet[i].type}
-大小：${myMagnet[i].size}
-创建时间：${myMagnet[i].time}
-种子：${myMagnet[i].magnet}\n
-`;
-                msgs.push({ ...userInfo, message: msg });
-            }
-        } else {
-            e.reply(`没有找到：${keyword} 哦~~~~`)
-            return
-        }
-        const res = await this.e.reply(await Bot.makeForwardMsg(msgs), false, {
             recallMsg: -1,
         });
         
@@ -133,7 +105,7 @@ magnet:?xt=urn:btih:
             if (this.e.group && this.e.group.is_admin) {
                 if (
                     Number(Math.random().toFixed(2)) * 100 <
-                    (this.mysterySetData ? this.mysterySetData.mute : 0) // Safety check for mysterySetData
+                    (this.mysterySetData ? this.mysterySetData.mute : 0)
                 ) {
                     let duration = Math.floor(Math.random() * 600) + 1;
                     this.e.group.muteMember(this.e.sender.user_id, duration);
