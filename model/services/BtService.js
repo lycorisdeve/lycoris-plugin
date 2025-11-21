@@ -53,47 +53,10 @@ async function searchSukebei(keyword) {
 }
 
 /**
- * Search Apibay (Backup)
- * @param {string} keyword 
- * @returns {Promise<Array>}
- */
-async function searchApibay(keyword) {
-    try {
-        const url = `https://apibay.org/q.php?q=${encodeURIComponent(keyword)}`;
-        const response = await axios.get(url, { timeout: 10000 });
-        const data = response.data;
-
-        if (!Array.isArray(data) || (data.length === 1 && data[0].name === 'No results returned')) {
-            return [];
-        }
-
-        return data.map(item => ({
-            name: item.name,
-            magnet: `magnet:?xt=urn:btih:${item.info_hash}`,
-            time: new Date(parseInt(item.added) * 1000).toLocaleString(),
-            type: item.category,
-            size: formatSize(parseInt(item.size)),
-            source: 'Apibay'
-        }));
-    } catch (err) {
-        logger.error(`[Apibay] Search failed: ${err.message}`);
-        return [];
-    }
-}
-
-/**
- * Search for torrents using Sukebei first, then Apibay as backup
+ * Search for torrents using Sukebei
  * @param {string} keyword - The search keyword
  * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string, source: string}>>}
  */
 export async function btApi(keyword) {
-    // Try Sukebei first
-    let results = await searchSukebei(keyword);
-    if (results && results.length > 0) {
-        return results;
-    }
-
-    // Fallback to Apibay
-    results = await searchApibay(keyword);
-    return results;
+    return await searchSukebei(keyword);
 }
