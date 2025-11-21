@@ -97,22 +97,22 @@ const providers = [
 ];
 
 /**
- * Search for torrents using multiple providers
+ * Search for torrents using multiple providers sequentially
  * @param {string} keyword - The search keyword
  * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string, source: string}>>}
  */
 export async function btApi(keyword) {
-    let allResults = [];
-    
-    // Execute all providers in parallel
-    const promises = providers.map(p => p.search(keyword));
-    const results = await Promise.allSettled(promises);
-
-    for (const result of results) {
-        if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-            allResults = allResults.concat(result.value);
+    for (const provider of providers) {
+        try {
+            // logger.debug(`Searching with ${provider.name}...`);
+            const results = await provider.search(keyword);
+            if (results && results.length > 0) {
+                return results;
+            }
+        } catch (err) {
+            logger.error(`[${provider.name}] Unexpected error: ${err.message}`);
         }
     }
 
-    return allResults;
+    return [];
 }
