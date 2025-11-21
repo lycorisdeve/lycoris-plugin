@@ -79,7 +79,7 @@ export class bt extends plugin {
         }
 
         // Limit results to avoid message too long
-        const MAX_RESULTS = 20;
+        const MAX_RESULTS = 10;
         const displayResults = results.slice(0, MAX_RESULTS);
 
         msgList.push({
