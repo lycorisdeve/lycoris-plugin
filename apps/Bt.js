@@ -55,16 +55,16 @@ export class bt extends plugin {
             }
         }
         
-        // Clean keyword
+        // 清理关键字
         let keyword = e.msg.replace(/^(#)?bt(搜索)?/g, "").trim();
         
         if (!keyword) {
-            return; // Ignore empty keyword
+            return; // 忽略空关键字
         }
 
         logger.info('[BT搜索] 用户命令:', keyword);
         
-        // Use the new API service
+        // 使用新的 API 服务
         let results = await btApi(keyword);
         
         let userInfo = {
@@ -78,7 +78,7 @@ export class bt extends plugin {
             return
         }
 
-        // Limit results to avoid message too long
+        // 限制结果数量以避免消息过长
         const MAX_RESULTS = 10;
         const displayResults = results.slice(0, MAX_RESULTS);
 
