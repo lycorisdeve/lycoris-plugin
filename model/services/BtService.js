@@ -22,7 +22,7 @@ function formatSize(bytes) {
  */
 async function searchSukebei(keyword) {
     try {
-        const url = `https://sukebei.nyaa.si/?page=rss&q=${encodeURIComponent(keyword)}`;
+        const url = `https://sukebei.nyaa.si/?page=rss&q=${keyword}`;
         const response = await axios.get(url, { timeout: 10000 });
         const $ = cheerio.load(response.data, { xmlMode: true });
         
@@ -60,7 +60,7 @@ async function searchSukebei(keyword) {
  */
 async function searchNyaa(keyword) {
     try {
-        const url = `https://nyaa.si/?page=rss&q=${encodeURIComponent(keyword)}`;
+        const url = `https://nyaa.si/?page=rss&q=${keyword}`;
         const response = await axios.get(url, { timeout: 10000 });
         const $ = cheerio.load(response.data, { xmlMode: true });
         
@@ -97,7 +97,7 @@ async function searchNyaa(keyword) {
  */
 async function searchMikan(keyword) {
     try {
-        const url = `https://mikanani.me/RSS/Search?searchstr=${encodeURIComponent(keyword)}`;
+        const url = `https://mikanani.me/RSS/Search?searchstr=${keyword}`;
         const response = await axios.get(url, { timeout: 10000 });
         const $ = cheerio.load(response.data, { xmlMode: true });
         
