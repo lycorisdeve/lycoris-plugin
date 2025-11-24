@@ -18,6 +18,7 @@
   "author": "lycoris",
   "license": "GPL-3.0",
   "dependencies": {
+    "@icqqjs/icqq": "^1.10.12",
     "cheerio": "1.0.0-rc.12",
     "simple-git": "^3.30.0"
   }

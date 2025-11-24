@@ -1,7 +1,7 @@
 
 const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
-import { segment } from 'icqq';
-import fetch from 'node-fetch';  // Make sure this import is available
+import { segment } from '@icqqjs/icqq';
+
 
 // API 配置
 const API_CONFIG = {

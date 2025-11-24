@@ -1,7 +1,7 @@
 
 
 import * as cheerio from 'cheerio';
-import { segment } from 'icqq';
+import { segment } from '@icqqjs/icqq';
 import fs from 'fs';
 import path from 'path';
 import { pluginResources } from "../components/lib/Path.js";

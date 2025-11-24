@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { segment } from 'icqq'
+import { segment } from '@icqqjs/icqq'
 
 export class IPixiv extends plugin {
     constructor() {
