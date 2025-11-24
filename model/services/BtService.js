@@ -1,5 +1,4 @@
 
-import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 /**
@@ -16,6 +15,25 @@ function formatSize(bytes) {
 }
 
 /**
+ * 带超时的 fetch 请求
+ * @param {string} url 
+ * @param {number} timeout 
+ * @returns {Promise<Response>}
+ */
+async function fetchWithTimeout(url, timeout = 10000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+}
+
+/**
  * 搜索 Sukebei Nyaa (RSS)
  * @param {string} keyword 
  * @returns {Promise<Array>}
@@ -23,8 +41,9 @@ function formatSize(bytes) {
 async function searchSukebei(keyword) {
     try {
         const url = `https://sukebei.nyaa.si/?page=rss&q=${keyword}`;
-        const response = await axios.get(url, { timeout: 10000 });
-        const $ = cheerio.load(response.data, { xmlMode: true });
+        const response = await fetchWithTimeout(url);
+        const text = await response.text();
+        const $ = cheerio.load(text, { xmlMode: true });
         
         const results = [];
         $('item').each((i, elem) => {
@@ -47,7 +66,6 @@ async function searchSukebei(keyword) {
         });
         return results;
     } catch (err) {
-        // logger.debug(`[Sukebei] Search failed: ${err.message}`);
         logger.error(`[Sukebei] Search failed: ${err.message}`);
         return [];
     }
@@ -61,8 +79,9 @@ async function searchSukebei(keyword) {
 async function searchNyaa(keyword) {
     try {
         const url = `https://nyaa.si/?page=rss&q=${keyword}`;
-        const response = await axios.get(url, { timeout: 10000 });
-        const $ = cheerio.load(response.data, { xmlMode: true });
+        const response = await fetchWithTimeout(url);
+        const text = await response.text();
+        const $ = cheerio.load(text, { xmlMode: true });
         
         const results = [];
         $('item').each((i, elem) => {
@@ -98,8 +117,9 @@ async function searchNyaa(keyword) {
 async function searchMikan(keyword) {
     try {
         const url = `https://mikanani.me/RSS/Search?searchstr=${keyword}`;
-        const response = await axios.get(url, { timeout: 10000 });
-        const $ = cheerio.load(response.data, { xmlMode: true });
+        const response = await fetchWithTimeout(url);
+        const text = await response.text();
+        const $ = cheerio.load(text, { xmlMode: true });
         
         const results = [];
         $('item').each((i, elem) => {

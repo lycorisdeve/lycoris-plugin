@@ -1,5 +1,4 @@
 import * as cheerio from 'cheerio';
-import axios from 'axios';
 
 
 export async function getRandomLinkId() {
@@ -7,11 +6,12 @@ export async function getRandomLinkId() {
   let url = `https://wallhaven.cc/search?categories=111&purity=010&sorting=favorites&order=desc&ai_art_filter=0&page=${page}`
 
   try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 15000);
     // 发送 HTTP 请求获取 HTML 内容
-    const response = await axios.get(url, {
-      timeout: 15000
-    });
-    const html = response.data;
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(id);
+    const html = await response.text();
 
     // 使用 Cheerio 解析 HTML 内容，并返回一个解析器函数
     const $ = cheerio.load(html);
@@ -48,13 +48,9 @@ export async function getHDWallpaper(name) {
     const url = `https://w.wallhaven.cc/full/${prefix}/wallhaven-${name}`;
 
     try {
-      const response = await axios({
-        method: 'get',
-        url: url,
-        responseType: 'arraybuffer'
-      });
-
-      const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const base64Image = Buffer.from(arrayBuffer).toString('base64');
 
       return base64Image;
     } catch (error) {
@@ -68,11 +64,12 @@ export async function getHDWallpaper(name) {
 export async function searchImage(keyword, pageNum) {
   const url = `https://wallhaven.cc/search?q=${keyword}&categories=111&purity=010&sorting=relevance&order=desc&ai_art_filter=0&page=${pageNum}`
   try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 15000);
     // 发送 HTTP 请求获取 HTML 内容
-    const response = await axios.get(url, {
-      timeout: 15000
-    });
-    const html = response.data;
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(id);
+    const html = await response.text();
 
     // 使用 Cheerio 解析 HTML 内容，并返回一个解析器函数
     const $ = cheerio.load(html);

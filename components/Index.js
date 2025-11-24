@@ -3,4 +3,5 @@ import Common from './Common.js'
 import Data from './Data.js'
 import Version from './Version.js'
 import Render from './lib/Render.js'
-export { Config, Common, Data, Version, Render }
+import Path from './lib/Path.js'
+export { Config, Common, Data, Version, Render, Path }

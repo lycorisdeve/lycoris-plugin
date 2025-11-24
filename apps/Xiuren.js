@@ -1,15 +1,15 @@
 
-import axios from 'axios'
+
 import * as cheerio from 'cheerio';
 import { segment } from 'icqq';
-import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import { pluginResources } from "../components/lib/Path.js";
 
 // 网站配置 - 秀人网站点
+// 网站配置 - 秀人网站点
 const SITE_CONFIG = {
-  SITE: 'https://www.xiurenb.net', // 更新为新的网站地址
+  SITE: 'https://www.xiuren.net', // 更新为新的网站地址
   // 超时设置
   TIMEOUT: 15000,
   // 随机延迟范围（毫秒）
@@ -37,12 +37,12 @@ const USER_AGENTS = [
 const SELECTORS = {
   // 首页和搜索页
   home: {
-    items: '.post-list .item',
-    title: '.item-title',
-    image: '.item-img img',
-    link: '.item-img a',
-    date: '.item-meta',
-    views: '.item-meta .views'
+    items: '.posts-item',
+    title: '.item-heading a',
+    image: '.item-thumbnail img',
+    link: '.item-heading a',
+    date: '.item-meta span',
+    views: '.meta-view'
   },
   // 详情页
   detail: {
@@ -127,24 +127,34 @@ export class XiuRen extends plugin {
       logger.info(`开始下载图片: ${url}`);
 
       // 创建自定义的HTTPS代理，禁用证书验证
-      const httpsAgent = new https.Agent({
-        rejectUnauthorized: false // 禁用证书验证
-      });
+      // Note: Native fetch doesn't support httpsAgent directly. 
+      // We rely on global fetch. If SSL issues arise, we might need a workaround.
+      // For now, we try standard fetch. If it fails due to SSL, we might need 'undici' or similar.
+      // However, to keep it simple and dependency-free as requested (just fetch), we try standard fetch.
+      // If the site has bad certs, this might fail. 
+      // A common workaround in Node for bad certs with fetch is:
+      // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; (Not recommended for production but common in scripts)
+      // Or passing a custom agent if using a fetch polyfill that supports it.
+      // Node 18+ fetch uses undici under the hood, which supports 'dispatcher'.
+      // But 'dispatcher' is not a standard fetch option.
 
-      // 下载图片
-      const response = await axios.get(url, {
-        responseType: 'arraybuffer',
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), SITE_CONFIG.TIMEOUT);
+
+      const response = await fetch(url, {
         headers: {
           'User-Agent': this.getRandomUserAgent(),
           'Referer': SITE_CONFIG.SITE,
           'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
         },
-        timeout: SITE_CONFIG.TIMEOUT,
-        httpsAgent: url.startsWith('https') ? httpsAgent : undefined
+        signal: controller.signal
       });
+      clearTimeout(id);
 
-      // 直接写入文件，不进行格式转换
-      fs.writeFileSync(filePath, Buffer.from(response.data));
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const arrayBuffer = await response.arrayBuffer();
+      fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
       logger.info(`图片下载成功: ${filePath}`);
 
       return filePath;
@@ -314,7 +324,7 @@ export class XiuRen extends plugin {
 
       // 限制图片数量，避免消息过大
       const maxImages = Math.min(images.length, 10); // 减少图片数量，避免消息过大
-      
+
       // 尝试单独发送图片，而不是使用合并转发
       await e.reply(`【${title}】\n共${images.length}张图片，显示前${maxImages}张`);
 
@@ -438,7 +448,7 @@ export class XiuRen extends plugin {
       const maxItems = Math.min(msgInfos.length, 5); // 减少显示数量
       const downloadedFiles = [];
       let validCount = 0;
-      
+
       for (let index = 0; index < msgInfos.length && validCount < maxItems; index++) {
         const item = msgInfos[index];
         let tmpTitle = item.title || '无标题';
@@ -464,13 +474,13 @@ export class XiuRen extends plugin {
             if (item.date || item.views) {
               message += `${item.date || ''} ${item.views || ''}`;
             }
-            
+
             await e.reply(message);
             await e.reply(segment.image(localPath));
           } else {
             await e.reply(`${validCount}、${tmpTitle}\n(图片加载失败)`);
           }
-          
+
           // 添加延迟
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
@@ -513,12 +523,10 @@ export class XiuRen extends plugin {
   // 带有重试的请求方法
   async fetchWithRetry(url, retryCount = 0) {
     try {
-      // 创建自定义的HTTPS代理，禁用证书验证
-      const httpsAgent = new https.Agent({
-        rejectUnauthorized: false // 禁用证书验证
-      });
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), SITE_CONFIG.TIMEOUT);
 
-      const response = await axios.get(url, {
+      const response = await fetch(url, {
         headers: {
           'User-Agent': this.getRandomUserAgent(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -526,11 +534,13 @@ export class XiuRen extends plugin {
           'Referer': SITE_CONFIG.SITE,
           'Cache-Control': 'no-cache'
         },
-        timeout: SITE_CONFIG.TIMEOUT,
-        httpsAgent: url.startsWith('https') ? httpsAgent : undefined // 仅对HTTPS请求禁用证书验证
+        signal: controller.signal
       });
+      clearTimeout(id);
 
-      return response.data;
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      return await response.text();
     } catch (error) {
       // 如果失败且未超过最大重试次数，则重试
       if (retryCount < 2) {

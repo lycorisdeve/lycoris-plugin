@@ -1,4 +1,4 @@
-import axios from 'axios'
+
 import Config from '../components/Config.js'
 import fs from 'fs'
 import yaml from 'yaml'
@@ -126,14 +126,22 @@ export class OilPricePlugin extends plugin {
 
         for (const api of apis) {
             try {
-                const response = await axios.get(api.url, {
+                const response = await fetch(api.url, {
+                    method: "GET",
                     headers: api.headers || {}
                 });
-                return api.process(response.data);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return api.process(data);
+
             } catch (error) {
                 logger.error(`API ${api.url} failed:`, error);
-                continue;
             }
+
         }
         throw new Error('All APIs failed');
     }
