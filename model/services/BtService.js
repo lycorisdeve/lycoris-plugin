@@ -37,7 +37,7 @@ async function searchSukebei(keyword) {
             if (infoHash) {
                 results.push({
                     name: title,
-                    magnet: `magnet:?xt=urn:btih:${infoHash}`,
+                    magnet: `${infoHash}`,
                     time: new Date(pubDate).toLocaleString(),
                     type: category,
                     size: size,
@@ -48,6 +48,7 @@ async function searchSukebei(keyword) {
         return results;
     } catch (err) {
         // logger.debug(`[Sukebei] Search failed: ${err.message}`);
+        logger.error(`[Sukebei] Search failed: ${err.message}`);
         return [];
     }
 }
