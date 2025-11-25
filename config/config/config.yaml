@@ -73,3 +73,13 @@ screenshot:
 
 # Html渲染精度，可选值50~200，建议100。设置高精度会提高图片的精细度，过高可能会影响渲染与发送速度
 renderScale: 100
+
+
+# BT搜索配置
+bt:
+  proxy:
+    enable: false
+    url: "http://127.0.0.1:7890" # 代理地址，例如 http://127.0.0.1:7890
+  proxyApi:
+    enable: true
+    url: "https://proxyapi.198143.xyz/{{url}}"

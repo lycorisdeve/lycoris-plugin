@@ -1,5 +1,8 @@
 
 import * as cheerio from 'cheerio';
+import fetch from 'node-fetch';
+import Config from '../../components/Config.js';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 /**
  * 将字节格式化为人类可读的字符串
@@ -23,8 +26,30 @@ function formatSize(bytes) {
 async function fetchWithTimeout(url, timeout = 10000) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
+
+    // 获取配置
+    const config = Config.getDefOrConfig('config');
+    const btConfig = config.bt || {};
+
+    let agent = null;
+    let fetchUrl = url;
+
+    // 优先使用 proxyApi
+    if (btConfig.proxyApi && btConfig.proxyApi.enable && btConfig.proxyApi.url) {
+        fetchUrl = btConfig.proxyApi.url.replace('{{url}}', encodeURIComponent(url));
+    } else if (btConfig.proxy && btConfig.proxy.enable && btConfig.proxy.url) {
+        try {
+            agent = new HttpsProxyAgent(btConfig.proxy.url);
+        } catch (err) {
+            logger.error(`[BT搜索] 代理配置错误: ${err.message}`);
+        }
+    }
+
     try {
-        const response = await fetch(url, { signal: controller.signal });
+        const response = await fetch(fetchUrl, {
+            signal: controller.signal,
+            agent: agent
+        });
         clearTimeout(id);
         return response;
     } catch (error) {
@@ -44,7 +69,7 @@ async function searchSukebei(keyword) {
         const response = await fetchWithTimeout(url);
         const text = await response.text();
         const $ = cheerio.load(text, { xmlMode: true });
-        
+
         const results = [];
         $('item').each((i, elem) => {
             const title = $(elem).find('title').text();
@@ -52,7 +77,7 @@ async function searchSukebei(keyword) {
             const size = $(elem).find('nyaa\\:size').text() || $(elem).find('size').text();
             const pubDate = $(elem).find('pubDate').text();
             const category = $(elem).find('nyaa\\:category').text() || $(elem).find('category').text();
-            
+
             if (infoHash) {
                 results.push({
                     name: title,
@@ -82,7 +107,7 @@ async function searchNyaa(keyword) {
         const response = await fetchWithTimeout(url);
         const text = await response.text();
         const $ = cheerio.load(text, { xmlMode: true });
-        
+
         const results = [];
         $('item').each((i, elem) => {
             const title = $(elem).find('title').text();
@@ -90,7 +115,7 @@ async function searchNyaa(keyword) {
             const size = $(elem).find('nyaa\\:size').text() || $(elem).find('size').text();
             const pubDate = $(elem).find('pubDate').text();
             const category = $(elem).find('nyaa\\:category').text() || $(elem).find('category').text();
-            
+
             if (infoHash) {
                 results.push({
                     name: title,
@@ -120,7 +145,7 @@ async function searchMikan(keyword) {
         const response = await fetchWithTimeout(url);
         const text = await response.text();
         const $ = cheerio.load(text, { xmlMode: true });
-        
+
         const results = [];
         $('item').each((i, elem) => {
             const title = $(elem).find('title').text();
@@ -128,16 +153,16 @@ async function searchMikan(keyword) {
             const description = $(elem).find('description').text();
             const pubDate = $(elem).find('pubDate').text();
             const enclosure = $(elem).find('enclosure').attr('url');
-            
+
             // Extract size from description if possible
             let size = 'N/A';
             if (description) {
-                 const parts = description.split('<br />');
-                 for (const part of parts) {
-                     if (part.trim().startsWith('Size:')) {
-                         size = part.replace('Size:', '').trim();
-                     }
-                 }
+                const parts = description.split('<br />');
+                for (const part of parts) {
+                    if (part.trim().startsWith('Size:')) {
+                        size = part.replace('Size:', '').trim();
+                    }
+                }
             }
 
             results.push({
@@ -170,6 +195,6 @@ export async function btApi(keyword) {
     ]);
 
     let results = [...sukebeiResults, ...nyaaResults, ...mikanResults];
-    
+
     return results;
 }
