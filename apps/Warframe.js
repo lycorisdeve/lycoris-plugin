@@ -135,7 +135,7 @@ export class warframe extends plugin {
     if (!endpoint) {
       e.reply(
         "无法识别的查询类型。请使用以下关键字之一：" +
-          Object.values(queryAliases).flat().join("、")
+        Object.values(queryAliases).flat().join("、")
       );
       return;
     }
@@ -187,6 +187,7 @@ export class warframe extends plugin {
       e.reply(typeof result === "string" ? result : JSON.stringify(result));
     } catch (err) {
       e.reply("查询出错：" + (err && err.message ? err.message : err));
+      logger.error(err);
     }
   }
 }
@@ -209,9 +210,8 @@ async function alerts() {
     const expiry = a.expiry;
     out += `剩余时间丨${calculationNowTimeDiff(expiry)}\n`;
 
-    out += `开始时间丨${
-      a.activation ? moment.unix(a.activation).format(`llll`) : "-"
-    }\n`;
+    out += `开始时间丨${a.activation ? moment.unix(a.activation).format(`llll`) : "-"
+      }\n`;
     out += `剩余时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
     out += "==================\n";
   }
@@ -278,11 +278,10 @@ async function earthTime() {
       .unix();
   }
 
-  return `         🌍地球 🌍       \n======================\n\n${
-    day ? "白天 ☀️" : "黑夜 🌙"
-  }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${moment(
-    expiryTime
-  ).format(`llll`)}`;
+  return `         🌍地球 🌍       \n======================\n\n${day ? "白天 ☀️" : "黑夜 🌙"
+    }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${moment(
+      expiryTime
+    ).format(`llll`)}`;
 }
 
 async function fissures() {
@@ -296,29 +295,24 @@ async function fissures() {
   let t5 = "";
   for (const f of data) {
     if (f.modifier.includes("T1")) {
-      t1 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
-      }\n`;
+      t1 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+        }\n`;
       continue;
     } else if (f.modifier.includes("T2")) {
-      t2 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
-      }\n`;
+      t2 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+        }\n`;
       continue;
     } else if (f.modifier.includes("T3")) {
-      t3 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
-      }\n`;
+      t3 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+        }\n`;
       continue;
     } else if (f.modifier.includes("T4")) {
-      t4 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
-      }\n`;
+      t4 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+        }\n`;
       continue;
     } else {
-      t5 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${
-        f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
-      }\n`;
+      t5 += `${f.modifier} 丨 ${f.missionType} 丨 ${f.node} 丨 ${f.expiry ? calculationNowTimeDiff(f.expiry) : "-"
+        }\n`;
     }
   }
   out +=
@@ -384,14 +378,12 @@ async function sortie() {
   \n${sortie.faction || ""}\n`;
     if (sortie.variants && sortie.variants.length) {
       for (const v of sortie.variants) {
-        out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${
-          v.modifierType || v.modifier
-        }\n`;
+        out += `\n\t${v.missionType} 丨 ${v.node} 丨 ${v.modifierType || v.modifier
+          }\n`;
       }
     }
-    out += `\n  开始时间丨${
-      startTime ? moment.unix(startTime).format(`llll`) : "-"
-    }\n  结束时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
+    out += `\n  开始时间丨${startTime ? moment.unix(startTime).format(`llll`) : "-"
+      }\n  结束时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
     return out;
   } else {
     return "暂无突击信息";
@@ -404,9 +396,8 @@ async function deals() {
   let out = "         今日优惠        \n==================\n";
   for (const d of data) {
     const expiry = d.expiry;
-    out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${
-      d.salePrice || "-"
-    } 白金 丨 剩余 ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n`;
+    out += `${d.item || d.name} 丨 ${d.discount || "-"}%折扣 丨 ${d.salePrice || "-"
+      } 白金 丨 剩余 ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n`;
     out +=
       "上次刷新时间丨" +
       (d.activation ? moment.unix(d.activation).format(`llll`) : "-") +
@@ -454,9 +445,8 @@ async function events() {
   let out = "         事件        \n==================\n";
   for (const ev of data) {
     const expiry = ev.expiry;
-    out += `(${ev.tag || ev.name}) 距离结束丨${
-      expiry ? calculationNowTimeDiff(expiry) : "-"
-    } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}%\n`;
+    out += `(${ev.tag || ev.name}) 距离结束丨${expiry ? calculationNowTimeDiff(expiry) : "-"
+      } | 已完成 ${ev.healthPct ?? ev.completed ?? "-"}%\n`;
   }
   return out;
 }
@@ -467,9 +457,8 @@ async function season() {
   if (data.challenges && data.challenges.length) {
     let out = "         电波任务        \n==================\n";
     for (const c of data.challenges) {
-      out += `${c.cycle || ""} 丨 ${c.xp || ""} xp 丨 ${
-        c.challenge || c.description || ""
-      }\n`;
+      out += `${c.cycle || ""} 丨 ${c.xp || ""} xp 丨 ${c.challenge || c.description || ""
+        }\n`;
     }
     return out;
   }
@@ -482,9 +471,8 @@ async function bounty() {
   let out = "         赏金        \n==================\n";
   for (const b of data) {
     const expiry = b.expiry;
-    out += `${b.tag || b.name}   剩余时间：${
-      expiry ? calculationNowTimeDiff(expiry) : "-"
-    }\n`;
+    out += `${b.tag || b.name}   剩余时间：${expiry ? calculationNowTimeDiff(expiry) : "-"
+      }\n`;
     if (b.jobs) {
       for (const job of b.jobs) {
         out += `\t${job.jobType} \n\t\t奖励：${(job.rewards || job.reward || "")
