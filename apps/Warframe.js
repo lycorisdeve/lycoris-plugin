@@ -1,7 +1,5 @@
-import fetch from "node-fetch";
 import Config from "../components/Config.js";
 import moment from "moment";
-import https from "https";
 import { Render } from "../components/Index.js";
 import plugin from "../../../lib/plugins/plugin.js";
 import HelpService from "../model/HelpService.js";
