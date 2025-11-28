@@ -204,9 +204,9 @@ async function alerts() {
     const expiry = a.expiry;
     out += `剩余时间丨${calculationNowTimeDiff(expiry)}\n`;
 
-    out += `开始时间丨${a.activation ? moment.unix(a.activation).format(`llll`) : "-"
+    out += `开始时间丨${a.activation ? moment.unix(a.activation).format("YYYY年MM月DD日 HH:mm:ss") : "-"
       }\n`;
-    out += `剩余时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
+    out += `剩余时间丨${expiry ? moment.unix(expiry).format("YYYY年MM月DD日 HH:mm:ss") : "-"}\n`;
     out += "==================\n";
   }
   return out;
@@ -217,7 +217,7 @@ async function news() {
   if (!data || !Array.isArray(data) || data.length === 0) return "暂无新闻";
   let out = "        飞船新闻       \n==================\n";
   for (const n of data) {
-    let time = n.date ? moment.unix(n.date).format(`llll`) : "";
+    let time = n.date ? moment.unix(n.date).format("YYYY年MM月DD日 HH:mm:ss") : "";
     const msg = n.message || n.defaultMessages || n.body || "(无正文)";
     const link = n.link || n.prop || "";
     out += `${msg}\n\n    链接丨${link}\n==================\n    时间丨${time}\n`;
@@ -247,7 +247,7 @@ async function cetusTime() {
 
   const state = cetusIsDay ? "白天 ☀️" : "黑夜 🌙";
 
-  const nextChange = expiryTime.format("llll");
+  const nextChange = expiryTime.format("YYYY年MM月DD日 HH:mm:ss");
 
   return `         🌍地球平原🌍
 ========================
@@ -275,7 +275,7 @@ async function earthTime() {
   return `         🌍地球 🌍       \n======================\n\n${day ? "白天 ☀️" : "黑夜 🌙"
     }剩余丨${calculationNowTimeDiff(expiryTime)}\n\n交替将于丨${moment(
       expiryTime
-    ).format(`llll`)}`;
+    ).format("YYYY年MM月DD日 HH:mm:ss")}`;
 }
 
 async function fissures() {
@@ -335,12 +335,12 @@ async function trader() {
     const currentTime = moment().unix();
 
     if (currentTime < activateTime) {
-      arriveTime = moment.unix(activateTime).format(`llll`);
-      arriveTitle = `${voidTrader.character} 预计到达:`;
+      arriveTime = `预计到达:` + moment.unix(activateTime).format("YYYY年MM月DD日 HH:mm");
+      arriveTitle = `${voidTrader.character} `;
       arriveNode = `到达在:${voidTrader.node}`;
     } else if (currentTime > activateTime && currentTime < expiryTime) {
       arriveTitle = `${voidTrader.character} 滞留时间:`;
-      arriveTime = `离开在:` + moment.unix(expiryTime).format(`llll`);
+      arriveTime = `离开在:` + moment.unix(expiryTime).format("YYYY年MM月DD日 HH:mm");
     } else {
       arriveTitle = `${voidTrader.character} 已离开`;
       arriveTime = ``;
@@ -376,8 +376,8 @@ async function sortie() {
           }\n`;
       }
     }
-    out += `\n  开始时间丨${startTime ? moment.unix(startTime).format(`llll`) : "-"
-      }\n  结束时间丨${expiry ? moment.unix(expiry).format(`llll`) : "-"}\n`;
+    out += `\n  开始时间丨${startTime ? moment.unix(startTime).format("YYYY年MM月DD日 HH:mm:ss") : "-"
+      }\n  结束时间丨${expiry ? moment.unix(expiry).format("YYYY年MM月DD日 HH:mm:ss") : "-"}\n`;
     return out;
   } else {
     return "暂无突击信息";
@@ -394,10 +394,10 @@ async function deals() {
       } 白金 丨 剩余 ${expiry ? calculationNowTimeDiff(expiry) : "-"}\n`;
     out +=
       "上次刷新时间丨" +
-      (d.activation ? moment.unix(d.activation).format(`llll`) : "-") +
+      (d.activation ? moment.unix(d.activation).format("YYYY年MM月DD日 HH:mm:ss") : "-") +
       "\n";
     out +=
-      "结束时间丨" + (expiry ? moment.unix(expiry).format(`llll`) : "-") + "\n";
+      "结束时间丨" + (expiry ? moment.unix(expiry).format("YYYY年MM月DD日 HH:mm:ss") : "-") + "\n";
     out += "==================\n";
   }
 
