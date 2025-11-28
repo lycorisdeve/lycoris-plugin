@@ -23,6 +23,9 @@ importers:
       simple-git:
         specifier: ^3.30.0
         version: 3.30.0
+      undici:
+        specifier: ^7.16.0
+        version: 7.16.0
 
 packages:
 
@@ -348,6 +351,10 @@ packages:
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+  undici@7.16.0:
+    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
+    engines: {node: '>=20.18.1'}
 
   universalify@0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
@@ -732,6 +739,8 @@ snapshots:
   triptrap@0.0.17: {}
 
   undici-types@7.16.0: {}
+
+  undici@7.16.0: {}
 
   universalify@0.1.2: {}
 
