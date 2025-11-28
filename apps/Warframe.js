@@ -5,6 +5,7 @@ import https from "https";
 import { Render } from "../components/Index.js";
 import plugin from "../../../lib/plugins/plugin.js";
 import HelpService from "../model/HelpService.js";
+import fetchJSON from "../model/services/WarframeService.js";
 
 const config = Config.getConfig("config");
 let warframeConfig = config.warframe;
@@ -92,17 +93,12 @@ export class warframe extends plugin {
       );
       return;
     }
-    const url = "https://api.null00.com/ordis/getTextMessage";
-    const agent = url.startsWith("https:")
-      ? new https.Agent({ rejectUnauthorized: false })
-      : undefined;
-    const res = await fetch(url, {
+    const data = await fetchJSON("https://api.null00.com/ordis/getTextMessage", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ text: keyword }),
-      agent,
     });
-    const data = await res.json();
+
     e.reply(data.msg || "查询失败，请稍后重试");
   }
 
@@ -488,12 +484,7 @@ async function bounty() {
 // ----- 通用工具 -----
 async function getJsonData(url_arg) {
   const api_url = url + url_arg;
-  // 如果目标为 https，使用允许过期/自签名证书的 agent（仅针对此请求），以支持证书过期场景
-  const agent = api_url.startsWith("https:")
-    ? new https.Agent({ rejectUnauthorized: false })
-    : undefined;
-  const resp = await fetch(api_url, { timeout: 10000, agent });
-  return await resp.json();
+  return await fetchJSON(api_url);
 }
 
 // 计算目标时间与当前时间的差值
