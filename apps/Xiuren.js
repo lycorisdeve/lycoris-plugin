@@ -6,8 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { pluginResources } from "../components/lib/Path.js";
 
-// 网站配置 - 秀人网站点
-// 网站配置 - 秀人网站点
+
 const SITE_CONFIG = {
   SITE: 'https://www.xiuren.net', // 更新为新的网站地址
   // 超时设置
@@ -41,7 +40,7 @@ const SELECTORS = {
     title: '.item-heading a',
     image: '.item-thumbnail img',
     link: '.item-heading a',
-    date: '.item-meta span',
+    date: '.item-meta .meta-author span',
     views: '.meta-view'
   },
   // 详情页
@@ -207,7 +206,7 @@ export class XiuRen extends plugin {
 
     try {
       // 获取热门页内容
-      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/hot`);
+      const html = await this.fetchWithRetry(`${SITE_CONFIG.SITE}/?orderby=views`);
       return this.parseAndSendGalleryList(e, html, "热门图集");
     } catch (err) {
       logger.error(`秀人网热门页请求失败: ${err.message}`);
@@ -296,7 +295,7 @@ export class XiuRen extends plugin {
       // 获取所有图片
       const images = [];
       $(SELECTORS.detail.images).each((i, ele) => {
-        const imgSrc = $(ele).attr('src') || $(ele).attr('data-src') || $(ele).attr('data-original');
+        const imgSrc = $(ele).attr('data-src') || $(ele).attr('data-original') || $(ele).attr('src');
         if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/')) {
           // 确保图片链接是完整的URL
           const fullImgSrc = imgSrc.startsWith('http') ? imgSrc : new URL(imgSrc, SITE_CONFIG.SITE).href;
@@ -307,7 +306,7 @@ export class XiuRen extends plugin {
       // 如果没有找到图片，尝试其他选择器
       if (images.length === 0) {
         $('img').each((i, ele) => {
-          const imgSrc = $(ele).attr('src') || $(ele).attr('data-src') || $(ele).attr('data-original');
+          const imgSrc = $(ele).attr('data-src') || $(ele).attr('data-original') || $(ele).attr('src');
           if (imgSrc && !imgSrc.includes('logo.png') && !imgSrc.includes('/template/') &&
             !imgSrc.includes('favicon.ico') && imgSrc.includes('.')) {
             // 确保图片链接是完整的URL
@@ -384,9 +383,9 @@ export class XiuRen extends plugin {
       let obj = {};
       let href = $(ele).find(SELECTORS.home.link).attr('href');
       obj.title = $(ele).find(SELECTORS.home.title).text().trim();
-      obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('src') ||
-        $(ele).find(SELECTORS.home.image).attr('data-src') ||
-        $(ele).find(SELECTORS.home.image).attr('data-original');
+      obj.imgSrc = $(ele).find(SELECTORS.home.image).attr('data-src') ||
+        $(ele).find(SELECTORS.home.image).attr('data-original') ||
+        $(ele).find(SELECTORS.home.image).attr('src');
 
       // 获取日期和浏览量
       const metaText = $(ele).find(SELECTORS.home.date).text().trim();
@@ -419,7 +418,7 @@ export class XiuRen extends plugin {
           if (imgElement.length > 0) {
             let obj = {};
             obj.title = $(ele).text().trim() || imgElement.attr('alt') || '无标题';
-            obj.imgSrc = imgElement.attr('src') || imgElement.attr('data-src') || imgElement.attr('data-original');
+            obj.imgSrc = imgElement.attr('data-src') || imgElement.attr('data-original') || imgElement.attr('src');
 
             // 确保图片链接是完整的URL
             if (obj.imgSrc && !obj.imgSrc.startsWith('http')) {
