@@ -1,5 +1,5 @@
 #personalize
-.config/config/config.yaml
+.config/config/*
 
 # Logs
 logs
