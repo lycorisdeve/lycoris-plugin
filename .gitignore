@@ -1,3 +1,6 @@
+#personalize
+.config/config/config.yaml
+
 # Logs
 logs
 *.log

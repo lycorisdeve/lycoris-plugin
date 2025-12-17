@@ -175,14 +175,12 @@ export class Read60sPlugin extends plugin {
       const data = (await response.json()).data;
       if (!data || !data.image) throw new Error("备份源4未返回有效图片");
       const imgMsg = segment.image(data.image);
-      const dateInfo = this.formatDateInfo(data);
-      return { imgMsg, dateInfo };
+      return imgMsg;
     };
 
     try {
-      const { imgMsg, dateInfo } = await fetchImage();
+      const imgMsg = await fetchImage();
       await e.reply(imgMsg);
-      await e.reply(dateInfo);
       return true;
     } catch (error) {
       logger.error("获取新闻失败:", error);
@@ -191,22 +189,6 @@ export class Read60sPlugin extends plugin {
     }
   }
 
-  formatDateInfo(data) {
-    return `
-日期：${data.date}
-星期：${data.weekDay}
-年份：${data.yearTip}
-类型：${data.typeDes}
-属相：${data.chineseZodiac}
-节气：${data.solarTerms}
-农历：${data.lunarCalendar}
-宜：${data.suit}
-忌：${data.avoid}
-星座：${data.constellation}
-天数：${data.daysOfYear}
-周数：${data.weekOfYear}
-`;
-  }
 
   async sendRandomImage() {
     if (!plugin_config.isPush) return;
