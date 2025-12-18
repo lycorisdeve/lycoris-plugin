@@ -75,7 +75,7 @@ export class Read60sPlugin extends plugin {
           fnc: "getRead60sNews",
         },
         {
-          reg: "^60S测试",
+          reg: "^#60s强制推送$",
           fnc: "sendRandomImage",
         },
       ],
@@ -91,9 +91,6 @@ export class Read60sPlugin extends plugin {
     if (!Read60sConfig.isPush) return;
     try {
       const message = await getNewsImage();
-      logger.info("Sending 60S news image to configured IDs.");
-      logger.error("Configured group IDs:", Read60sConfig.group_ids);
-      logger.error("Configured private IDs:", Read60sConfig.private_ids);
       const sendPromises = [
         ...Read60sConfig.private_ids.map((qq) =>
           Bot.sendPrivateMsg(qq, message).catch((err) => logger.error(err))

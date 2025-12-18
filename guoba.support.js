@@ -488,9 +488,11 @@ export function supportGuoba() {
         return config
       },
       setConfigData(data, { Result }) {
+        let config = _.cloneDeep(Config.userConfig)
         for (let [keyPath, value] of Object.entries(data)) {
-          Config.modify('config', keyPath, value)
+          _.set(config, keyPath, value)
         }
+        Config.setConfig(config)
         return Result.ok({}, '保存成功~')
       },
     },
