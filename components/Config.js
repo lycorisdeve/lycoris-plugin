@@ -192,7 +192,7 @@ class Config {
   /** 设置配置 */
   setConfig(config) {
     const path = `${pluginRootPath}/config/config/config.yaml`
-    fs.writeFileSync(path, YAML.stringify(config, { indent: 2 }), 'utf8')
+    fs.writeFileSync(path, YAML.stringify(config), 'utf8')
     delete this.config['config.config']
   }
 }
