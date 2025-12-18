@@ -484,7 +484,7 @@ export function supportGuoba() {
         },
       ],
       getConfigData() {
-        let config = Config.getConfig()
+        let config = Config.userConfig
         return config
       },
       setConfigData(data, { Result }) {
