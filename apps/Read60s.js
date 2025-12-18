@@ -29,8 +29,8 @@ const API_CONFIG = {
   BACKUP4: "https://api.j4u.ink/v1/store/other/proxy/remote/news/60.json",
 };
 
-const plugin_config = config.read60s;
-const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * *`;
+const Read60sConfig = config.read60s;
+const CRON_EXPRESSION = `${Read60sConfig.schedule.second} ${Read60sConfig.schedule.minute} ${Read60sConfig.schedule.hour} * * *`;
 
 const REQUEST_TIMEOUT = 5000; // ms
 const REQUEST_RETRY = 2;
@@ -74,6 +74,10 @@ export class Read60sPlugin extends plugin {
           reg: "^#?\\s*(?:今日\\s*)?(?:60S|60s|News|news|NEWS|新闻|早报)(?:[1-4])?$",
           fnc: "getRead60sNews",
         },
+        {
+          reg: "^60S测试",
+          fnc: "sendRandomImage",
+        },
       ],
     });
     this.task = {
@@ -81,6 +85,27 @@ export class Read60sPlugin extends plugin {
       fnc: () => this.sendRandomImage(),
       cron: CRON_EXPRESSION,
     };
+  }
+
+  async sendRandomImage() {
+    if (!Read60sConfig.isPush) return;
+    try {
+      const message = await getNewsImage();
+      logger.info("Sending 60S news image to configured IDs.");
+      logger.error("Configured group IDs:", Read60sConfig.group_ids);
+      logger.error("Configured private IDs:", Read60sConfig.private_ids);
+      const sendPromises = [
+        ...Read60sConfig.private_ids.map((qq) =>
+          Bot.sendPrivateMsg(qq, message).catch((err) => logger.error(err))
+        ),
+        ...Read60sConfig.group_ids.map((qqGroup) =>
+          Bot.sendGroupMsg(qqGroup, message).catch((err) => logger.error(err))
+        ),
+      ];
+      await Promise.all(sendPromises);
+    } catch (error) {
+      logger.error("Error sending messages:", error);
+    }
   }
 
   // 修正版：容错空图片判断
@@ -186,26 +211,6 @@ export class Read60sPlugin extends plugin {
       logger.error("获取新闻失败:", error);
       await e.reply("没有获取到今日新闻！");
       return false;
-    }
-  }
-
-
-  async sendRandomImage() {
-    if (!plugin_config.isPush) return;
-    try {
-      const message = await getNewsImage();
-      logger.info("[60S新闻] 定时推送图片结构:", message);
-      const sendPromises = [
-        ...plugin_config.private_ids.map((qq) =>
-          Bot.sendPrivateMsg(qq, message).catch((err) => logger.error(err))
-        ),
-        ...plugin_config.group_ids.map((qqGroup) =>
-          Bot.sendGroupMsg(qqGroup, message).catch((err) => logger.error(err))
-        ),
-      ];
-      await Promise.all(sendPromises);
-    } catch (error) {
-      logger.error("Error sending messages:", error);
     }
   }
 }

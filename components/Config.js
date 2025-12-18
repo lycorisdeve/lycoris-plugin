@@ -155,13 +155,12 @@ class Config {
   modify(name, key, value, type = 'config') {
     const path = `${pluginRootPath}/config/${type}/${name}.yaml`
     const content = fs.readFileSync(path, 'utf8')
-    const config = YAML.parse(content)
-    if (_.isEqual(_.get(config, key), value)) {
-      return // 值未变化，不写文件
+    const document = YAML.parseDocument(content)
+    if (_.isEqual(document.get(key), value)) {
+      return // 值未变化，不修改
     }
-    _.set(config, key, value)
-    const newContent = YAML.stringify(config, { indent: 2 })
-    fs.writeFileSync(path, newContent, 'utf8')
+    document.set(key, value)
+    fs.writeFileSync(path, document.toString(), 'utf8')
     delete this.config[`${type}.${name}`]
   }
 
