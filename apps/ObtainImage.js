@@ -53,7 +53,7 @@ export class Photo extends plugin {
                     fnc: 'pic'
                 },
                 {
-                    reg: '酒仙|井空|老猫|猫佬|羊总|猫哥|卢蛇|小丑|马飞|开哥',
+                    reg: '酒仙|井空|老猫|猫佬|羊总|猫哥|卢蛇|小丑|马飞|开哥|郭少',
                     fnc: 'pic1'
                 },
                 {
