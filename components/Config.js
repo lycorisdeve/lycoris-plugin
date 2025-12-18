@@ -36,14 +36,14 @@ class Config {
       if (!fs.existsSync(`${path}${file}`)) {
         fs.copyFileSync(`${pathDef}${file}`, `${path}${file}`)
       } else {
+        // 检查是否有新字段需要合并（但不覆盖现有配置）
         const config = YAML.parse(fs.readFileSync(`${path}${file}`, 'utf8'))
         const defConfig = YAML.parse(fs.readFileSync(`${pathDef}${file}`, 'utf8'))
         const { differences, result } = this.mergeObjectsWithPriority(config, defConfig)
         if (differences) {
-          fs.copyFileSync(`${pathDef}${file}`, `${path}${file}`)
-          for (const key in result) {
-            this.modify(file.replace('.yaml', ''), key, result[key])
-          }
+          // 合并新字段到用户配置，但不覆盖现有值
+          const merged = _.merge({}, defConfig, config) // 优先使用用户配置
+          fs.writeFileSync(`${path}${file}`, YAML.stringify(merged), 'utf8')
         }
       }
       this.watch(`${path}${file}`, file.replace('.yaml', ''), 'config')
