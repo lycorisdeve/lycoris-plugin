@@ -160,7 +160,7 @@ class Config {
       return // 值未变化，不修改
     }
     document.set(key, value)
-    fs.writeFileSync(path, document.toString(), 'utf8')
+    fs.writeFileSync(path, document.toString({ lineWidth: -1, noCompatMode: true, simpleKeys: true }), 'utf8')
     delete this.config[`${type}.${name}`]
   }
 
