@@ -87,24 +87,10 @@ class Config {
     return this.getDefOrConfig('config')
   }
 
-  /** warframe相关配置 */
-  get warframe() {
-    return this.getDefOrConfig('warframe')
-  }
-
-
-  /**
-   * 获取截图功能的配置或默认设置
-   */
-  get screenshot() {
-    return this.getDefOrConfig('screenshot')
-  }
 
   All() {
     return {
       config: this.userConfig,
-      warframe: this.warframe,
-      screenshot: this.screenshot,
     }
   }
 
@@ -161,7 +147,7 @@ class Config {
 
   /**
    * 修改设置
-   * @param {'config','warframe','screenshot'} name 文件名
+   * @param {'config'} name 文件名
    * @param {String} key 修改的key值
    * @param {String|Number} value 修改的value值
    * @param {'config'|'default_config'} type 配置文件或默认
