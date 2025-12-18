@@ -47,4 +47,6 @@ for (let i in jsFiles) {
     apps[name] = ret[i].value[Object.keys(ret[i].value)[0]]
 }
 
-export { apps }
+import { supportGuoba } from './guoba.support.js'
+
+export { apps, supportGuoba }
