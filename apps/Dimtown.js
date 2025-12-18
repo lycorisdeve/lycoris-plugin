@@ -4,34 +4,100 @@ import * as cheerio from "cheerio";
 /** 获取图片数据 */
 async function getDimTownData(url) {
   try {
-    const response = await fetch(url, {
+    let response = await fetch(url, {
+      method: "GET",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0",
+        "Referer": "https://dimtown.com/",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
       },
+      redirect: "follow",
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const html = await response.text();
-    const $ = cheerio.load(html);
+    let html = await response.text();
+    let $ = cheerio.load(html);
+
+    // Check if we are on a list page (look for article links)
+    const articleLinks = [];
+    $(".kzpost-data > a").each((i, elem) => {
+      const href = $(elem).attr("href");
+      if (href) articleLinks.push(href);
+    });
+
+    if (articleLinks.length > 0) {
+      // We are on a list page, pick a random article
+      const randomArticleUrl = articleLinks[Math.trunc(Math.random() * articleLinks.length)];
+      logger.info(`Fetched list page, redirecting to article: ${randomArticleUrl}`);
+
+      response = await fetch(randomArticleUrl, {
+        method: "GET",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0",
+          "Referer": url,
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        },
+        redirect: "follow",
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status} for article`);
+      html = await response.text();
+      $ = cheerio.load(html);
+      url = randomArticleUrl; // Update url for return
+    }
 
     const images = [];
-    $("article .entry-content img, .post-content img, .content img").each(
-      (i, elem) => {
-        let src =
-          $(elem).attr("src") ||
-          $(elem).attr("data-src") ||
-          $(elem).attr("data-original");
-        if (src) {
-          if (src.startsWith("//")) src = "https:" + src;
-          else if (src.startsWith("/")) src = "https://dimtown.com" + src;
-          else if (!src.startsWith("http")) src = new URL(src, url).href;
-          images.push({ src });
+    // Selectors: Priority to gallery containers, then generic content
+    const imgSelectors = [
+      ".hig-image-container img",
+      ".entry-content img",
+      ".post-content img",
+      ".content img",
+      ".single-content img",
+      "article img"
+    ];
+
+    $(imgSelectors.join(", ")).each((i, elem) => {
+      let src =
+        $(elem).attr("data-src") ||
+        $(elem).attr("src") ||
+        $(elem).attr("data-original") ||
+        $(elem).attr("data-url");
+
+      if (src) {
+        // Clean up src
+        src = src.trim();
+        if (src.startsWith("//")) src = "https:" + src;
+        else if (src.startsWith("/")) src = "https://dimtown.com" + src;
+        else if (!src.startsWith("http")) {
+          try {
+            src = new URL(src, url).href;
+          } catch (e) {
+            // Ignore invalid URLs
+            return;
+          }
         }
+
+        // Filter: Ignore small icons, avatars, layout images
+        if (
+          src.includes("avatar") ||
+          src.includes("icon") ||
+          src.includes("logo") ||
+          src.endsWith(".svg") ||
+          src.includes("wp-content/plugins") ||
+          src.includes("wp-content/themes")
+        ) {
+          return;
+        }
+
+        images.push({ src });
       }
-    );
+    });
 
     const title =
-      $("h1.entry-title, .post-title, .entry-header h1")
+      $(".kz-single-data h1, h1.entry-title, .post-title, .entry-header h1")
         .first()
         .text()
         .trim() || "次元小镇图片";
