@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+
 import * as cheerio from "cheerio";
 
 /** 获取图片数据 */

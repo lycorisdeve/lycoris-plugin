@@ -10,11 +10,12 @@
  */
 
 
-import fetch from 'node-fetch'
+
 import crypto from 'crypto'
 import Config from '../components/Config.js'
-import md5 from 'md5'
 import lodash from 'lodash'
+
+const md5 = (str) => crypto.createHash('md5').update(str).digest('hex')
 
 let cfg = await Config.getConfig('config')
 const BAIDU = cfg.baidu_translate

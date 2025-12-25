@@ -3,7 +3,7 @@
  * @author: 名字
  * @date: Do not edit
  */
-import fetch from 'node-fetch'
+
 /**
    * #epic
    * 获取Epic免费游戏信息

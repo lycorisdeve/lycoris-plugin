@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+
 import Config from "../components/Config.js";
 
 /*
@@ -52,8 +52,7 @@ async function fetchWithRetry(
     } catch (err) {
       clearTimeout(id);
       logger?.warn?.(
-        `Request to ${url} failed (${i + 1}/${attempts}): ${
-          err.name || err.message
+        `Request to ${url} failed (${i + 1}/${attempts}): ${err.name || err.message
         }`
       );
       if (i < attempts - 1) await sleep(300);

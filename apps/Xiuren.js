@@ -8,7 +8,7 @@ import { pluginResources } from "../components/lib/Path.js";
 
 
 const SITE_CONFIG = {
-  SITE: 'https://www.xiuren.net', // 更新为新的网站地址
+  SITE: 'https://www.xiuren.net',
   // 超时设置
   TIMEOUT: 15000,
   // 随机延迟范围（毫秒）

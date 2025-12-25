@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+
 import Config from '../components/Config.js';
 import Render from '../components/lib/Render.js';
 import { pluginName } from '../components/lib/Path.js';

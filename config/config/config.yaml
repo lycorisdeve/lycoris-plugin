@@ -1,62 +1,111 @@
-#epic
+rss:
+  # 控制检查更新频率
+  cron: "*/30 * * * *"
+  # 发送主动推送消息的bot，填入字符串qq号，例如["12345667"]
+  # sender: []
+  # 默认发送到哪些群，如["12345678", "23456789"]
+  default_group: []
+  # rsshub地址，可以填自建地址或官方反代
+  rsshub_url:
+    - https://rsshub.zytomorrow.top
+    - https://rss.datuan.dev
+    - https://rsshub.asailor.org
+    - https://rsshub.cups.moe
+    - https://rsshub.rssforever.com
+    - https://hub.slarker.me
+    - https://rsshub.pseudoyu.com
+    - https://rsshub.ktachibana.party
+    - https://rsshub.umzzz.com
+    - https://rsshub.isrss.com
+    - https://rsshub.app
+  # 默认图片背景
+  background: https://api.armoe.cn/acg/random
+  # 订阅rss列表
+  subscribe_list:
+    - url: ${rsshub_url}/4khd/category/cosplay
+      name: 4khd
+      group: ["959969379"]
+    - url: ${rsshub_url}/yxdzqb/low
+      name: Steam史低
+      group: ["959969379"]
+    - url: ${rsshub_url}/misskon/posts/search=video
+      name: Misskon
+      group: ["959969379"]
+    - url: ${rsshub_url}/misskon/posts
+      name: Hentai
+      group: ["959969379"]
+    - url: ${rsshub_url}/everia/category/chinese
+      name: EveriaXiuren
+      group: ["959969379"]
+    - url: ${rsshub_url}/everia/category/cosplay
+      name: EveriaCosplay
+      group: ["959969379"]
+    - url: ${rsshub_url}/cosplaytele
+      name: CosplayTele
+      group: ["959969379"]
+    - url: ${rsshub_url}/jpxgmn/weekly
+      name: Girls
+      group: ["959969379"]
+    - url: ${rsshub_url}/4kup/category/coser
+      name: 4kupCoser
+      group: ["959969379"]
+    - url: ${rsshub_url}/4kup/category/korean
+      name: 4kupKorean
+      group: ["959969379"]
 epicGames:
   isPush: true
   schedule:
-    month: "*" # 每个月都执行
-    dayOfWeek: "5,0" # 在周五和周日执行（星期天是 0）
-    hour: "12" # 在中午12:00:00执行
+    month: "*"
+    dayOfWeek: 5,0
+    hour: "12"
     minute: "0"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
-  group_ids: ["1035210666", "959969379"]
+  group_ids:
+    - "1035210666"
+    - "959969379"
   private_ids: []
-#read60s
 read60s:
   isPush: true
   schedule:
-    hour: "8" # 在中午8:00:00执行
+    hour: "8"
     minute: "20"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
-  group_ids: ["1035210666", "959969379"]
+  group_ids:
+    - "1035210666"
+    - "959969379"
   private_ids: []
 aiNews:
   isPush: true
   schedule:
-    hour: "9" # 在早上8:00:00执行
+    hour: "9"
     minute: "11"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
-  group_ids: ["959969379"]
+  group_ids:
+    - "959969379"
   private_ids: []
-#翻译
 baidu_translate:
   id: null
   key: null
 youdao_translate:
   id: null
   key: null
-
-# 油价查询
 oilPrice:
   isPush: true
   schedule:
     year: "*"
     month: "*"
-    week: "5" # 在周五和周日执行（星期天是 0）
-    hour: "8" # 在早上8:00:00执行
+    week: "5"
+    hour: "8"
     minute: "30"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
-  group_ids: ["959969379"]
+  group_ids:
+    - "959969379"
   private_ids: []
-  #需要推送的省份
-  provinces: ["江苏", "福建"]
-
-# Warframe
+  provinces:
+    - 江苏
+    - 福建
 warframe:
-  server: "ZHCN" # 选择服务器，ZHCN为国服，ZH为国际服
-
+  server: ZHCN
 screenshot:
   fullScreen: true
   quality: 80
@@ -68,18 +117,13 @@ screenshot:
     resource: 30000
     render: 10000
   proxyApi:
-    url: "https://proxyapi.198143.xyz/"
+    url: https://proxyapi.198143.xyz/
     enabled: true
-
-# Html渲染精度，可选值50~200，建议100。设置高精度会提高图片的精细度，过高可能会影响渲染与发送速度
 renderScale: 100
-
-
-# BT搜索配置
 bt:
   proxy:
     enable: false
-    url: "http://127.0.0.1:7890" # 代理地址，例如 http://127.0.0.1:7890
+    url: http://127.0.0.1:7890
   proxyApi:
     enable: true
-    url: "https://proxyapi.198143.xyz/{{url}}"
+    url: https://proxyapi.198143.xyz/{{url}}

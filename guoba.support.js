@@ -450,6 +450,48 @@ export function supportGuoba() {
         },
         {
           component: "Divider",
+          label: "RSS 订阅配置",
+          componentProps: {
+            orientation: "left",
+            plain: true,
+          },
+        },
+        {
+          field: "rss.cron",
+          label: "检查频率",
+          component: "Input",
+          componentProps: {
+            placeholder: '*/30 * * * *',
+          },
+        },
+        {
+          field: "rss.default_group",
+          label: "默认推送群组",
+          component: "GTags",
+          componentProps: {
+            allowAdd: true,
+            allowDel: true,
+          },
+        },
+        {
+          field: "rss.rsshub_url",
+          label: "RSSHub 节点列表",
+          component: "GTags",
+          componentProps: {
+            allowAdd: true,
+            allowDel: true,
+          },
+        },
+        {
+          field: "rss.background",
+          label: "推送背景图",
+          component: "Input",
+          componentProps: {
+            placeholder: '请输入背景图片URL',
+          },
+        },
+        {
+          component: "Divider",
           label: "BT搜索配置",
           componentProps: {
             orientation: "left",

@@ -1,8 +1,7 @@
 
 import * as cheerio from 'cheerio';
-import fetch from 'node-fetch';
 import Config from '../../components/Config.js';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+import { ProxyAgent } from 'undici';
 
 /**
  * 将字节格式化为人类可读的字符串
@@ -31,7 +30,7 @@ async function fetchWithTimeout(url, timeout = 10000) {
     const config = Config.getDefOrConfig('config');
     const btConfig = config.bt || {};
 
-    let agent = null;
+    let dispatcher = null;
     let fetchUrl = url;
 
     // 优先使用 proxyApi
@@ -39,7 +38,7 @@ async function fetchWithTimeout(url, timeout = 10000) {
         fetchUrl = btConfig.proxyApi.url.replace('{{url}}', encodeURIComponent(url));
     } else if (btConfig.proxy && btConfig.proxy.enable && btConfig.proxy.url) {
         try {
-            agent = new HttpsProxyAgent(btConfig.proxy.url);
+            dispatcher = new ProxyAgent(btConfig.proxy.url);
         } catch (err) {
             logger.error(`[BT搜索] 代理配置错误: ${err.message}`);
         }
@@ -48,7 +47,7 @@ async function fetchWithTimeout(url, timeout = 10000) {
     try {
         const response = await fetch(fetchUrl, {
             signal: controller.signal,
-            agent: agent
+            dispatcher: dispatcher
         });
         clearTimeout(id);
         return response;
