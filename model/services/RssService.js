@@ -163,7 +163,8 @@ class RssService {
             } else {
                 // Fallback to simple text if render fails
                 const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
-                await Bot.sendGroupMsg(groupId, textMsg).catch(err => logger.error(`[RSS] Send fallback msg error: ${err}`));
+                // await Bot.sendGroupMsg(groupId, textMsg).catch(err => logger.error(`[RSS] Send fallback msg error: ${err}`));
+                logger.error(`[RSS] Send fallback msg : ${textMsg}`);
             }
             await Data.sleep(1000);
         }
