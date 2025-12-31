@@ -10,7 +10,7 @@ export class EatWhat extends plugin {
             priority: 5000,
             rule: [
                 {
-                    reg: '^#?(吃(什么|啥)|(今天|今晚|中午|早上|夜宵)吃(什么|啥))$',
+                    reg: '(吃(什么|啥)|(今天|今晚|中午|早上|夜宵)吃(什么|啥))',
                     fnc: 'eat'
                 },
                 {
