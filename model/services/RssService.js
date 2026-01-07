@@ -62,41 +62,11 @@ class RssService {
     async checkNewItems(feed, localId) {
         if (!feed || !feed.items || feed.items.length === 0) return [];
 
-        const newItems = [];
-
-        // Optimize: Check existence of multiple items at once ideally, but for now simple loop check
-        // Or fetch last items from DB for this feedUrl.
-
-        for (const item of feed.items) {
-            const id = item.guid || item.link || item.title;
-
-            // Check if exists in DB
-            const exists = RssHistory.findOne(localId, id);
-
-            if (!exists) {
-                newItems.push(item);
-                // We will save to DB after broadcast or here?
-                // Depending on requirement, usually save after confirmation or assume done.
-                // Here we just return new items. Caller handles broadcast.
-                // BUT we should mark them as seen to avoid re-push next time, even if push fails?
-                // Or better, save to DB *after* broadcast. 
-                // However, checkNewItems name implies just checking. 
-                // Let's modify logic: We return items that ARE NOT in DB.
-            }
-        }
-
-        // Issue: if we don't save now, next call might pick them up again if task crashes.
-        // But if we save now and broadcast fails, we lose notification.
-        // Let's adopt separate save.
-
-        // Wait, original code:
-        // if no history, save NEWEST only and return [] (don't push old stuff on first add).
-
+        // Check if it's the first time processing this feed
         const count = RssHistory.count(localId);
 
         if (count === 0) {
-            // First time for this feed
-            // Save all current items so we don't push them
+            // First time: Save all current items to history so we don't push old content
             const bulkData = feed.items.map(item => ({
                 feedUrl: localId,
                 guid: item.guid || item.link || item.title,
@@ -106,8 +76,24 @@ class RssService {
             return [];
         }
 
-        // Return found new items
-        return newItems.reverse(); // 按时间顺序推送
+        const newItems = [];
+
+        // Check each item against DB
+        for (const item of feed.items) {
+            const id = item.guid || item.link || item.title;
+
+            // Check if exists in DB
+            const exists = RssHistory.findOne(localId, id);
+
+            if (!exists) {
+                newItems.push(item);
+            }
+        }
+
+        // Return found new items (oldest first for chronological pushing, or newest? code said reverse)
+        // feed.items usually gives newest first. We want to push from oldest new item to newest new item?
+        // Original code: return newItems.reverse(); 
+        return newItems.reverse();
     }
 
     // Helper to record history after processing
@@ -196,7 +182,13 @@ class RssService {
                 seed: Math.random() // Used to avoid cache and add randomness
             };
 
-            return await Render.render('html/rss/rss', data);
+            return await Render.render('html/rss/rss', {
+                ...data,
+                waitTime: 2000,
+                pageGotoParams: {
+                    waitUntil: 'networkidle2'
+                }
+            });
         } catch (error) {
             logger.error(`[RSS] Render error: ${error.message}`);
             return null;

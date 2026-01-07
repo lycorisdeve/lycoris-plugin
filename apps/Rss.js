@@ -58,10 +58,19 @@ export class Rss extends plugin {
      */
     async add(e) {
         let msg = e.msg.replace(/^#rss\s*add\s*/, '').trim();
-        let [url, name] = msg.split(/\s+/);
+        // Support: url [name] [remark]
+        let args = msg.split(/\s+/);
+        let url = args[0];
+        let name = args[1];
+        let remark = args[2] || '';
+
+        // Handle remarks with spaces
+        if (args.length > 3) {
+            remark = args.slice(2).join(' ');
+        }
 
         if (!url) {
-            await e.reply('请提供RSS URL，格式：#rss add <url> [name]');
+            await e.reply('请提供RSS URL，格式：#rss add <url> [name] [remark]');
             return;
         }
 
@@ -105,7 +114,6 @@ export class Rss extends plugin {
         list.push(newItem);
 
         // 更新配置
-        // Config.modify supports top-level keys, so we need to update the 'rss' object
         const rssConfig = config.rss;
         rssConfig.subscribe_list = list;
         Config.modify('config', 'rss', rssConfig);
