@@ -25,7 +25,7 @@ body {
 }
 
 .rss-card-container {
-  width: 700px;
+  width: 1200px;
   background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 24px;
@@ -88,7 +88,7 @@ body {
 
 .rss-images {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
 }
 

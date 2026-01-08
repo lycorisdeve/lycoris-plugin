@@ -1,36 +1,37 @@
 {{extend defaultLayout}} {{block 'css'}}
 <link rel="stylesheet" type="text/css" href="{{_res_path}}/html/rss/rss.css" />
 {{/block}} {{block 'main'}}
-<div style="--bg-img: url('{{background}}?seed={{seed}}')" class="rss-body-wrapper">
-<div class="rss-card-container">
-  <div class="rss-header">
-    <div class="rss-source">
-      <span class="source-tag">{{subName}}</span>
-      <span class="pub-date">{{pubDate}}</span>
-    </div>
-    <h1 class="rss-title">{{title}}</h1>
-  </div>
-
-  <div class="rss-body">
-    <div class="rss-content">{{@ content}}</div>
-
-    {{if images && images.length > 0}}
-    <div class="rss-images">
-      {{each images img}}
-      <div class="img-wrapper">
-        <img src="{{img}}" alt="RSS Image" />
+<div
+  style="--bg-img: url('{{background}}?seed={{seed}}')"
+  class="rss-body-wrapper">
+  <div class="rss-card-container">
+    <div class="rss-header">
+      <div class="rss-source">
+        <span class="source-tag">{{subName}}</span>
+        <span class="pub-date">{{pubDate}}</span>
       </div>
-      {{/each}}
+      <h1 class="rss-title">{{title}}</h1>
     </div>
-    {{/if}}
-  </div>
 
-  <div class="rss-footer">
-    <div class="rss-info">
-      <p>原文地址: {{link}}</p>
+    <div class="rss-body">
+      <div class="rss-content">{{@ content}}</div>
+
+      {{if images && images.length > 0}}
+      <div class="rss-images">
+        {{each images img}}
+        <div class="img-wrapper">
+          <img src="{{img}}" alt="RSS Image" />
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
     </div>
-    <div class="rss-copyright">{{@ copyright}}</div>
+
+    <div class="rss-footer">
+      <div class="rss-info">
+        <p>原文地址: {{link}}</p>
+      </div>
+    </div>
   </div>
-</div>
 </div>
 {{/block}}
