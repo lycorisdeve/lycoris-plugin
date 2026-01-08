@@ -57,6 +57,9 @@ export class AiNews extends plugin {
     } catch (err) {
       return null;
     }
+    if (newsList.length === 0) {
+      return null;
+    }
     const data = {
       newsTitle: `AI新闻_${date}`,
       news: newsList,
