@@ -165,7 +165,7 @@ class RssService {
             let images = [];
             let match;
             while ((match = imgReg.exec(content)) !== null) {
-                if (images.length < 9) { // Limit to 9 images for HTML layout
+                if (images.length < 9 && match[1] && match[1].trim()) { // Limit to 9 images for HTML layout
                     images.push(match[1]);
                 }
             }
