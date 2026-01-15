@@ -10,6 +10,7 @@ import {
 } from './lib/Path.js'
 
 import YamlManager from './YamlManager.js'
+import cfg from '../../../lib/config/config.js'
 
 
 let configPath = `${pluginRootPath}/config/`
@@ -87,6 +88,12 @@ class Config {
     return this.getDefOrConfig('config')
   }
 
+
+
+  /** 主人QQ */
+  get masterQQ() {
+    return cfg.masterQQ || []
+  }
 
   All() {
     return {

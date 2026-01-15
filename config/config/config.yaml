@@ -28,9 +28,9 @@ rss:
     - url: ${rsshub_url}/yxdzqb/low
       name: Steam史低
       group: ["959969379"]
-    - url: ${rsshub_url}/misskon/posts/search=video
-      name: Misskon
-      group: ["959969379"]
+    # - url: ${rsshub_url}/misskon/posts/search=video
+    #   name: Misskon
+    #   group: ["959969379"]
     - url: ${rsshub_url}/misskon/posts
       name: Hentai
       group: ["959969379"]
