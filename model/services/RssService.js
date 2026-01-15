@@ -199,7 +199,7 @@ class RssService {
 
             return await Render.render('html/rss/rss', {
                 ...data,
-                waitTime: 2000,
+                waitTime: 6000,
                 pageGotoParams: {
                     waitUntil: 'networkidle2'
                 }
