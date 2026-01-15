@@ -18,8 +18,8 @@ import lodash from 'lodash'
 const md5 = (str) => crypto.createHash('md5').update(str).digest('hex')
 
 let cfg = await Config.getConfig('config')
-const BAIDU = cfg.baidu_translate
-const YOUDAO = cfg.youdao_translate
+const BAIDU = cfg.translate?.baidu || {}
+const YOUDAO = cfg.translate?.youdao || {}
 
 
 

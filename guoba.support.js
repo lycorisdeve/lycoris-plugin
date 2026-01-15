@@ -210,7 +210,7 @@ export function supportGuoba() {
           },
         },
         {
-          field: "baidu_translate.id",
+          field: "translate.baidu.id",
           label: "百度翻译 APP ID",
           component: "Input",
           componentProps: {
@@ -218,7 +218,7 @@ export function supportGuoba() {
           },
         },
         {
-          field: "baidu_translate.key",
+          field: "translate.baidu.key",
           label: "百度翻译密钥",
           component: "Input",
           componentProps: {
@@ -226,7 +226,7 @@ export function supportGuoba() {
           },
         },
         {
-          field: "youdao_translate.id",
+          field: "translate.youdao.id",
           label: "有道翻译 APP ID",
           component: "Input",
           componentProps: {
@@ -234,7 +234,7 @@ export function supportGuoba() {
           },
         },
         {
-          field: "youdao_translate.key",
+          field: "translate.youdao.key",
           label: "有道翻译密钥",
           component: "Input",
           componentProps: {

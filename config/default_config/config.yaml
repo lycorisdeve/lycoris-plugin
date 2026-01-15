@@ -50,12 +50,13 @@ aiNews:
   group_ids: []
   private_ids: []
 #翻译
-baidu_translate:
-  id: null
-  key: null
-youdao_translate:
-  id: null
-  key: null
+translate:
+  baidu:
+    id: null
+    key: null
+  youdao:
+    id: null
+    key: null
 
 # 油价查询
 oilPrice:
