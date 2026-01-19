@@ -17,6 +17,11 @@ export class Rss extends plugin {
                     permission: 'master'
                 },
                 {
+                    reg: '^#rss\\s*cron\\s*.*$',
+                    fnc: 'cron',
+                    permission: 'master'
+                },
+                {
                     reg: '^#rss\\s*list$',
                     fnc: 'list',
                     permission: 'master'
@@ -60,6 +65,27 @@ export class Rss extends plugin {
             },
             log: false
         };
+    }
+
+
+    /**
+     * 设置RSS定时任务Cron表达式
+     * #rss cron <cron>
+     */
+    async cron(e) {
+        let msg = e.msg.replace(/^#rss\s*cron\s*/, '').trim();
+        if (!msg) {
+            await e.reply('请提供Cron表达式，例如：#rss cron */30 * * * *');
+            return;
+        }
+
+        const config = Config.getConfig('config');
+        const rssConfig = config.rss || {};
+        rssConfig.cron = msg;
+
+        Config.modify('config', 'rss', rssConfig);
+
+        await e.reply(`RSS定时任务频率已更新为：${msg}\n注意：需要重启Bot才能生效`);
     }
 
     /**
@@ -204,6 +230,7 @@ export class Rss extends plugin {
     async help(e) {
         let msg = [
             '【RSS订阅命令说明】',
+            '#rss cron <cron> : 设置检查更新频率',
             '#rss add <URL> [名称] : 添加订阅',
             '#rss list : 查看订阅列表',
             '#rss del <序号/URL> : 删除订阅',
