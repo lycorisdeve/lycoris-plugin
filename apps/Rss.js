@@ -37,6 +37,11 @@ export class Rss extends plugin {
                     permission: 'master'
                 },
                 {
+                    reg: '^#rss\\s*(开启|关闭)$',
+                    fnc: 'switch',
+                    permission: 'master'
+                },
+                {
                     reg: '^#rss\\s*(命令|帮助)$',
                     fnc: 'help'
                 }
@@ -47,7 +52,12 @@ export class Rss extends plugin {
         this.task = {
             name: 'RSS定时任务',
             cron: rssConfig.cron || '*/30 * * * *',
-            fnc: () => RssService.task(),
+            fnc: () => {
+                const cfg = Config.getConfig('config').rss || {};
+                if (cfg.push !== false) { // 默认为true
+                    return RssService.task();
+                }
+            },
             log: false
         };
     }
@@ -180,6 +190,17 @@ export class Rss extends plugin {
         await e.reply(`RSS强制推送完成\n共检查 ${res.total} 个订阅\n共强制推送 ${res.pushed} 条内容`);
     }
 
+    async switch(e) {
+        let isClose = e.msg.includes('关闭');
+        const config = Config.getConfig('config');
+        const rssConfig = config.rss || {};
+
+        rssConfig.push = !isClose;
+        Config.modify('config', 'rss', rssConfig);
+
+        await e.reply(`RSS推送已${isClose ? '关闭' : '开启'}`);
+    }
+
     async help(e) {
         let msg = [
             '【RSS订阅命令说明】',
@@ -188,6 +209,7 @@ export class Rss extends plugin {
             '#rss del <序号/URL> : 删除订阅',
             '#rss push : 手动触发更新检查',
             '#rss 强制推送 : 强制触发最近内容推送',
+            '#rss 开启/关闭 : 开启或关闭RSS推送',
             '#rss 帮助 : 查看此说明'
         ];
         await e.reply(msg.join('\n'));
