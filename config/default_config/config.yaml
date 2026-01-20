@@ -103,3 +103,13 @@ bt:
   proxyApi:
     enable: true
     url: "https://proxyapi.198143.xyz/{{url}}"
+
+# 每日日期提醒
+dateReminder:
+  isPush: true
+  schedule:
+    hour: "8"
+    minute: "0"
+    second: "0"
+  group_ids: []
+  private_ids: []

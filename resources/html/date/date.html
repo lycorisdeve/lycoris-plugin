@@ -1,0 +1,46 @@
+{{extend defaultLayout}} {{block 'css'}}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{_res_path}}/html/date/date.css" />
+{{/block}} {{block 'main'}}
+<div class="calendar-wrapper">
+  <div class="background-overlay"></div>
+
+  <div class="left-panel">
+    <!-- Today Date Section -->
+    <div class="primary-card">
+      <div class="today-number">{{today.day}}</div>
+      <div class="today-lunar">{{today.lunar}}</div>
+      <div class="today-solar">{{today.solar}} {{today.week}}</div>
+    </div>
+
+    <!-- Nearest Festival Section -->
+    <div class="secondary-card">
+      <div class="next-label">Next</div>
+      <div class="next-title">{{next.name}}</div>
+      <div class="next-date">{{next.date}}</div>
+      <div class="next-countdown">
+        <span class="count">{{next.diff}}</span>
+        <span class="unit">天</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="festival-list">
+      {{each others festival index}}
+      <div class="festival-item">
+        <div class="fest-info">
+          <div class="fest-name">{{festival.name}}</div>
+          <div class="fest-date">{{festival.date}}</div>
+        </div>
+        <div class="fest-countdown">
+          {{festival.diff}} <span class="unit">天</span>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+{{/block}}

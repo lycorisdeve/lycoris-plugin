@@ -524,6 +524,61 @@ export function supportGuoba() {
             placeholder: 'https://proxyapi.198143.xyz/{{url}}',
           },
         },
+        {
+          component: "Divider",
+          label: "每日日期提醒配置",
+          componentProps: {
+            orientation: "left",
+            plain: true,
+          },
+        },
+        {
+          field: "dateReminder.isPush",
+          label: "是否推送",
+          component: "Switch",
+        },
+        {
+          field: "dateReminder.schedule.hour",
+          label: "小时",
+          component: "Input",
+          componentProps: {
+            placeholder: '8',
+          },
+        },
+        {
+          field: "dateReminder.schedule.minute",
+          label: "分钟",
+          component: "Input",
+          componentProps: {
+            placeholder: '0',
+          },
+        },
+        {
+          field: "dateReminder.schedule.second",
+          label: "秒",
+          component: "Input",
+          componentProps: {
+            placeholder: '0',
+          },
+        },
+        {
+          field: "dateReminder.group_ids",
+          label: "推送群组",
+          component: "GTags",
+          componentProps: {
+            allowAdd: true,
+            allowDel: true,
+          },
+        },
+        {
+          field: "dateReminder.private_ids",
+          label: "推送私聊",
+          component: "GTags",
+          componentProps: {
+            allowAdd: true,
+            allowDel: true,
+          },
+        },
       ],
       getConfigData() {
         let config = Config.userConfig
