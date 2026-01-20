@@ -37,7 +37,12 @@ export class EatWhat extends plugin {
 
         if (apiRes && apiRes.code === 200) {
             // 同时显示两个菜名
-            let msg = `今天吃\n${apiRes.meal1}\n${apiRes.meal2}`;
+            let msg = '今天吃\n';
+            if (apiRes.data && apiRes.data.food) {
+                msg += apiRes.data.food;
+            } else {
+                msg += `${apiRes.meal1}\n${apiRes.meal2}`;
+            }
             // 30% 几率额外追加一个彩蛋食物
             if (egg && Math.random() < 0.3) {
                 msg += `\n或者再来点额外的 "${egg.name}"？`;

@@ -32,13 +32,21 @@ class EatWhatService {
         let egg = null;
 
         // 1. 尝试调用 API
-        try {
-            const response = await fetch('https://zj.v.api.aa1.cn/api/eats/', { timeout: 5000 });
-            if (response.ok) {
-                apiRes = await response.json();
+        const apis = [
+            'https://zj.v.api.aa1.cn/api/eats/',
+            'https://api.istero.com/resource/v1/eat/what?token=YlicDEqnkViPylOKPfCIrqhAaXYFoImw'
+        ];
+
+        for (const url of apis) {
+            try {
+                const response = await fetch(url, { timeout: 5000 });
+                if (response.ok) {
+                    apiRes = await response.json();
+                    if (apiRes) break;
+                }
+            } catch (error) {
+                logger.error(`[EatWhatService] API 调用失败: ${url}`, error.message);
             }
-        } catch (error) {
-            logger.error('[EatWhatService] API 调用失败:', error.message);
         }
 
         // 2. 尝试从数据库获取彩蛋
