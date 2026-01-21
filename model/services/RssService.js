@@ -150,11 +150,13 @@ class RssService {
                 await Bot.sendGroupMsg(groupId, img).catch(async err => {
                     logger.error(`[RSS] 发送群消息失败：${err}`);
                     // 失败通知
-                    const notifyList = Config.masterQQ || [];
+                    if (this.config.notify_owner) {
+                        const notifyList = Config.masterQQ || [];
 
-                    for (const userId of notifyList) {
-                        const msg = `[RSS 推送失败]\n订阅: ${sub.name}\n群组: ${groupId}\n错误: ${err.message}`;
-                        await Bot.pickFriend(userId).sendMsg(msg).catch(e => logger.error(`[RSS] 通知管理员失败：${e}`));
+                        for (const userId of notifyList) {
+                            const msg = `[RSS 推送失败]\n订阅: ${sub.name}\n群组: ${groupId}\n错误: ${err.message}`;
+                            await Bot.pickFriend(userId).sendMsg(msg).catch(e => logger.error(`[RSS] 通知管理员失败：${e}`));
+                        }
                     }
                 });
             } else {
@@ -163,11 +165,13 @@ class RssService {
                 await Bot.sendGroupMsg(groupId, textMsg).catch(async err => {
                     logger.error(`[RSS] 发送回退消息失败：${err}`);
                     // 失败通知
-                    const notifyList = Config.masterQQ || [];
+                    if (this.config.notify_owner) {
+                        const notifyList = Config.masterQQ || [];
 
-                    for (const userId of notifyList) {
-                        const msg = `[RSS 推送失败]\n订阅: ${sub.name}\n群组: ${groupId}\n错误: ${err.message}`;
-                        await Bot.pickFriend(userId).sendMsg(msg).catch(e => logger.error(`[RSS] 通知管理员失败：${e}`));
+                        for (const userId of notifyList) {
+                            const msg = `[RSS 推送失败]\n订阅: ${sub.name}\n群组: ${groupId}\n错误: ${err.message}`;
+                            await Bot.pickFriend(userId).sendMsg(msg).catch(e => logger.error(`[RSS] 通知管理员失败：${e}`));
+                        }
                     }
                 });
             }

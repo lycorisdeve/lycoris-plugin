@@ -474,6 +474,11 @@ export function supportGuoba() {
           },
         },
         {
+          field: "rss.notify_owner",
+          label: "失败通知主人",
+          component: "Switch",
+        },
+        {
           field: "rss.rsshub_url",
           label: "RSSHub 节点列表",
           component: "GTags",

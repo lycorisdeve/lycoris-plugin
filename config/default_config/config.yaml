@@ -2,6 +2,8 @@
 rss:
   # 是否推送
   push: true
+  # 失败通知主人
+  notify_owner: false
   # 控制检查更新频率
   cron: "*/10 * * * *"
   # 发送主动推送消息的bot，填入字符串qq号，例如["12345667"]
