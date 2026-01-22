@@ -1,6 +1,8 @@
 
 import moment from 'moment';
-import { Solar } from './lunar.js';
+import lunar from './lunar.js';
+
+const { Solar, Lunar } = lunar;
 
 class DateService {
     constructor() {
