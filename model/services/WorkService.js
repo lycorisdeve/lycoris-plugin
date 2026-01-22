@@ -21,9 +21,6 @@ class WorkService {
         return `${H}:${i}:${s}`;
     }
 
-    /**
-     * 上班打卡
-     */
     clockIn(userId) {
         const date = this.getTodayDate();
         const time = this.getNowTime();
@@ -39,7 +36,15 @@ class WorkService {
             // 插入新记录
             WorkDb.createLog(userId, date, time, 0);
 
-            return { success: true, time, date };
+            return {
+                success: true,
+                time,
+                date,
+                startTime: time,
+                endTime: '工作中...',
+                duration: '工作中...',
+                rewards: { wonefei: 0 }
+            };
         } catch (error) {
             logger.error('[WorkService] 上班打卡失败', error);
             throw error;
@@ -102,11 +107,9 @@ class WorkService {
         }
     }
 
-    /**
-     * 每日签到
-     */
     signIn(userId) {
         const date = this.getTodayDate();
+        const time = this.getNowTime();
 
         try {
             const user = WorkDb.getUserStats(userId);
@@ -119,7 +122,17 @@ class WorkService {
             // 签到要更新 last_check_in
             WorkDb.updateUserStats(userId, rewards, date);
 
-            return { success: true, rewards };
+            // 获取更新后的统计数据
+            const updatedUser = WorkDb.getUserStats(userId);
+
+            return {
+                success: true,
+                rewards,
+                userStats: {
+                    ...updatedUser,
+                    check_in_time: time
+                }
+            };
         } catch (error) {
             logger.error('[WorkService] 签到失败', error);
             throw error;

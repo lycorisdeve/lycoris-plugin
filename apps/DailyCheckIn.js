@@ -2,6 +2,7 @@
 import { pluginName } from '../components/lib/Path.js';
 import puppeteer from "../../../lib/puppeteer/puppeteer.js";
 import WorkService from '../model/services/WorkService.js';
+import Render from '../components/lib/Render.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -28,13 +29,36 @@ export class DailyWork extends plugin {
         try {
             const result = WorkService.signIn(e.user_id);
             if (result.success) {
-                const { mora, primogems, favorability } = result.rewards;
-                await e.reply(`签到成功！\n💰 摩拉: +${mora}\n💎 原石: +${primogems}\n❤️ 好感: +${favorability}`, true);
+                const qqAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${e.user_id}&s=640`;
+
+                const data = {
+                    nickname: e.nickname,
+                    qqAvatar: qqAvatar,
+                    userInfo: {
+                        user_qq: e.user_id,
+                        check_in_days: result.userStats.total_days,
+                        favorability: result.userStats.favorability.toFixed(2),
+                        check_in_time: result.userStats.check_in_time,
+                        mora: result.userStats.mora,
+                        primogems: result.userStats.primogems
+                    },
+                    tdInfo: {
+                        td_favorability: result.rewards.favorability,
+                        td_mora: result.rewards.mora,
+                        td_primogems: result.rewards.primogems
+                    },
+                    last_sign_in: result.userStats.last_check_in || '无',
+                    mooto: "今天也是充满希望的一天~"
+                };
+
+                const img = await Render.render("html/signin/signin", data);
+                await e.reply(img);
             } else if (result.message === 'already_signed_in') {
                 await e.reply('你今天已经签到过了~', true);
             }
         } catch (error) {
-            await e.reply('签到失败，请查看日志');
+            logger.error('[DailyCheckIn] 签到渲染失败:', error);
+            await e.reply('签到失败，请稍后再试');
         }
     }
 
@@ -52,7 +76,7 @@ export class DailyWork extends plugin {
         try {
             const result = WorkService.clockIn(e.user_id);
             if (result.success) {
-                await e.reply(`打卡成功！上班时间：${result.time}\n今天也要加油哦！`);
+                await this.renderWorkImg(e, result);
             } else if (result.message === 'already_clocked_in') {
                 await e.reply('你今天已经打过上班卡啦！');
             }
@@ -69,27 +93,27 @@ export class DailyWork extends plugin {
                 return;
             }
 
-            // 生成图片
-            const qqAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${e.user_id}&s=640`;
-
-            const data = {
-                tplFile: `./plugins/${pluginName}/resources/html/work/work.html`,
-                dz: _path,
-                copyright: "Lycoris-Plugin",
-                nickname: e.nickname,
-                qqAvatar: qqAvatar,
-                startTime: result.startTime,
-                endTime: result.endTime,
-                isMissing: result.isMissing,
-                wonefei: result.rewards.wonefei,
-                duration: result.duration
-            };
-
-            const img = await puppeteer.screenshot("work", data);
-            await e.reply(img);
+            await this.renderWorkImg(e, result);
 
         } catch (error) {
             await e.reply('下班打卡失败，请稍后再试。');
         }
+    }
+
+    async renderWorkImg(e, result) {
+        const qqAvatar = `https://q1.qlogo.cn/g?b=qq&nk=${e.user_id}&s=640`;
+
+        const data = {
+            nickname: e.nickname,
+            qqAvatar: qqAvatar,
+            startTime: result.startTime,
+            endTime: result.endTime,
+            isMissing: result.isMissing || false,
+            wonefei: result.rewards.wonefei,
+            duration: result.duration
+        };
+
+        const img = await Render.render("html/work/work", data);
+        await e.reply(img);
     }
 }
