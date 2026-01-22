@@ -1,6 +1,6 @@
 
 import moment from 'moment';
-import lunar from './lunar.js';
+import * as lunar from './lunar.js';
 
 const { Solar, Lunar } = lunar;
 
