@@ -7,6 +7,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import { RssHistory } from '../sqlite3/RssDb.js';
 import Render from '../../components/lib/Render.js';
+import * as cheerio from 'cheerio';
 
 const parser = new Parser({
     headers: {
@@ -271,28 +272,37 @@ class RssService {
      */
     async render(sub, feed, item) {
         try {
-            let content = item.content || item.summary || item.contentSnippet || '';
+            let rawContent = item.content || item.summary || item.contentSnippet || '';
+            const $ = cheerio.load(rawContent);
 
-            // 从内容中提取图片 URL
-            const imgReg = /<img.*?src=["'](.*?)["'].*?>/g;
+            // 1. 提取图片 URL
             let images = [];
-            let match;
-            const seenImages = new Set(); // 去重
-
-            while ((match = imgReg.exec(content)) !== null) {
-                const imgUrl = match[1];
-                // 限制为 20 张图片以适应 HTML 布局
+            const seenImages = new Set();
+            $('img').each((i, el) => {
+                const imgUrl = $(el).attr('src');
                 if (images.length < 20 && imgUrl && imgUrl.trim()) {
                     if (!seenImages.has(imgUrl)) {
                         seenImages.add(imgUrl);
                         images.push(imgUrl);
                     }
                 }
-            }
+            });
 
-            // 从 content 中移除所有 img 标签，避免重复渲染
-            // 因为图片已经单独提取到 images 数组中，在模板中会单独显示
-            content = content.replace(/<img[^>]*>/g, '');
+            // 2. 删除所有图片标签，因为我们已经提取并准备单独显示
+            $('img').remove();
+
+            // 3. 清理空标签 (递归删除没有文本且没有子标签的内容)
+            $(':empty').remove();
+            // 针对只包含空白字符的标签进一步清理
+            $('*').each((i, el) => {
+                if ($(el).is('p, div, span') && $(el).text().trim() === '' && $(el).children().length === 0) {
+                    $(el).remove();
+                }
+            });
+
+            // 获取处理后的 HTML 内容并压缩多余空行
+            let content = $.html('body').replace(/^<body>|<\/body>$/g, '').trim();
+            content = content.replace(/\n\s*\n/g, '\n');
 
             // 准备模板数据
             const data = {

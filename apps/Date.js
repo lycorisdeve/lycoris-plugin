@@ -78,15 +78,12 @@ export class DatePlugin extends plugin {
             data.today.day = moment().date();
 
             // 获取随机背景图
-            let background = "https://api.paugram.com/wallpaper/?source=sina";
+            let background = "";
             try {
-                const response = await fetch("https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924&type=json");
-                if (response.ok) {
-                    const resJson = await response.json();
-                    if (resJson && resJson.code === 200 && resJson.url) {
-                        background = resJson.url;
-                        logger.info('[DateReminder] 获取随机背景图成功:\n', resJson);
-                    }
+                const response = await fetch("https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924&type=json").then(res => res.json());
+                if (response.code === 200 && response.url) {
+                    background = response.url;
+                    logger.info('[DateReminder] 获取随机背景图成功:\n', response);
                 }
             } catch (e) {
                 logger.error('[DateReminder] 获取随机背景图失败:', e);
