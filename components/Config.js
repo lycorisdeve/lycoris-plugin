@@ -42,9 +42,28 @@ class Config {
         const defConfig = YAML.parse(fs.readFileSync(`${pathDef}${file}`, 'utf8'))
         const { differences, result } = this.mergeObjectsWithPriority(config, defConfig)
         if (differences) {
-          // 合并新字段到用户配置，但不覆盖现有值
-          const merged = _.merge({}, defConfig, config) // 优先使用用户配置
-          fs.writeFileSync(`${path}${file}`, YAML.stringify(merged), 'utf8')
+          // 使用 parseDocument 保留注释
+          const userDoc = YAML.parseDocument(fs.readFileSync(`${path}${file}`, 'utf8'))
+
+          // 递归添加缺失的字段
+          const addMissingFields = (doc, defConfig, userConfig, prefix = '') => {
+            for (const [key, value] of Object.entries(defConfig)) {
+              const currentValue = userConfig[key]
+
+              if (currentValue === undefined) {
+                // 用户配置中不存在，添加默认值
+                const fullKey = prefix ? `${prefix}.${key}` : key
+                doc.setIn(fullKey.split('.'), value)
+              } else if (_.isPlainObject(value) && _.isPlainObject(currentValue)) {
+                // 递归处理嵌套对象
+                const newPrefix = prefix ? `${prefix}.${key}` : key
+                addMissingFields(doc, value, currentValue, newPrefix)
+              }
+            }
+          }
+
+          addMissingFields(userDoc, defConfig, config)
+          fs.writeFileSync(`${path}${file}`, userDoc.toString({ lineWidth: -1, noCompatMode: true, simpleKeys: true }), 'utf8')
         }
       }
       this.watch(`${path}${file}`, file.replace('.yaml', ''), 'config')
@@ -196,10 +215,40 @@ class Config {
     }
   }
 
-  /** 设置配置 */
+  /**
+   * 更新 YAML 配置（保留注释）
+   * @param {string} filePath YAML 文件路径
+   * @param {object} updates 要更新的配置对象
+   */
+  updateYamlConfig(filePath, updates) {
+    const content = fs.readFileSync(filePath, 'utf8')
+    const document = YAML.parseDocument(content)
+
+    // 递归设置所有配置值
+    const setValues = (doc, obj, prefix = '') => {
+      for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key
+
+        if (_.isPlainObject(value) && !_.isArray(value)) {
+          setValues(doc, value, fullKey)
+        } else {
+          doc.setIn(fullKey.split('.'), value)
+        }
+      }
+    }
+
+    setValues(document, updates)
+    fs.writeFileSync(filePath, document.toString({
+      lineWidth: -1,
+      noCompatMode: true,
+      simpleKeys: true
+    }), 'utf8')
+  }
+
+  /** 设置配置（保留注释） */
   setConfig(config) {
     const path = `${pluginRootPath}/config/config/config.yaml`
-    fs.writeFileSync(path, YAML.stringify(config), 'utf8')
+    this.updateYamlConfig(path, config)
     delete this.config['config.config']
   }
 }

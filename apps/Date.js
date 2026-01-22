@@ -8,7 +8,7 @@ const config = Config.getConfig('config').dateReminder || {
     isPush: true,
     schedule: {
         hour: '8',
-        minute: '0',
+        minute: '30',
         second: '0'
     },
     group_ids: [],
@@ -23,7 +23,7 @@ export class DatePlugin extends plugin {
             name: '日期提醒',
             dsc: '显示今日日期与节日倒计时',
             event: 'message',
-            priority: 500,
+            priority: 5000,
             rule: [
                 {
                     reg: '^#?(日期|今天几号|节日)$',

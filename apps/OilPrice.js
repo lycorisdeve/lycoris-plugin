@@ -177,27 +177,31 @@ export class OilPricePlugin extends plugin {
                 return false;
             }
 
-            // 读取当前配置
+            // 读取当前配置（使用 parseDocument 保留注释）
             const configPath = 'config/config.yaml';
             const configContent = fs.readFileSync(configPath, 'utf8');
-            const config = yaml.parse(configContent);
+            const document = yaml.parseDocument(configContent);
 
-            // 确保provinces数组存在
-            if (!config.oilPrice.provinces) {
-                config.oilPrice.provinces = [];
-            }
+            // 获取当前的 provinces 数组
+            let provinces = document.getIn(['oilPrice', 'provinces']) || [];
 
             // 检查是否已存在
-            if (config.oilPrice.provinces.includes(province)) {
+            if (provinces.includes(province)) {
                 await e.reply(`${province}已在推送列表中`);
                 return false;
             }
 
             // 添加新省份
-            config.oilPrice.provinces.push(province);
+            provinces.push(province);
 
-            // 保存配置
-            fs.writeFileSync(configPath, yaml.stringify(config), 'utf8');
+            // 更新配置（保留注释）
+            document.setIn(['oilPrice', 'provinces'], provinces);
+            fs.writeFileSync(configPath, document.toString({
+                lineWidth: -1,
+                noCompatMode: true,
+                simpleKeys: true
+            }), 'utf8');
+
             await e.reply(`成功添加${province}到油价推送列表`);
             return true;
         } catch (error) {
