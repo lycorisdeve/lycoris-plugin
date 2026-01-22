@@ -78,7 +78,13 @@ export class DatePlugin extends plugin {
 
             data.today.day = moment().date();
 
-            return await Render.render('html/date/date', data);
+            return await Render.render('html/date/date', {
+                ...data,
+                waitTime: 5000,
+                pageGotoParams: {
+                    waitUntil: 'networkidle2'
+                }
+            });
         } catch (err) {
             logger.error('Date Reminder Error:', err);
             return null;

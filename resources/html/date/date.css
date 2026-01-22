@@ -1,12 +1,7 @@
-@font-face {
-  font-family: "Inter";
-  src: url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");
-}
-
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inter", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
   overflow: hidden;
 }
 
@@ -15,8 +10,8 @@ body {
   height: 500px;
   display: flex;
   position: relative;
-  background: url("https://w.wallhaven.cc/full/85/wallhaven-851m12.jpg")
-    center/cover no-repeat;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%),
+    url("https://api.paugram.com/wallpaper/?source=sina") center/cover no-repeat;
   color: #fff;
   padding: 40px;
   box-sizing: border-box;

@@ -11,9 +11,19 @@ import chalk from 'chalk'
 import fs from 'fs'
 import { Data, Version } from './components/Index.js'
 
-logger.info(chalk.rgb(253, 235, 255)('-------------------------'))
-logger.info(chalk.rgb(134, 142, 204)(`彼岸花插件${Version.version}初始化~`))
-logger.info(chalk.rgb(253, 235, 255)('-------------------------'))
+const c1 = chalk.bold.hex('#FF0055');
+const c2 = chalk.bold.hex('#FF5500');
+const c3 = chalk.bold.hex('#FFCC00');
+const c4 = chalk.bold.hex('#33FF00');
+const c5 = chalk.bold.hex('#00DDFF');
+
+logger.info(c1('  ◢██████◣  ') + c2('◢██████◣  ') + c3('◢██████◣  ') + c4('◢██████◣  ') + c5('◢██████◣'))
+logger.info(c1('  █        █  ') + c2('█        █  ') + c3('█        █  ') + c4('█        █  ') + c5('█        █'))
+logger.info(chalk.bold.magenta(`   🌸  Lycoris-Plugin  v${Version.version}  -  彼 岸 花  🌸  `))
+logger.info(chalk.bold.cyan('   ✨  [ 系统正在同步时空频率... ]  ✨           '))
+logger.info(chalk.bold.yellow('   🚀  [ 核心模块载入中... Done! ]  🚀           '))
+logger.info(c5('  █        █  ') + c4('█        █  ') + c3('█        █  ') + c2('█        █  ') + c1('█        █'))
+logger.info(c5('  ◥██████◤  ') + c4('◥██████◤  ') + c3('◥██████◤  ') + c2('◥██████◤  ') + c1('◥██████◤'))
 
 if (!global.segment) {
     try {
