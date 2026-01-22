@@ -2,8 +2,6 @@
 import moment from 'moment';
 import * as lunar from './lunar.js';
 
-const { Solar, Lunar } = lunar;
-
 class DateService {
     constructor() {
         // 自定义一些常见的阳历节日 (lunar-javascript 本身主要关注法定节假日和农历节日)
@@ -30,13 +28,13 @@ class DateService {
      */
     async getCalendarData() {
         const now = new Date();
-        const solar = Solar.fromDate(now);
-        const lunar = solar.getLunar();
+        const solar = lunar.Solar.fromDate(now);
+        const lunarDate = solar.getLunar();
 
         const today = {
             solar: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`,
             week: `星期${solar.getWeekInChinese()}`,
-            lunar: `${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`
+            lunar: `${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`
         };
 
         const upcomingFestivals = this.getUpcomingFestivals(now);
@@ -53,17 +51,17 @@ class DateService {
      */
     getUpcomingFestivals(startDate) {
         let festivals = [];
-        let currentSolar = Solar.fromDate(startDate);
+        let currentSolar = lunar.Solar.fromDate(startDate);
 
         // 查找未来 365 天内的节日
         for (let i = 0; i < 365; i++) {
             const solar = currentSolar.next(i);
-            const lunar = solar.getLunar();
+            const lunarDate = solar.getLunar();
 
             let names = [];
 
             // 1. 获取阴历节日
-            const lunarFestivals = lunar.getFestivals();
+            const lunarFestivals = lunarDate.getFestivals();
             if (lunarFestivals.length > 0) names.push(...lunarFestivals);
 
             // 2. 获取阳历节日
@@ -79,7 +77,7 @@ class DateService {
             }
 
             // 4. 获取节气
-            const jieQi = lunar.getJieQi();
+            const jieQi = lunarDate.getJieQi();
             if (jieQi) names.push(jieQi);
 
             if (names.length > 0) {
