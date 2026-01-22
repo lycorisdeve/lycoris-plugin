@@ -76,18 +76,9 @@ export class DatePlugin extends plugin {
         try {
             const data = await service.getCalendarData();
 
-            // 添加今日的日，用于大数字显示
             data.today.day = moment().date();
 
-            const renderData = {
-                ...data,
-                _res_path: `${process.cwd()}/resources`,
-                sys: {
-                    scale: 1.5,
-                }
-            };
-
-            return await Render.render('html/date/date', renderData);
+            return await Render.render('html/date/date', data);
         } catch (err) {
             logger.error('Date Reminder Error:', err);
             return null;
