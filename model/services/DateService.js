@@ -1,6 +1,6 @@
 
 import moment from 'moment';
-import { Solar, Lunar, HolidayUtil } from './lunar.js';
+import { Solar, Lunar } from './lunar.js';
 
 class DateService {
     constructor() {

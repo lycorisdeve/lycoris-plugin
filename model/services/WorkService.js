@@ -1,6 +1,5 @@
 
 import WorkDb from '../sqlite3/WorkDb.js';
-import { logger } from '../../components/lib/logger.js';
 
 class WorkService {
     constructor() {
