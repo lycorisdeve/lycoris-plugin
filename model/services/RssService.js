@@ -225,29 +225,37 @@ class RssService {
                     .catch(async err => {
                         logger.error(`[RSS] 图片发送失败：${err.message}`);
 
-                        // 图片发送失败，尝试降级为文本消息
-                        const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
-                        await Bot.sendGroupMsg(groupId, textMsg)
-                            .then(() => {
-                                logger.info(`[RSS] 图片失败后文本发送成功`);
-                                groupSuccess = true;
-                            })
-                            .catch(async err2 => {
-                                logger.error(`[RSS] 文本发送也失败：${err2.message}`);
-                                await this.notifyOwnerFailure(sub, groupId, err2);
-                            });
+                        // 图片发送失败，尝试降级为文本消息 (检查配置)
+                        if (this.config.text_push !== false) {
+                            const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
+                            await Bot.sendGroupMsg(groupId, textMsg)
+                                .then(() => {
+                                    logger.info(`[RSS] 图片失败后文本发送成功`);
+                                    groupSuccess = true;
+                                })
+                                .catch(async err2 => {
+                                    logger.error(`[RSS] 文本发送也失败：${err2.message}`);
+                                    await this.notifyOwnerFailure(sub, groupId, err2);
+                                });
+                        } else {
+                            await this.notifyOwnerFailure(sub, groupId, err);
+                        }
                     });
             } else {
-                // 渲染失败，直接发送文本消息
-                const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
-                await Bot.sendGroupMsg(groupId, textMsg)
-                    .then(() => {
-                        groupSuccess = true;
-                    })
-                    .catch(async err => {
-                        logger.error(`[RSS] 文本发送失败：${err.message}`);
-                        await this.notifyOwnerFailure(sub, groupId, err);
-                    });
+                // 渲染失败，直接发送文本消息 (检查配置)
+                if (this.config.text_push !== false) {
+                    const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
+                    await Bot.sendGroupMsg(groupId, textMsg)
+                        .then(() => {
+                            groupSuccess = true;
+                        })
+                        .catch(async err => {
+                            logger.error(`[RSS] 文本发送失败：${err.message}`);
+                            await this.notifyOwnerFailure(sub, groupId, err);
+                        });
+                } else {
+                    logger.warn(`[RSS] ${sub.name} 渲染失败且文本推送已关闭，跳过推送`);
+                }
             }
 
             // 只要有一个群组成功，就标记为成功

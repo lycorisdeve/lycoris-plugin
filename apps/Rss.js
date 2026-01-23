@@ -47,6 +47,11 @@ export class Rss extends plugin {
                     permission: 'master'
                 },
                 {
+                    reg: '^#rss\\s*(开启|关闭)文本推送$',
+                    fnc: 'textSwitch',
+                    permission: 'master'
+                },
+                {
                     reg: '^#rss\\s*(命令|帮助)$',
                     fnc: 'help'
                 }
@@ -227,6 +232,17 @@ export class Rss extends plugin {
         await e.reply(`RSS推送已${isClose ? '关闭' : '开启'}`);
     }
 
+    async textSwitch(e) {
+        let isClose = e.msg.includes('关闭');
+        const config = Config.getConfig('config');
+        const rssConfig = config.rss || {};
+
+        rssConfig.text_push = !isClose;
+        Config.modify('config', 'rss', rssConfig);
+
+        await e.reply(`RSS文本推送已${isClose ? '关闭' : '开启'}`);
+    }
+
     async help(e) {
         let msg = [
             '【RSS订阅命令说明】',
@@ -237,6 +253,7 @@ export class Rss extends plugin {
             '#rss push : 手动触发更新检查',
             '#rss 强制推送 : 强制触发最近内容推送',
             '#rss 开启/关闭 : 开启或关闭RSS推送',
+            '#rss 开启/关闭文本推送 : 开启或关闭图片加载失败后的文本推送',
             '#rss 帮助 : 查看此说明'
         ];
         await e.reply(msg.join('\n'));

@@ -4,6 +4,8 @@ rss:
   push: true
   # 失败通知主人
   notify_owner: false
+  # 是否支持渲染失败后降级为文本推送
+  text_push: true
   # 控制检查更新频率
   cron: "*/10 * * * *"
   # 发送主动推送消息的bot，填入字符串qq号，例如["12345667"]
