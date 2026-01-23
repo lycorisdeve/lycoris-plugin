@@ -278,18 +278,73 @@ class RssService {
             // 1. 提取图片 URL
             let images = [];
             const seenImages = new Set();
-            $('img').each((i, el) => {
-                const imgUrl = $(el).attr('src');
-                if (images.length < 20 && imgUrl && imgUrl.trim()) {
-                    if (!seenImages.has(imgUrl)) {
+
+            // 支持解析相对路径的基础 URL
+            let baseUrl = item.link || sub.url || '';
+
+            $('img, video').each((i, el) => {
+                let imgUrl = '';
+                const $el = $(el);
+
+                if (el.tagName === 'img') {
+                    // 按优先级尝试不同的属性
+                    imgUrl = $el.attr('src') ||
+                        $el.attr('data-src') ||
+                        $el.attr('data-original') ||
+                        $el.attr('data-actualsrc') ||
+                        $el.attr('data-lazy-src');
+                } else if (el.tagName === 'video') {
+                    imgUrl = $el.attr('poster');
+                }
+
+                if (imgUrl && imgUrl.trim()) {
+                    imgUrl = imgUrl.trim();
+
+                    // 处理协议相对路径 //example.com/1.jpg
+                    if (imgUrl.startsWith('//')) {
+                        imgUrl = 'https:' + imgUrl;
+                    }
+                    // 处理相对路径 /img/1.jpg
+                    else if (imgUrl.startsWith('/') && baseUrl) {
+                        try {
+                            const urlObj = new URL(baseUrl);
+                            imgUrl = urlObj.origin + imgUrl;
+                        } catch (e) {
+                            // URL 解析失败，保留原样
+                        }
+                    }
+                    // 处理不包含协议的路径 img/1.jpg
+                    else if (!imgUrl.startsWith('http') && baseUrl) {
+                        try {
+                            const urlObj = new URL(baseUrl);
+                            const path = urlObj.pathname.split('/').slice(0, -1).join('/') + '/';
+                            imgUrl = urlObj.origin + path + imgUrl;
+                        } catch (e) {
+                            // URL 解析失败，保留原样
+                        }
+                    }
+
+                    // 如果启用了代理且该 URL 需要代理
+                    if (this.config.proxyApi && this.config.proxyApi.enabled && this.config.proxyApi.url) {
+                        if (!imgUrl.includes('base64,')) {
+                            const proxyUrlTemplate = this.config.proxyApi.url;
+                            if (proxyUrlTemplate.includes('{{url}}')) {
+                                imgUrl = proxyUrlTemplate.replace('{{url}}', encodeURIComponent(imgUrl));
+                            } else {
+                                imgUrl = proxyUrlTemplate + imgUrl;
+                            }
+                        }
+                    }
+
+                    if (images.length < 20 && !seenImages.has(imgUrl)) {
                         seenImages.add(imgUrl);
                         images.push(imgUrl);
                     }
                 }
             });
 
-            // 2. 删除所有图片标签，因为我们已经提取并准备单独显示
-            $('img').remove();
+            // 2. 删除所有图片和视频标签，因为我们已经提取并准备单独显示
+            $('img, video').remove();
 
             // 3. 清理空标签 (递归删除没有文本且没有子标签的内容)
             $(':empty').remove();

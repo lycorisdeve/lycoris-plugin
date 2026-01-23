@@ -113,7 +113,7 @@ body {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
-  background: #f9fafb;
+  background: rgba(243, 244, 246, 0.5);
 }
 
 .img-wrapper:hover {
@@ -143,7 +143,7 @@ body {
 
 .rss-images.image-count-1 .img-wrapper img {
   object-fit: contain;
-  background: #000;
+  /* Removed black background to prevent solid black boxes if image fails to load or is transparent */
 }
 
 /* 2 张图片 - 左右对称布局 */
