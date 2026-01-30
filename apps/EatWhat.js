@@ -34,31 +34,52 @@ export class EatWhat extends plugin {
      */
     async eat(e) {
         const { apiRes, egg } = await service.getRecommendation();
+        let foodNames = [];
+        let msg = '';
 
         if (apiRes && apiRes.code === 200) {
-            // 同时显示两个菜名
-            let msg = '今天吃\n';
-            if (apiRes.data && apiRes.data.food) {
+            msg = '今天吃\n';
+            if (apiRes.food) {
+                msg += apiRes.food;
+                foodNames.push(apiRes.food);
+            } else if (apiRes.data && apiRes.data.food) {
                 msg += apiRes.data.food;
-            } else {
+                foodNames.push(apiRes.data.food);
+            } else if (apiRes.meal1) {
                 msg += `${apiRes.meal1}\n${apiRes.meal2}`;
+                foodNames.push(apiRes.meal1, apiRes.meal2);
             }
+
             // 30% 几率额外追加一个彩蛋食物
             if (egg && Math.random() < 0.3) {
                 msg += `\n或者再来点额外的 "${egg.name}"？`;
+                foodNames.push(egg.name);
             }
-            await e.reply(msg);
         } else if (egg) {
+            foodNames.push(egg.name);
             const replies = [
                 `推荐吃：${egg.name}`,
                 `今天就吃 ${egg.name} 吧！`,
                 `要不试试 ${egg.name}？`
             ];
-            await e.reply(replies[Math.floor(Math.random() * replies.length)]);
+            msg = replies[Math.floor(Math.random() * replies.length)];
+        }
+
+        if (msg) {
+            let replyMsg = [msg];
+            // 遍历所有食物名称获取图片
+            for (let name of foodNames) {
+                const imageUrl = await service.getFoodImage(name);
+                if (imageUrl) {
+                    replyMsg.push(segment.image(imageUrl));
+                }
+            }
+            await e.reply(replyMsg);
         } else {
             await e.reply('呜呜，菜单空空的，API 也罢工了，要不去添加点食物（发送“添加食物 xxxx”）？或者干脆喝点凉水吧！');
         }
     }
+
 
     /**
      * 添加食物 (彩蛋)

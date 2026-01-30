@@ -37,11 +37,18 @@ class DateService {
             const solar = Solar.fromDate(now);
             const lunarDate = solar.getLunar();
 
+            // 计算周末倒计时
+            const currentDay = moment(now).day(); // 0 (Sun) to 6 (Sat)
+            const toSaturday = (7 + 6 - currentDay) % 7;
+            const toSunday = (7 + 0 - currentDay) % 7;
+
             // 今日信息
             const today = {
                 solar: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`,
                 week: `星期${solar.getWeekInChinese()}`,
-                lunar: `${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`
+                lunar: `${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`,
+                toSaturday,
+                toSunday
             };
 
             // 获取即将到来的节日
@@ -50,7 +57,7 @@ class DateService {
             return {
                 today,
                 next: upcomingFestivals[0] || null,
-                others: upcomingFestivals.slice(1, 6)
+                others: upcomingFestivals.slice(1, 9) // 增加到 8 个，填充右侧面板
             };
         } catch (error) {
             logger.error('[DateService] 获取日历数据失败:', error);

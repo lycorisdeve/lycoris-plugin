@@ -13,6 +13,14 @@
       <div class="today-number">{{today.day}}</div>
       <div class="today-lunar">{{today.lunar}}</div>
       <div class="today-solar">{{today.solar}} {{today.week}}</div>
+      <div class="weekend-countdown">
+        <span class="weekend-item"
+          >距双休: <span class="days">{{today.toSaturday}}</span>天</span
+        >
+        <span class="weekend-item"
+          >距单休: <span class="days">{{today.toSunday}}</span>天</span
+        >
+      </div>
     </div>
 
     <!-- Nearest Festival Section -->

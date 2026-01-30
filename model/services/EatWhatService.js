@@ -33,6 +33,7 @@ class EatWhatService {
 
         // 1. 尝试调用 API
         const apis = [
+            'https://api.pearktrue.cn/api/today/food.php',
             'https://zj.v.api.aa1.cn/api/eats/',
             'https://api.istero.com/resource/v1/eat/what?token=YlicDEqnkViPylOKPfCIrqhAaXYFoImw'
         ];
@@ -58,6 +59,28 @@ class EatWhatService {
         }
 
         return { apiRes, egg };
+    }
+
+    /**
+     * 根据食物名称获取图片
+     * @param {string} foodName 食物名称
+     * @returns {Promise<string|null>} 图片 URL 或 null
+     */
+    async getFoodImage(foodName) {
+        if (!foodName) return null;
+        try {
+            const url = `https://api.pearktrue.cn/api/cookbook/?search=${encodeURIComponent(foodName)}`;
+            const response = await fetch(url, { timeout: 5000 });
+            if (response.ok) {
+                const res = await response.json();
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    return res.data[0].image || null;
+                }
+            }
+        } catch (error) {
+            logger.error(`[EatWhatService] 获取食物图片失败: ${foodName}`, error.message);
+        }
+        return null;
     }
 
     /**
