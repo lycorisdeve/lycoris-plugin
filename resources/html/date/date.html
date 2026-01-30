@@ -15,10 +15,14 @@
       <div class="today-solar">{{today.solar}} {{today.week}}</div>
       <div class="weekend-countdown">
         <span class="weekend-item"
-          >距双休: <span class="days">{{today.toSaturday}}</span>天</span
+          >距双休:
+          <span class="days">{{today.isSat ? '今' : today.toSaturday}}</span
+          >{{if !today.isSat}}天{{/if}}</span
         >
         <span class="weekend-item"
-          >距单休: <span class="days">{{today.toSunday}}</span>天</span
+          >距单休:
+          <span class="days">{{today.isSun ? '今' : today.toSunday}}</span>{{if
+          !today.isSun}}天{{/if}}</span
         >
       </div>
     </div>
@@ -37,14 +41,14 @@
 
   <div class="right-panel">
     <div class="festival-list">
-      {{each others festival index}}
+      {{each others item index}}
       <div class="festival-item">
         <div class="fest-info">
-          <div class="fest-name">{{festival.name}}</div>
-          <div class="fest-date">{{festival.date}}</div>
+          <div class="fest-name">{{item.name}}</div>
+          <div class="fest-date">{{item.date}}</div>
         </div>
         <div class="fest-countdown">
-          {{festival.diff}} <span class="unit">天</span>
+          <span class="count">{{item.diff}}</span> <span class="unit">天</span>
         </div>
       </div>
       {{/each}}

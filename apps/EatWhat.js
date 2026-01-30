@@ -36,6 +36,7 @@ export class EatWhat extends plugin {
         const { apiRes, egg } = await service.getRecommendation();
         let foodNames = [];
         let msg = '';
+        let eggMsg = '';
 
         if (apiRes && apiRes.code === 200) {
             msg = '今天吃\n';
@@ -52,7 +53,7 @@ export class EatWhat extends plugin {
 
             // 30% 几率额外追加一个彩蛋食物
             if (egg && Math.random() < 0.3) {
-                msg += `\n或者再来点额外的 "${egg.name}"？`;
+                eggMsg = `\n或者再来点额外的 "${egg.name}"？`;
                 foodNames.push(egg.name);
             }
         } else if (egg) {
@@ -73,6 +74,10 @@ export class EatWhat extends plugin {
                 if (imageUrl) {
                     replyMsg.push(segment.image(imageUrl));
                 }
+            }
+            //彩蛋信息 调整到最后面
+            if (eggMsg) {
+                replyMsg.push(eggMsg);
             }
             await e.reply(replyMsg);
         } else {

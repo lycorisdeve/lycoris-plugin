@@ -47,8 +47,11 @@ class DateService {
                 solar: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`,
                 week: `星期${solar.getWeekInChinese()}`,
                 lunar: `${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`,
-                toSaturday,
-                toSunday
+                toSaturday: Number(toSaturday),
+                toSunday: Number(toSunday),
+                // 如果是 0，说明今天就是周末
+                isSat: toSaturday === 0,
+                isSun: toSunday === 0
             };
 
             // 获取即将到来的节日
@@ -57,7 +60,7 @@ class DateService {
             return {
                 today,
                 next: upcomingFestivals[0] || null,
-                others: upcomingFestivals.slice(1, 9) // 增加到 8 个，填充右侧面板
+                others: upcomingFestivals.slice(1, 10) // 增加到最多 9 个，填满右侧
             };
         } catch (error) {
             logger.error('[DateService] 获取日历数据失败:', error);
@@ -119,9 +122,8 @@ class DateService {
 
                             festivals.push({
                                 name: name,
-                                date: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`,
-                                diff: diff,
-                                moment: targetMoment
+                                date: `${solar.getMonth()}月${solar.getDay()}日`, // 简化日期显示
+                                diff: Number(diff)
                             });
                         });
                     }

@@ -189,8 +189,13 @@ body {
 }
 
 .fest-countdown {
-  font-size: 26px; /* Reduced from 32px */
+  font-size: 26px;
   font-weight: 700;
+  color: #ffeb3b; /* Make it yellow like the weekend days */
+}
+
+.fest-countdown .count {
+  font-size: 26px;
 }
 
 .fest-countdown .unit {
