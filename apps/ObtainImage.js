@@ -5,14 +5,13 @@ import { segment } from '@icqqjs/icqq';
 
 // API 配置
 const API_CONFIG = {
-    COS: 'https://api.qvqa.cn/cos?type=json',
-    LOVEANIMER: 'https://api.lolimi.cn/API/loveanimer',
+    COS: 'https://www.dmoe.cc/random.php?return=json',
+    LOVEANIMER: 'https://www.loliapi.com/acg/?type=json',
     MEINV: 'https://api.lolimi.cn/API/meinv/api.php',
     COSPLAY: 'https://api.lolimi.cn/API/cosplay/api.php',
     TAOBAO: 'https://api.03c3.cn/api/taobaoBuyerShow',
-    WALLPAPER: 'https://api.vvhan.com/api/wallpaper/pcGirl',
+    WALLPAPER: 'https://api.btstu.cn/sjbz/api.php?method=mobile&lx=meizi&format=json',
     BACKUP: 'https://api.lolicon.app/setu/v2?size=regular',
-
 };
 
 // 常量配置
@@ -109,12 +108,12 @@ export class Photo extends plugin {
                     return response?.data?.imgUrl;
 
                 case 'WALLPAPER':
-                    // WALLPAPER API返回格式: { url: "url" }
-                    return response?.url;
+                    // WALLPAPER API返回格式: { imgurl: "url" }
+                    return response?.imgurl;
 
                 case 'COS':
-                    // COS API返回格式: { pic: "url" }
-                    return response?.pic;
+                    // COS API返回格式: { imgurl: "url" }
+                    return response?.imgurl;
 
                 case 'LOVEANIMER':
                     // LOVEANIMER API返回格式: { url: "url" }
@@ -171,7 +170,7 @@ export class Photo extends plugin {
 
             // 尝试备用API
             const backupResponse = await this.fetchWithRetry(API_CONFIG.BACKUP);
-            
+
             const backupUrl = this.processApiResponse('BACKUP', backupResponse);
 
             if (backupUrl) {
