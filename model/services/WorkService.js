@@ -63,11 +63,12 @@ class WorkService {
             let record = WorkDb.getTodayLog(userId, date);
             let isMissing = false;
 
-            // 如果没有上班记录，视为缺卡，自动补一条
+            // 如果没有上班记录，视为补卡，上班时间默认为 08:30
             if (!record) {
                 isMissing = true;
-                WorkDb.createLog(userId, date, '缺卡', 1);
-                record = { start_time: '缺卡' };
+                const defaultStartTime = '08:30:00';
+                WorkDb.createLog(userId, date, defaultStartTime, 0);
+                record = { start_time: defaultStartTime };
             } else if (record.status === 1) {
                 return { success: false, message: 'already_clocked_out' };
             }
@@ -76,16 +77,17 @@ class WorkService {
             WorkDb.updateLog(userId, date, time);
 
             // 计算时长和薪水
-            const durationMs = new Date(`${date} ${time}`) - new Date(`${date} ${record.start_time !== '缺卡' ? record.start_time : time}`);
+            const durationMs = new Date(`${date} ${time}`) - new Date(`${date} ${record.start_time}`);
             const durationHours = durationMs / (1000 * 60 * 60);
 
             // 基础时薪 30 + 随机浮动
             const hourlyRate = 30 + Math.random() * 10;
-            // 缺卡没有薪水
-            const wonefei = record.start_time === '缺卡' ? 0 : Math.floor(durationHours * hourlyRate);
+            // 补卡也能获得薪水
+            const wonefei = Math.max(0, Math.floor(durationHours * hourlyRate));
 
-            const hours = Math.floor(durationMs / (1000 * 60 * 60));
-            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+            const totalMinutes = Math.floor(durationMs / (1000 * 60));
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
             const durationStr = `${hours}小时${minutes}分`;
 
             const rewards = { wonefei, favorability: 0, mora: 0, primogems: 0 };
