@@ -60,7 +60,7 @@ class DateService {
             return {
                 today,
                 next: upcomingFestivals[0] || null,
-                others: upcomingFestivals.slice(1, 13) // 增加到最多 12 个，填满右侧
+                others: upcomingFestivals.slice(1, 10) // 增加到最多 12 个，填满右侧
             };
         } catch (error) {
             logger.error('[DateService] 获取日历数据失败:', error);
