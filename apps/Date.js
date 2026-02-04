@@ -80,13 +80,25 @@ export class DatePlugin extends plugin {
             // 获取随机背景图
             let background = "";
             try {
-                const response = await fetch("https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924&type=json").then(res => res.json());
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
+                const response = await fetch("https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924&type=json", {
+                    signal: controller.signal
+                }).then(res => res.json());
+
+                clearTimeout(timeoutId);
+
                 if (response.code === 200 && response.url) {
                     background = response.url;
                     logger.info('[DateReminder] 获取随机背景图成功:\n', response);
                 }
             } catch (e) {
-                logger.error('[DateReminder] 获取随机背景图失败:', e);
+                if (e.name === 'AbortError') {
+                    logger.error('[DateReminder] 获取随机背景图超时 (5s)');
+                } else {
+                    logger.error('[DateReminder] 获取随机背景图失败:', e);
+                }
             }
 
             return await Render.render('html/date/date', {
