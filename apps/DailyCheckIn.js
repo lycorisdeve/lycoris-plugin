@@ -1,10 +1,6 @@
 
-import { pluginName } from '../components/lib/Path.js';
-import puppeteer from "../../../lib/puppeteer/puppeteer.js";
 import WorkService from '../model/services/WorkService.js';
 import Render from '../components/lib/Render.js';
-import fs from 'fs';
-import path from 'path';
 
 const _path = process.cwd();
 
