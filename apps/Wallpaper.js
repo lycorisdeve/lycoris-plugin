@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import { pluginResources } from '../components/lib/Path.js';
 import { getRandomLinkId, getHDWallpaper, searchImage } from '../model/services/WallpaperService.js'
 import Translate from '../utils/Translate.js'
 

@@ -38,6 +38,10 @@ export const helpList = [{
         title: '签到',
         desc: '签到/打卡/冒泡'
     }, {
+        icon: 63,
+        title: '吃什么',
+        desc: '#吃什么 #添加食物'
+    }, {
         icon: 46,
         title: '商店',
         desc: '#商店 #购买商品纠缠之缘'
@@ -45,17 +49,13 @@ export const helpList = [{
 }, {
     group: '资讯功能',
     list: [{
-        icon: 33,
-        title: 'Epic免费游戏',
-        desc: '#epic 或在config里配置定时发送'
-    }, {
-        icon: 31,
-        title: 'Warframe',
-        desc: '#wf赏金 #wf地球平原 #wf警报'
-    }, {
         icon: 23,
         title: '60S新闻',
         desc: '#news #news1 #news2 #新闻'
+    }, {
+        icon: 25,
+        title: 'AI新闻',
+        desc: 'AI新闻 | 新闻推送'
     }, {
         icon: 24,
         title: '摸鱼日历',
@@ -64,6 +64,18 @@ export const helpList = [{
         icon: 25,
         title: '摸鱼视频',
         desc: '#摸鱼视频日报 #内涵段子'
+    }, {
+        icon: 33,
+        title: 'Epic免费游戏',
+        desc: '#epic (可在config配置推送)'
+    }, {
+        icon: 31,
+        title: 'Warframe',
+        desc: '#wf赏金 #wf地球平原'
+    }, {
+        icon: 27,
+        title: 'RSS订阅',
+        desc: '#rss 开启/关闭/订阅列表'
     }, {
         icon: 26,
         title: '查油价',
@@ -76,9 +88,13 @@ export const helpList = [{
         title: '壁纸',
         desc: '#来一张壁纸 #壁纸搜索xxx'
     }, {
+        icon: 21,
+        title: '次元小镇',
+        desc: '#次元[cos|jk|汉服|插画|壁纸]'
+    }, {
         icon: 57,
-        title: '看秀图',
-        desc: '#秀图搜索xx #看秀图xx'
+        title: '秀人网',
+        desc: '#秀人热门 #秀人搜索xxx'
     }, {
         icon: 58,
         title: 'BT搜索',
