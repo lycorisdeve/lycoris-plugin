@@ -8,7 +8,7 @@ body {
 }
 
 .calendar-wrapper {
-  width: 800px;
+  width: 700px;
   height: 500px;
   display: flex;
   position: relative;
@@ -45,14 +45,14 @@ body {
 }
 
 .left-panel {
-  flex: 0 0 350px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
 .right-panel {
-  flex: 1;
+  flex: 0 0 250px;
   display: flex;
   flex-direction: column;
   justify-content: center;
