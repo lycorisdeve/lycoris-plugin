@@ -8,7 +8,7 @@ body {
 }
 
 .calendar-wrapper {
-  width: 700px;
+  width: 620px;
   height: 500px;
   display: flex;
   position: relative;
@@ -17,9 +17,9 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   color: #fff;
-  padding: 40px;
+  padding: 30px;
   box-sizing: border-box;
-  gap: 20px;
+  gap: 30px;
 }
 
 /* 隐藏底部插件信息 */
@@ -52,7 +52,7 @@ body {
 }
 
 .right-panel {
-  flex: 0 0 250px;
+  flex: 0 0 160px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -180,29 +180,30 @@ body {
 }
 
 .fest-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   margin-bottom: 2px;
+  opacity: 0.8;
 }
 
 .fest-date {
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: 11px;
+  opacity: 0.5;
 }
 
 .fest-countdown {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #fff;
 }
 
 .fest-countdown .count {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .fest-countdown .unit {
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: 11px;
+  opacity: 0.5;
   font-weight: 400;
   margin-left: 2px;
 }
