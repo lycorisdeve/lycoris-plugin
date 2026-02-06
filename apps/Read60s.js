@@ -65,7 +65,7 @@ export class Read60sPlugin extends plugin {
   constructor() {
     super({
       name: "60S新闻",
-      dsc: "获取60S新闻，并定时推送",
+      dsc: "获取60S新闻,并定时推送",
       event: "message",
       priority: 1200,
       rule: [
@@ -104,7 +104,7 @@ export class Read60sPlugin extends plugin {
     }
   }
 
-  // 修正版：容错空图片判断
+  // 修正版:容错空图片判断
   async handleNewsRequest(e, fetchFunction) {
     try {
       const imgMsg = await fetchFunction();
@@ -126,7 +126,7 @@ export class Read60sPlugin extends plugin {
     } catch (error) {
       logger.error("获取新闻失败:", error);
     }
-    await e.reply("没有获取到今日新闻！");
+    await e.reply("没有获取到今日新闻!");
     return false;
   }
 
@@ -205,7 +205,7 @@ export class Read60sPlugin extends plugin {
       return true;
     } catch (error) {
       logger.error("获取新闻失败:", error);
-      await e.reply("没有获取到今日新闻！");
+      await e.reply("没有获取到今日新闻!");
       return false;
     }
   }

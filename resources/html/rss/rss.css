@@ -144,7 +144,7 @@ body {
 
 /* ========== 智能图片布局 ========== */
 
-/* 1 张图片 - 全宽大图，突出显示 */
+/* 1 张图片 - 全宽大图,突出显示 */
 .rss-images.image-count-1 {
   grid-template-columns: 1fr;
 }
@@ -169,7 +169,7 @@ body {
   aspect-ratio: 1 / 1;
 }
 
-/* 3 张图片 - 主次布局（第一张占满宽度，后两张各占一半） */
+/* 3 张图片 - 主次布局(第一张占满宽度,后两张各占一半) */
 .rss-images.image-count-3 {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;

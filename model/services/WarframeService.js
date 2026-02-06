@@ -1,7 +1,7 @@
 import { Agent } from "undici";
 
 /**
- * 通用 fetch 封装，自动忽略 HTTPS 证书过期
+ * 通用 fetch 封装,自动忽略 HTTPS 证书过期
  * @param {string} api_url 完整 URL
  * @param {object} options fetch 参数
  * @returns JSON 数据

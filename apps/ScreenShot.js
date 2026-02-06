@@ -86,7 +86,7 @@ export class Screenshot extends plugin {
     }
 
     const configStr = yaml.stringify(config);
-    e.reply(`当前配置：\n${configStr}`);
+    e.reply(`当前配置:\n${configStr}`);
     return true;
   }
 
@@ -124,7 +124,7 @@ export class Screenshot extends plugin {
 
   async screenshot(e) {
     if (!e.isMaster) {
-      logger.info("[截图] 检测到当前不是主人，忽略");
+      logger.info("[截图] 检测到当前不是主人,忽略");
       return true;
     }
 
@@ -140,7 +140,7 @@ export class Screenshot extends plugin {
 
   async githubTrending(e) {
     if (!e.isMaster) {
-      logger.info("[截图] 检测到当前不是主人，忽略");
+      logger.info("[截图] 检测到当前不是主人,忽略");
       return true;
     }
     e.reply("正在获取GitHub趋势...");
@@ -185,7 +185,7 @@ export class Screenshot extends plugin {
       const isWeixinArticle = link.startsWith("https://mp.weixin.qq.com/s/");
       logger.info(
         `[截图] ${
-          isWeixinArticle ? "检测到微信文章，将使用特殊处理..." : "普通网页处理"
+          isWeixinArticle ? "检测到微信文章,将使用特殊处理..." : "普通网页处理"
         }`
       );
 
@@ -198,7 +198,7 @@ export class Screenshot extends plugin {
         "--no-zygote",
       ];
       let needProxy;
-      // 如果是微信文章，添加特殊参数
+      // 如果是微信文章,添加特殊参数
       if (isWeixinArticle) {
         launchArgs.push("--enable-features=NetworkService");
         launchArgs.push("--disable-features=NetworkServiceInProcess");
@@ -226,7 +226,7 @@ export class Screenshot extends plugin {
       // 创建新页面
       let page = await browser.newPage();
 
-      // 设置页面超时（微信文章使用更长的超时时间）
+      // 设置页面超时(微信文章使用更长的超时时间)
       await page.setDefaultNavigationTimeout(isWeixinArticle ? 60000 : 30000);
       await page.setDefaultTimeout(isWeixinArticle ? 60000 : 30000);
 
@@ -237,7 +237,7 @@ export class Screenshot extends plugin {
         timeout: isWeixinArticle ? 60000 : 30000,
       });
 
-      // 如果是微信文章，等待更长时间确保图片加载
+      // 如果是微信文章,等待更长时间确保图片加载
       if (isWeixinArticle) {
         logger.info("[截图] 微信文章等待图片加载中...");
         await this.delay(10000); // 先等待10秒
@@ -276,7 +276,7 @@ export class Screenshot extends plugin {
         });
       }
 
-      logger.info("[截图] 页面主体加载完成，正在处理图片...");
+      logger.info("[截图] 页面主体加载完成,正在处理图片...");
       await page.evaluate(() => {
         return new Promise((resolve) => {
           const checkReady = () => {
@@ -287,11 +287,11 @@ export class Screenshot extends plugin {
             }
           };
 
-          // 移除已有监听，避免重复
+          // 移除已有监听,避免重复
           window.removeEventListener("load", resolve);
           window.addEventListener("load", resolve);
 
-          // 设置超时（60 秒）
+          // 设置超时(60 秒)
           const timeout = setTimeout(resolve, 30000);
 
           // 检查 readyState
@@ -305,7 +305,7 @@ export class Screenshot extends plugin {
         });
       });
 
-      // 如果是长截图模式，添加滚动进度提示
+      // 如果是长截图模式,添加滚动进度提示
       if (fullPage) {
         logger.info("[截图] 开始处理长图...");
 
@@ -343,7 +343,7 @@ export class Screenshot extends plugin {
         });
       }
 
-      // await this.e.reply("内容加载完成，正在生成截图...");
+      // await this.e.reply("内容加载完成,正在生成截图...");
 
       // 访问页面后获取实际内容宽度
       const pageWidth = await page.evaluate(() => {
@@ -355,7 +355,7 @@ export class Screenshot extends plugin {
           document.body.offsetWidth
         );
 
-        // 获取实际内容区域的宽度，排除空白区域
+        // 获取实际内容区域的宽度,排除空白区域
         const mainContent = document.querySelector(
           "main, #main, .main, article, .content, #content"
         );
@@ -371,13 +371,13 @@ export class Screenshot extends plugin {
           const mainWidth = mainContent.offsetWidth;
           if (mainWidth < 100 || mainWidth > 3000) {
             // 检测异常宽度
-            // 如果主内容区域宽度异常，使用视口宽度
+            // 如果主内容区域宽度异常,使用视口宽度
             finalWidth = Math.min(window.innerWidth, MAX_WIDTH);
           } else {
             finalWidth = mainWidth;
           }
         } else {
-          // 如果没有找到主要内容区，使用页面宽度
+          // 如果没有找到主要内容区,使用页面宽度
           finalWidth = Math.min(contentWidth, MAX_WIDTH);
         }
 
@@ -402,7 +402,7 @@ export class Screenshot extends plugin {
 
       // 根据模式选择不同的处理方式
       if (fullPage) {
-        // 长图模式：滚动加载
+        // 长图模式:滚动加载
         await Promise.race([
           page.evaluate(async () => {
             // 滚动触发懒加载
@@ -429,7 +429,7 @@ export class Screenshot extends plugin {
           logger.warn(`[截图] 页面加载未完全完成: ${error}`);
         });
       } else {
-        // 普通模式：等待可视区域内容加载
+        // 普通模式:等待可视区域内容加载
         await Promise.race([
           page.evaluate(async () => {
             // 只等待视口内的图片加载
@@ -479,15 +479,15 @@ export class Screenshot extends plugin {
       logger.error(`[截图] 错误详情: ${error.stack || error}`);
 
       if (error.message.includes("net::ERR_PROXY_CONNECTION_FAILED")) {
-        await this.e.reply("代理服务器连接失败，请检查代理服务器是否正常运行");
+        await this.e.reply("代理服务器连接失败,请检查代理服务器是否正常运行");
       } else if (error.message.includes("net::ERR_TUNNEL_CONNECTION_FAILED")) {
-        await this.e.reply("代理隧道连接失败，请检查代理服务器配置");
+        await this.e.reply("代理隧道连接失败,请检查代理服务器配置");
       } else if (error.message.includes("net::ERR_CONNECTION_RESET")) {
         await this.e.reply(
-          "连接被重置，可能是代理服务器拒绝了连接，请检查代理设置"
+          "连接被重置,可能是代理服务器拒绝了连接,请检查代理设置"
         );
       } else if (error.message.includes("net::ERR_CONNECTION_TIMED_OUT")) {
-        await this.e.reply("连接超时，请检查代理服务器响应时间");
+        await this.e.reply("连接超时,请检查代理服务器响应时间");
       } else {
         await this.e.reply(`截图失败: ${error.message}`);
       }
@@ -530,13 +530,13 @@ export class Screenshot extends plugin {
       config.proxyApi.enabled = true;
 
       this.saveConfig();
-      e.reply(`代理API已更新：${config.proxyApi.url}`);
+      e.reply(`代理API已更新:${config.proxyApi.url}`);
 
       // 输出详细日志
       logger.info(`[截图] 代理API已更新 - URL:${config.proxyApi.url}`);
     } else {
       e.reply(
-        "格式错误！正确格式：#截图代理设置 https://proxyapi.example.com/"
+        "格式错误!正确格式:#截图代理设置 https://proxyapi.example.com/"
       );
     }
     return true;
@@ -570,7 +570,7 @@ export class Screenshot extends plugin {
         urlObj.hostname.includes(domain)
       );
 
-      // 如果在列表中或代理已开启，则使用代理
+      // 如果在列表中或代理已开启,则使用代理
       return needForceProxy;
     } catch (error) {
       logger.error(`[截图] URL解析失败: ${error}`);
@@ -589,7 +589,7 @@ function screenRender(screenshotBase64, url, pageWidth) {
     dimensions = { width: pageWidth || 1200, height: 800 };
   }
 
-  // 使用页面实际宽度计算容器宽度，确保有适当留白
+  // 使用页面实际宽度计算容器宽度,确保有适当留白
   const containerWidth = Math.min(pageWidth || dimensions.width, 1920);
 
   return `

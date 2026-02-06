@@ -104,8 +104,8 @@ let Data = {
     let sysCfg = await Data.importModule(`config/system/${key}_system.js`)
     let diyCfg = await Data.importModule(`config/${key}.js`)
     if (diyCfg.isSys) {
-      console.error(`lycoris-plugin: config/${key}.js无效，已忽略`)
-      console.error(`如需配置请复制config/${key}_default.js为config/${key}.js，请勿复制config/system下的系统文件`)
+      console.error(`lycoris-plugin: config/${key}.js无效,已忽略`)
+      console.error(`如需配置请复制config/${key}_default.js为config/${key}.js,请勿复制config/system下的系统文件`)
       diyCfg = {}
     }
     return {
@@ -117,11 +117,11 @@ let Data = {
   /*
   * 返回一个从 target 中选中的属性的对象
   *
-  * keyList : 获取字段列表，逗号分割字符串
+  * keyList : 获取字段列表,逗号分割字符串
   *   key1, key2, toKey1:fromKey1, toKey2:fromObj.key
   *
   * defaultData: 当某个字段为空时会选取defaultData的对应内容
-  * toKeyPrefix：返回数据的字段前缀，默认为空。defaultData中的键值无需包含toKeyPrefix
+  * toKeyPrefix:返回数据的字段前缀,默认为空。defaultData中的键值无需包含toKeyPrefix
   *
   * */
 
@@ -156,7 +156,7 @@ let Data = {
     return lodash.get(target, keyFrom, defaultValue)
   },
 
-  // 异步池，聚合请求
+  // 异步池,聚合请求
   async asyncPool(poolLimit, array, iteratorFn) {
     const ret = [] // 存储所有的异步任务
     const executing = [] // 存储正在执行的异步任务
@@ -166,9 +166,9 @@ let Data = {
       // 保存新的异步任务
       ret.push(p)
 
-      // 当poolLimit值小于或等于总任务个数时，进行并发控制
+      // 当poolLimit值小于或等于总任务个数时,进行并发控制
       if (poolLimit <= array.length) {
-        // 当任务完成后，从正在执行的任务数组中移除已完成的任务
+        // 当任务完成后,从正在执行的任务数组中移除已完成的任务
         const e = p.then(() => executing.splice(executing.indexOf(e), 1))
         executing.push(e) // 保存正在执行的异步任务
         if (executing.length >= poolLimit) {
@@ -197,7 +197,7 @@ let Data = {
   // 循环字符串回调
   eachStr: (arr, fn) => {
     if (lodash.isString(arr)) {
-      arr = arr.replace(/\s*(;|；|、|，)\s*/, ',')
+      arr = arr.replace(/\s*(;|;|、|,)\s*/, ',')
       arr = arr.split(',')
     } else if (lodash.isNumber(arr)) {
       arr = [arr.toString()]

@@ -40,7 +40,7 @@ export async function parseImg(e) {
 }
 
 /**
- * 将图片上传到临时免费的图床，返回图片链接，并将链接制作成二维码
+ * 将图片上传到临时免费的图床,返回图片链接,并将链接制作成二维码
  * @param {string} imgUrl - 图片URL或Base64
  * @returns {Promise<{imgUrl: string, qrcode: string}>} 返回图床链接和二维码链接
  */
@@ -79,7 +79,7 @@ export async function uploadAndGenerateQR(imgUrl) {
     }
 }
 
-// 使用示例：
+// 使用示例:
 // const result = await uploadAndGenerateQR('https://example.com/image.jpg');
 // console.log('图床链接:', result.imgUrl);
 // console.log('二维码链接:', result.qrcode);

@@ -80,7 +80,7 @@ export class Rss extends plugin {
     async cron(e) {
         let msg = e.msg.replace(/^#rss\s*cron\s*/, '').trim();
         if (!msg) {
-            await e.reply('请提供Cron表达式，例如：#rss cron */30 * * * *');
+            await e.reply('请提供Cron表达式,例如:#rss cron */30 * * * *');
             return;
         }
 
@@ -90,7 +90,7 @@ export class Rss extends plugin {
 
         Config.modify('config', 'rss', rssConfig);
 
-        await e.reply(`RSS定时任务频率已更新为：${msg}\n注意：需要重启Bot才能生效`);
+        await e.reply(`RSS定时任务频率已更新为:${msg}\n注意:需要重启Bot才能生效`);
     }
 
     /**
@@ -111,7 +111,7 @@ export class Rss extends plugin {
         }
 
         if (!url) {
-            await e.reply('请提供RSS URL，格式：#rss add <url> [name] [remark]');
+            await e.reply('请提供RSS URL,格式:#rss add <url> [name] [remark]');
             return;
         }
 
@@ -147,7 +147,7 @@ export class Rss extends plugin {
         const newItem = {
             url,
             name,
-            group: [e.group_id || ''] // 默认添加到当前群，如果是私聊则为空
+            group: [e.group_id || ''] // 默认添加到当前群,如果是私聊则为空
         };
         // 过滤空group
         if (!newItem.group[0]) newItem.group = [];
@@ -159,7 +159,7 @@ export class Rss extends plugin {
         rssConfig.subscribe_list = list;
         Config.modify('config', 'rss', rssConfig);
 
-        await e.reply(`RSS订阅添加成功：${name}\n${url}`);
+        await e.reply(`RSS订阅添加成功:${name}\n${url}`);
     }
 
     async list(e) {
@@ -171,7 +171,7 @@ export class Rss extends plugin {
             return;
         }
 
-        let msg = ['当前RSS订阅列表：'];
+        let msg = ['当前RSS订阅列表:'];
         list.forEach((item, index) => {
             msg.push(`${index + 1}. ${item.name}\n${item.url}`);
         });
@@ -182,7 +182,7 @@ export class Rss extends plugin {
     async del(e) {
         let msg = e.msg.replace(/^#rss\s*del\s*/, '').trim();
         if (!msg) {
-            await e.reply('请指定要删除的订阅，支持序号或URL');
+            await e.reply('请指定要删除的订阅,支持序号或URL');
             return;
         }
 
@@ -206,7 +206,7 @@ export class Rss extends plugin {
         rssConfig.subscribe_list = list;
         Config.modify('config', 'rss', rssConfig);
 
-        await e.reply(`RSS订阅已删除：${deleted[0].name}`);
+        await e.reply(`RSS订阅已删除:${deleted[0].name}`);
     }
 
     async push(e) {

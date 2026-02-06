@@ -54,7 +54,7 @@ export class DailyWork extends plugin {
             }
         } catch (error) {
             logger.error('[DailyCheckIn] 签到渲染失败:', error);
-            await e.reply('签到失败，请稍后再试');
+            await e.reply('签到失败,请稍后再试');
         }
     }
 
@@ -74,10 +74,10 @@ export class DailyWork extends plugin {
             if (result.success) {
                 await this.renderWorkImg(e, result);
             } else if (result.message === 'already_clocked_in') {
-                await e.reply('你今天已经打过上班卡啦！');
+                await e.reply('你今天已经打过上班卡啦!');
             }
         } catch (error) {
-            await e.reply('打卡失败，请稍后再试。');
+            await e.reply('打卡失败,请稍后再试。');
         }
     }
 
@@ -85,14 +85,14 @@ export class DailyWork extends plugin {
         try {
             const result = WorkService.clockOut(e.user_id);
             if (!result.success && result.message === 'already_clocked_out') {
-                await e.reply('你今天已经打过下班卡啦！');
+                await e.reply('你今天已经打过下班卡啦!');
                 return;
             }
 
             await this.renderWorkImg(e, result);
 
         } catch (error) {
-            await e.reply('下班打卡失败，请稍后再试。');
+            await e.reply('下班打卡失败,请稍后再试。');
         }
     }
 

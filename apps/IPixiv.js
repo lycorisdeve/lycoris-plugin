@@ -130,7 +130,7 @@ export class IPixiv extends plugin {
 
         // 处理OR关系的标签
         return tagGroups.map(group => {
-            const orTags = group.split(/[|,，\s]+/).filter(Boolean)
+            const orTags = group.split(/[|,,\s]+/).filter(Boolean)
             return orTags.length > 1 ? orTags.join('|') : group
         })
     }
@@ -138,7 +138,7 @@ export class IPixiv extends plugin {
     // 获取图片
     async getImage(params = {}) {
         try {
-            // 使用POST方法发送请求，更适合复杂参数
+            // 使用POST方法发送请求,更适合复杂参数
             const response = await fetch(this.baseUrl, {
                 method: 'POST',
                 headers: {
@@ -195,7 +195,7 @@ export class IPixiv extends plugin {
         const imageUrl = result.urls[this.defaultSize] || result.urls.regular || result.urls.original
 
         if (!imageUrl) {
-            await e.reply('获取图片链接失败，请稍后再试~', true)
+            await e.reply('获取图片链接失败,请稍后再试~', true)
             return
         }
 
@@ -207,9 +207,9 @@ export class IPixiv extends plugin {
             const qrcodeUrl = this.generateQRCode(imageUrl)
             // 发送二维码和提示信息
             const msg = [
-                '该内容已转换为二维码，请自行扫码查看\n',
+                '该内容已转换为二维码,请自行扫码查看\n',
                 segment.image(qrcodeUrl),
-                `\n标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
+                `\n标题:${title}\n作者:${author}\nPID:${result.pid}\n标签:${resultTags}`
             ]
             await e.reply(msg)
             return
@@ -218,7 +218,7 @@ export class IPixiv extends plugin {
         // 非R18内容直接发送
         const msg = [
             segment.image(imageUrl),
-            `标题：${title}\n作者：${author}\nPID：${result.pid}\n标签：${resultTags}`
+            `标题:${title}\n作者:${author}\nPID:${result.pid}\n标签:${resultTags}`
         ]
         await e.reply(msg)
     }
@@ -257,7 +257,7 @@ export class IPixiv extends plugin {
                     const qrcodeUrl = this.generateQRCode(imageUrl)
                     // 添加二维码消息
                     msgs.push({
-                        message: '该内容已转换为二维码，请自行扫码查看',
+                        message: '该内容已转换为二维码,请自行扫码查看',
                         nickname: Bot.nickname,
                         user_id: Bot.uin
                     })
@@ -277,7 +277,7 @@ export class IPixiv extends plugin {
 
                 // 添加图片信息
                 msgs.push({
-                    message: `标题：${result.title || '无标题'}\n作者：${result.author || '未知作者'}\nPID：${result.pid}\n标签：${result.tags.join(', ')}`,
+                    message: `标题:${result.title || '无标题'}\n作者:${result.author || '未知作者'}\nPID:${result.pid}\n标签:${result.tags.join(', ')}`,
                     nickname: Bot.nickname,
                     user_id: Bot.uin
                 })
@@ -285,7 +285,7 @@ export class IPixiv extends plugin {
         }
 
         if (msgs.length === 0) {
-            await e.reply('获取图片链接失败，请稍后再试~', true)
+            await e.reply('获取图片链接失败,请稍后再试~', true)
             return
         }
 
@@ -296,7 +296,7 @@ export class IPixiv extends plugin {
             });
         } catch (error) {
             logger.error(`发送合并转发消息失败: ${error}`)
-            await e.reply('图片发送失败，请稍后再试~', true)
+            await e.reply('图片发送失败,请稍后再试~', true)
         }
     }
 
@@ -342,7 +342,7 @@ export class IPixiv extends plugin {
         // 提取关键词
         const tags = e.msg.replace(/^#?(r18|R18)\s*/, '').trim()
 
-        // 获取参数，设置r18=1
+        // 获取参数,设置r18=1
         const params = this.parseParams(tags, { r18: 1 })
 
         // 获取图片
@@ -353,31 +353,31 @@ export class IPixiv extends plugin {
             return
         }
 
-        // 发送图片，强制使用合并转发方式
+        // 发送图片,强制使用合并转发方式
         await this.sendImageResult(e, results[0], true)
     }
 
     // 显示帮助信息
     async showHelp(e) {
         const helpMsg = `【Pixiv图片搜索帮助】
-1. 基础搜索：#色图 [标签]
-2. R18搜索：#r18 [标签]
-3. 多图搜索：#多色图 [数量] [标签]
-4. 标签搜索：#tag [标签]
-5. PID搜索：#pid [作品ID]
+1. 基础搜索:#色图 [标签]
+2. R18搜索:#r18 [标签]
+3. 多图搜索:#多色图 [数量] [标签]
+4. 标签搜索:#tag [标签]
+5. PID搜索:#pid [作品ID]
 
 【高级参数】
-- 标签与：使用空格分隔多个标签
-- 标签或：使用|分隔，如 萝莉|少女
-- 标签组：使用&分隔，如 白丝&萝莉
+- 标签与:使用空格分隔多个标签
+- 标签或:使用|分隔,如 萝莉|少女
+- 标签组:使用&分隔,如 白丝&萝莉
 
 【特殊参数】
-- 排除AI作品：--no-ai
-- 指定尺寸：--size=original/regular/small
-- 指定长宽比：--ratio=portrait/landscape/square
-- 指定作者UID：--uid=12345
+- 排除AI作品:--no-ai
+- 指定尺寸:--size=original/regular/small
+- 指定长宽比:--ratio=portrait/landscape/square
+- 指定作者UID:--uid=12345
 
-例如：#色图 白丝|黑丝 萝莉 --no-ai --size=original`
+例如:#色图 白丝|黑丝 萝莉 --no-ai --size=original`
 
         await e.reply(helpMsg)
     }

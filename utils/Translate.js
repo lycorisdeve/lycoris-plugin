@@ -96,7 +96,7 @@ class Translate {
             logger.info('【桑帛云翻译报错】:', res)
             return false
         }
-        let en = /结果：(.+)$/.exec(res)[1]
+        let en = /结果:(.+)$/.exec(res)[1]
         en = en.split('/')
         return en[0]
     }

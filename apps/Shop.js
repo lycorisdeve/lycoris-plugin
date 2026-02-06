@@ -72,7 +72,7 @@ export class Shop extends plugin {
                         await redis.set("Lycoris:checkIn:" + e.user_id, JSON.stringify(mySignInInfo), { EX: 3600 * 24 * 90 })
                     }
 
-                    e.reply(`购买成功！本次购买 ${quantity}个相遇之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
+                    e.reply(`购买成功!本次购买 ${quantity}个相遇之缘,共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
                 }
             } else if (keyword === '纠缠之缘') {
                 let money = 160 * quantity
@@ -104,7 +104,7 @@ export class Shop extends plugin {
                         await redis.set(`Yz:flower-plugin:coin:${e.user_id}`, JSON.stringify(coin), { EX: 1681847999 })
                     }
 
-                    e.reply(`购买成功！本次购买 ${quantity}个纠缠之缘，共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
+                    e.reply(`购买成功!本次购买 ${quantity}个纠缠之缘,共花费 ${money} 原石,剩余 ${primogems - money} 原石`)
                 }
             } else if (keyword === '一级好感度卡') {
                 e.reply('待开发功能~~~~')
@@ -117,7 +117,7 @@ export class Shop extends plugin {
             }
 
         } else {
-            e.reply('请输入购买数量,如：#购买纠缠之缘10个')
+            e.reply('请输入购买数量,如:#购买纠缠之缘10个')
             return false;
         }
 

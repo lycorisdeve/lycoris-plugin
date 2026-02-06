@@ -29,7 +29,7 @@ export class OilPricePlugin extends plugin {
     constructor() {
         super({
             name: '油价查询',
-            dsc: '获取全国各省份油价信息，并定时推送',
+            dsc: '获取全国各省份油价信息,并定时推送',
             event: 'message',
             priority: 1200,
             rule: [
@@ -64,7 +64,7 @@ export class OilPricePlugin extends plugin {
     // 通用的油价信息获取和回复方法
     async handleOilPriceRequest(e, province = '江苏') {
         if (!this.validateProvince(province)) {
-            await e.reply(`请输入正确的省份名称，支持以下省份：\n${VALID_PROVINCES.join('、')}`);
+            await e.reply(`请输入正确的省份名称,支持以下省份:\n${VALID_PROVINCES.join('、')}`);
             return false;
         }
 
@@ -77,11 +77,11 @@ export class OilPricePlugin extends plugin {
         } catch (error) {
             logger.error('获取油价信息失败:', error);
         }
-        await e.reply("获取油价信息失败，请稍后重试！");
+        await e.reply("获取油价信息失败,请稍后重试!");
         return false;
     }
 
-    // 默认查询（江苏油价）
+    // 默认查询(江苏油价)
     async getOilPrice(e) {
         return this.handleOilPriceRequest(e);
     }
@@ -150,12 +150,12 @@ export class OilPricePlugin extends plugin {
     formatOilPriceInfo(data) {
         return `
 📍 ${data.province} 🚘油价信息
-⛽89号汽油：${data.oil89}元/升
-⛽92号汽油：${data.oil92}元/升
-⛽95号汽油：${data.oil95}元/升
-⛽98号汽油：${data.oil98}元/升
-⛽0号柴油：${data.oil0}元/升
-⏰更新时间：${data.updateTime}
+⛽89号汽油:${data.oil89}元/升
+⛽92号汽油:${data.oil92}元/升
+⛽95号汽油:${data.oil95}元/升
+⛽98号汽油:${data.oil98}元/升
+⛽0号柴油:${data.oil0}元/升
+⏰更新时间:${data.updateTime}
         `;
     }
 
@@ -165,7 +165,7 @@ export class OilPricePlugin extends plugin {
 
         // 验证省份名称
         if (!this.validateProvince(province)) {
-            await e.reply(`请输入正确的省份名称，支持以下省份：\n${VALID_PROVINCES.join('、')}`);
+            await e.reply(`请输入正确的省份名称,支持以下省份:\n${VALID_PROVINCES.join('、')}`);
             return false;
         }
 
@@ -173,11 +173,11 @@ export class OilPricePlugin extends plugin {
             // 验证省份是否有效
             const oilInfo = await this.getOilPriceInfo(province);
             if (!oilInfo) {
-                await e.reply("添加失败：无法获取该省份的油价信息");
+                await e.reply("添加失败:无法获取该省份的油价信息");
                 return false;
             }
 
-            // 读取当前配置（使用 parseDocument 保留注释）
+            // 读取当前配置(使用 parseDocument 保留注释)
             const configPath = 'config/config.yaml';
             const configContent = fs.readFileSync(configPath, 'utf8');
             const document = yaml.parseDocument(configContent);
@@ -194,7 +194,7 @@ export class OilPricePlugin extends plugin {
             // 添加新省份
             provinces.push(province);
 
-            // 更新配置（保留注释）
+            // 更新配置(保留注释)
             document.setIn(['oilPrice', 'provinces'], provinces);
             fs.writeFileSync(configPath, document.toString({
                 lineWidth: -1,
@@ -206,12 +206,12 @@ export class OilPricePlugin extends plugin {
             return true;
         } catch (error) {
             logger.error('添加油价推送省份失败:', error);
-            await e.reply("添加失败，请稍后重试");
+            await e.reply("添加失败,请稍后重试");
             return false;
         }
     }
 
-    // 修改定时推送方法，支持相同油价合并发送
+    // 修改定时推送方法,支持相同油价合并发送
     async sendOilPriceInfo() {
         if (!isPush) {
             return;
@@ -224,7 +224,7 @@ export class OilPricePlugin extends plugin {
             for (const province of provinces) {
                 try {
                     const oilInfo = await this.getOilPriceInfo(province);
-                    // 创建价格键（不包含省份和时间）
+                    // 创建价格键(不包含省份和时间)
                     const priceKey = `${oilInfo.oil89}-${oilInfo.oil92}-${oilInfo.oil95}-${oilInfo.oil98}-${oilInfo.oil0}`;
 
                     if (!priceGroups.has(priceKey)) {
@@ -263,18 +263,18 @@ export class OilPricePlugin extends plugin {
         }
     }
 
-    // 添加新的格式化方法，用于多省份相同油价的情况
+    // 添加新的格式化方法,用于多省份相同油价的情况
     formatGroupOilPriceInfo(group) {
         const { provinces, info } = group;
         return `
         📍 ${provinces.join('、')}油价信息
-        ⏰ 更新时间：${info.updateTime}
+        ⏰ 更新时间:${info.updateTime}
         
-        89号汽油：${info.oil89}元/升
-        92号汽油：${info.oil92}元/升
-        95号汽油：${info.oil95}元/升
-        98号汽油：${info.oil98}元/升
-        0号柴油：${info.oil0}元/升
+        89号汽油:${info.oil89}元/升
+        92号汽油:${info.oil92}元/升
+        95号汽油:${info.oil95}元/升
+        98号汽油:${info.oil98}元/升
+        0号柴油:${info.oil0}元/升
         `;
     }
 }

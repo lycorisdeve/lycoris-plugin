@@ -63,7 +63,7 @@ class WorkService {
             let record = WorkDb.getTodayLog(userId, date);
             let isMissing = false;
 
-            // 如果没有上班记录，视为补卡，上班时间默认为 08:30
+            // 如果没有上班记录,视为补卡,上班时间默认为 08:30
             if (!record) {
                 isMissing = true;
                 const defaultStartTime = '08:30:00';

@@ -23,7 +23,7 @@ async function epicGamesMsg() {
         return await this.reply('Epic免费游戏信息接口请求失败')
     }
 
-    /** 接口结果，json字符串转对象 */
+    /** 接口结果,json字符串转对象 */
     let data = await res.json()
     /** 获取游戏信息 */
     if (data && data.data && data.data.Catalog && data.data.Catalog.searchStore) {
@@ -66,7 +66,7 @@ async function epicGamesMsg() {
                     gameURL = `https://store.epicgames.com/zh-CN${slugs.length > 0 ? `/p/${slugs[0]}` : ''}`;
                 }
                 let gamePrice = game.price.totalPrice.originalPrice;
-                gamePrice = "￥" + (gamePrice / 100).toFixed(2);
+                gamePrice = "¥" + (gamePrice / 100).toFixed(2);
                 let titleText = `${game.title}`;
                 let descText = `${game.description}`;
                 let imagePath = ''
@@ -76,7 +76,7 @@ async function epicGamesMsg() {
                         break;
                     }
                 }
-                let msg = [segment.image(imagePath), `\n游 戏 名：${titleText}\n原     价：${gamePrice}\n结束时间：${formattedEndDate}\n发 行 商：${game.seller.name}\n简     介：${descText}点击下方链接免费入库：\n${gameURL}`]
+                let msg = [segment.image(imagePath), `\n游 戏 名:${titleText}\n原     价:${gamePrice}\n结束时间:${formattedEndDate}\n发 行 商:${game.seller.name}\n简     介:${descText}点击下方链接免费入库:\n${gameURL}`]
                 msgList.push(msg)
             } catch (err) {
                 logger.error(err);

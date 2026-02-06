@@ -27,7 +27,7 @@ export class Wallpaper extends plugin {
     async getWallpaper(e) {
         const link = await getRandomLinkId()
         if (!link) {
-            e.reply("获取失败，请重试！")
+            e.reply("获取失败,请重试!")
 
         } else {
             const imgInfo = await getHDWallpaper(link)
@@ -36,7 +36,7 @@ export class Wallpaper extends plugin {
             } else {
                 const prefix = link.substring(0, 2);
                 const url = `https://proxyapi.198143.xyz/https://w.wallhaven.cc/full/${prefix}/wallhaven-${link}`;
-                e.reply(`图片太大获取失败！！~~~ \n 原图：${url}`)
+                e.reply(`图片太大获取失败!!~~~ \n 原图:${url}`)
             }
 
         }
@@ -60,10 +60,10 @@ export class Wallpaper extends plugin {
         // 翻译中文
         let chReg = /(?:[\u3400-\u4DB5\u4E00-\u9FEA\uFA0E\uFA0F\uFA11\uFA13\uFA14\uFA1F\uFA21\uFA23\uFA24\uFA27-\uFA29]|[\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879][\uDC00-\uDFFF]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0])+/
         if (chReg.test(keyword)) {
-            e.reply('只支持英文搜索关键词，翻译ing~~~请稍候', true, { recallMsg: 15 })
+            e.reply('只支持英文搜索关键词,翻译ing~~~请稍候', true, { recallMsg: 15 })
             keyword = await trans(keyword)
             if (chReg.test(keyword)) {
-                return await e.reply("翻译接口寄了，请尝试避免使用中文字符")
+                return await e.reply("翻译接口寄了,请尝试避免使用中文字符")
             }
         }
         const imgInfos = await searchImage(keyword, pageNum)

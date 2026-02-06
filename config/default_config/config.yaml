@@ -1,59 +1,49 @@
-#rss
+# RSS subscription
 rss:
-  # 是否推送
   push: true
-  # 失败通知主人
   notify_owner: false
-  # 是否支持渲染失败后降级为文本推送
   text_push: true
-  # 控制检查更新频率
   cron: "*/10 * * * *"
-  # 发送主动推送消息的bot，填入字符串qq号，例如["12345667"]
-  # sender: []
-  # rsshub地址，可以填自建地址或官方反代
   rsshub_url:
     - https://rsshub.app
     - https://rsshub.zytomorrow.top
-  # 默认图片背景
   background: https://api.armoe.cn/acg/random
-  # 订阅rss列表
   subscribe_list:
     - url: ${rsshub_url}/yxdzqb/low
       name: Steam史低
       group: []
 
-#epic
+# Epic Games free games push
 epicGames:
   isPush: true
   schedule:
-    month: "*" # 每个月都执行
-    dayOfWeek: "5,0" # 在周五和周日执行（星期天是 0）
-    hour: "12" # 在中午12:00:00执行
+    month: "*"
+    dayOfWeek: "5,0"
+    hour: "12"
     minute: "0"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
   group_ids: []
   private_ids: []
-#read60s
+# 60s morning news push
 read60s:
   isPush: true
   schedule:
-    hour: "8" # 在中午8:00:00执行
+    hour: "8"
     minute: "20"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
   group_ids: []
   private_ids: []
+# AI news push
 aiNews:
   isPush: true
   schedule:
-    hour: "8" # 在早上8:00:00执行
+    hour: "8"
     minute: "30"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
+  num: 10
   group_ids: []
   private_ids: []
-#翻译
+# Translation API config
 translate:
   baidu:
     id: null
@@ -62,26 +52,25 @@ translate:
     id: null
     key: null
 
-# 油价查询
+# Oil price query push
 oilPrice:
   isPush: true
   schedule:
     year: "*"
     month: "*"
-    week: "5" # 在周五和周日执行（星期天是 0）
-    hour: "8" # 在早上8:00:00执行
+    week: "5"
+    hour: "8"
     minute: "30"
     second: "0"
-  #配置定时发送群组和需要私聊发送的人
   group_ids: []
   private_ids: []
-  #需要推送的省份
   provinces: ["江苏"]
 
-# Warframe
+# Warframe server config
 warframe:
-  server: "ZHCN" # 选择服务器，ZHCN为国服，ZH为国际服
+  server: "ZHCN"
 
+# Screenshot renderer config
 screenshot:
   fullScreen: true
   quality: 80
@@ -96,19 +85,19 @@ screenshot:
     url: "https://proxyapi.198143.xyz/"
     enabled: true
 
-# Html渲染精度，可选值50~200，建议100。设置高精度会提高图片的精细度，过高可能会影响渲染与发送速度
+# HTML render scale
 renderScale: 100
 
-# BT搜索配置
+# BT search config
 bt:
   proxy:
     enable: false
-    url: "http://127.0.0.1:7890" # 代理地址，例如 http://127.0.0.1:7890
+    url: "http://127.0.0.1:7890"
   proxyApi:
     enable: true
     url: "https://proxyapi.198143.xyz/{{url}}"
 
-# 每日日期提醒
+# Daily date reminder
 dateReminder:
   isPush: true
   schedule:

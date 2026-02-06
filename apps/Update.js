@@ -51,7 +51,7 @@ export class update extends plugin {
 
     /** 是否需要重启 */
     if (this.isUp) {
-      await this.reply("更新完毕，正在重启云崽以应用更新")
+      await this.reply("更新完毕,正在重启云崽以应用更新")
       setTimeout(() => this.restart(), 2000)
     }
   }
@@ -69,18 +69,18 @@ export class update extends plugin {
     let command = `git -C ./plugins/lycoris-plugin/ pull --no-rebase`;
     if (isForce) {
       command = `git -C ./plugins/lycoris-plugin/ checkout . && ${command}`;
-      this.e.reply("正在执行强制更新操作，请稍等");
+      this.e.reply("正在执行强制更新操作,请稍等");
     } else {
-      this.e.reply("正在执行更新操作，请稍等");
+      this.e.reply("正在执行更新操作,请稍等");
     }
-    /** 获取上次提交的commitId，用于获取日志时判断新增的更新日志 */
+    /** 获取上次提交的commitId,用于获取日志时判断新增的更新日志 */
     this.oldCommitId = await this.getcommitId("lycoris-plugin");
     uping = true;
     let ret = await this.execSync(command);
     uping = false;
 
     if (ret.error) {
-      logger.mark(`${this.e.logFnc} 更新失败：lycoris-plugin`);
+      logger.mark(`${this.e.logFnc} 更新失败:lycoris-plugin`);
       this.gitErr(ret.error, ret.stdout);
       return false;
     }
@@ -89,16 +89,16 @@ export class update extends plugin {
     let time = await this.getTime("lycoris-plugin");
 
     if (/(Already up[ -]to[ -]date|已经是最新的)/.test(ret.stdout)) {
-      await this.reply(`lycoris-plugin已经是最新版本\n最后更新时间：${time}`);
+      await this.reply(`lycoris-plugin已经是最新版本\n最后更新时间:${time}`);
     } else {
-      await this.reply(`lycoris-plugin\n最后更新时间：${time}`);
+      await this.reply(`lycoris-plugin\n最后更新时间:${time}`);
       this.isUp = true;
       /** 获取lycoris-plugin的更新日志 */
       let log = await this.getLog("lycoris-plugin");
       await this.reply(log);
     }
 
-    logger.mark(`${this.e.logFnc} 最后更新时间：${time}`);
+    logger.mark(`${this.e.logFnc} 最后更新时间:${time}`);
 
     return true;
   }
@@ -138,10 +138,10 @@ export class update extends plugin {
 
     let end = "";
     end =
-      "\n更多详细信息，请前往gitee查看\nhttps://gitee.com/aurora-love/lycoris-plugin/blob/master/CHANGELOG.md";
+      "\n更多详细信息,请前往gitee查看\nhttps://gitee.com/aurora-love/lycoris-plugin/blob/master/CHANGELOG.md";
 
-    log = [`lycoris-plugin更新日志，共${line}条`, ...log]
-    // log = await this.makeForwardMsg(`lycoris-plugin更新日志，共${line}条`, log, end);
+    log = [`lycoris-plugin更新日志,共${line}条`, ...log]
+    // log = await this.makeForwardMsg(`lycoris-plugin更新日志,共${line}条`, log, end);
     log.push(end)
 
     return log;
@@ -239,27 +239,27 @@ export class update extends plugin {
    * @returns
    */
   async gitErr(err, stdout) {
-    let msg = "更新失败！";
+    let msg = "更新失败!";
     let errMsg = err.toString();
     stdout = stdout.toString();
 
     if (errMsg.includes("Timed out")) {
       let remote = errMsg.match(/'(.+?)'/g)[0].replace(/'/g, "");
-      await this.reply(msg + `\n连接超时：${remote}`);
+      await this.reply(msg + `\n连接超时:${remote}`);
       return;
     }
 
     if (/Failed to connect|unable to access/g.test(errMsg)) {
       let remote = errMsg.match(/'(.+?)'/g)[0].replace(/'/g, "");
-      await this.reply(msg + `\n连接失败：${remote}`);
+      await this.reply(msg + `\n连接失败:${remote}`);
       return;
     }
 
     if (errMsg.includes("be overwritten by merge")) {
       await this.reply(
         msg +
-        `存在冲突：\n${errMsg}\n` +
-        "请解决冲突后再更新，或者执行#强制更新，放弃本地修改"
+        `存在冲突:\n${errMsg}\n` +
+        "请解决冲突后再更新,或者执行#强制更新,放弃本地修改"
       );
       return;
     }
@@ -269,7 +269,7 @@ export class update extends plugin {
         msg + "存在冲突\n",
         errMsg,
         stdout,
-        "\n请解决冲突后再更新，或者执行#强制更新，放弃本地修改",
+        "\n请解决冲突后再更新,或者执行#强制更新,放弃本地修改",
       ]);
       return;
     }

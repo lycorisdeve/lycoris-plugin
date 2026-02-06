@@ -24,7 +24,7 @@ async function loadHelpConfig() {
       fs.promises.stat(HELP_LIST_PATH),
     ]);
 
-    // 如果至少一个配置文件存在，则加载并合并它们
+    // 如果至少一个配置文件存在,则加载并合并它们
     if (helpCfgStat.isFile() || helpListStat.isFile()) {
       const version = new Date().getTime();
       const fileUrl = `file://${
@@ -38,10 +38,10 @@ async function loadHelpConfig() {
       return { helpCfg, helpList };
     }
 
-    // 如果两个配置文件都不存在，则返回空对象
+    // 如果两个配置文件都不存在,则返回空对象
     return {};
   } catch (err) {
-    // 如果发生错误，则返回空对象
+    // 如果发生错误,则返回空对象
     return {};
   }
 }
@@ -84,7 +84,7 @@ class HelpService {
       })
       .filter(Boolean);
 
-    // 获取主题数据，并渲染帮助页面
+    // 获取主题数据,并渲染帮助页面
     const themeData = await Theme.getThemeData(
       diyCfg.helpCfg || {},
       sysCfg.helpCfg || {}
@@ -110,7 +110,7 @@ class HelpService {
     let diyCfg = await Data.importModule(`config/help/${path}.js`);
     let sysCfg = await Data.importModule(`config/system/help_system.js`);
     if (diyCfg.isSys) {
-      console.error(`lycoris-plugin: config/help/${path}.js无效，已忽略`);
+      console.error(`lycoris-plugin: config/help/${path}.js无效,已忽略`);
       diyCfg = {};
     }
 
@@ -142,7 +142,7 @@ class HelpService {
       })
       .filter(Boolean);
 
-    // 获取主题数据，并渲染帮助页面
+    // 获取主题数据,并渲染帮助页面
     const themeData = await Theme.getThemeData(
       diyCfg.helpCfg || {},
       sysCfg.helpCfg || {}

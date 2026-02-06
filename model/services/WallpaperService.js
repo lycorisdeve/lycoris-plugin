@@ -13,7 +13,7 @@ export async function getRandomLinkId() {
     clearTimeout(id);
     const html = await response.text();
 
-    // 使用 Cheerio 解析 HTML 内容，并返回一个解析器函数
+    // 使用 Cheerio 解析 HTML 内容,并返回一个解析器函数
     const $ = cheerio.load(html);
 
     // 获取该 ul 元素下的所有 li 元素
@@ -71,7 +71,7 @@ export async function searchImage(keyword, pageNum) {
     clearTimeout(id);
     const html = await response.text();
 
-    // 使用 Cheerio 解析 HTML 内容，并返回一个解析器函数
+    // 使用 Cheerio 解析 HTML 内容,并返回一个解析器函数
     const $ = cheerio.load(html);
 
     // 获取所有 <figure> 元素下的 <img> 元素
@@ -79,7 +79,7 @@ export async function searchImage(keyword, pageNum) {
 
     if (imgs.length > 0) {
       let imgInfos = [];
-      // 遍历每个 <img> 元素，并提取 data-src 属性值作为图片链接
+      // 遍历每个 <img> 元素,并提取 data-src 属性值作为图片链接
       imgs.each(function () {
         const imgUrl = $(this).attr('data-src');
         if (imgUrl) {

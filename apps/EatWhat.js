@@ -5,7 +5,7 @@ export class EatWhat extends plugin {
     constructor() {
         super({
             name: '今天吃什么',
-            dsc: '随机推荐食物，带自定义彩蛋',
+            dsc: '随机推荐食物,带自定义彩蛋',
             event: 'message',
             priority: 5000,
             rule: [
@@ -53,15 +53,15 @@ export class EatWhat extends plugin {
 
             // 30% 几率额外追加一个彩蛋食物
             if (egg && Math.random() < 0.3) {
-                eggMsg = `\n或者再来点额外的 "${egg.name}"？`;
+                eggMsg = `\n或者再来点额外的 "${egg.name}"?`;
                 foodNames.push(egg.name);
             }
         } else if (egg) {
             foodNames.push(egg.name);
             const replies = [
-                `推荐吃：${egg.name}`,
-                `今天就吃 ${egg.name} 吧！`,
-                `要不试试 ${egg.name}？`
+                `推荐吃:${egg.name}`,
+                `今天就吃 ${egg.name} 吧!`,
+                `要不试试 ${egg.name}?`
             ];
             msg = replies[Math.floor(Math.random() * replies.length)];
         }
@@ -81,7 +81,7 @@ export class EatWhat extends plugin {
             }
             await e.reply(replyMsg);
         } else {
-            await e.reply('呜呜，菜单空空的，API 也罢工了，要不去添加点食物（发送“添加食物 xxxx”）？或者干脆喝点凉水吧！');
+            await e.reply('呜呜,菜单空空的,API 也罢工了,要不去添加点食物(发送"添加食物 xxxx")?或者干脆喝点凉水吧!');
         }
     }
 
@@ -92,19 +92,19 @@ export class EatWhat extends plugin {
     async addFood(e) {
         let name = e.msg.replace(/^#?添加食物\s*/, '').trim();
         if (!name) {
-            await e.reply('请指定要添加的食物名称，例如：添加食物 电脑屏幕');
+            await e.reply('请指定要添加的食物名称,例如:添加食物 电脑屏幕');
             return;
         }
 
         try {
             const result = service.addFood(name, e.user_id);
             if (result.success) {
-                await e.reply(`成功将 "${name}" 加入彩蛋！`);
+                await e.reply(`成功将 "${name}" 加入彩蛋!`);
             } else if (result.message === 'exists') {
                 await e.reply(`"${name}" 已经在彩蛋列表里啦。`);
             }
         } catch (error) {
-            await e.reply('添加失败，请查看日志');
+            await e.reply('添加失败,请查看日志');
         }
     }
 
@@ -142,7 +142,7 @@ export class EatWhat extends plugin {
             }
 
             const foodList = rows.map(r => r.name).join('、');
-            const msg = `当前共有 ${rows.length} 个彩蛋食物：\n${foodList}`;
+            const msg = `当前共有 ${rows.length} 个彩蛋食物:\n${foodList}`;
             await e.reply(msg);
         } catch (error) {
             await e.reply('获取失败。');

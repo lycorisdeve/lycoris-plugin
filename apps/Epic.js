@@ -20,10 +20,10 @@ export class EpicGamesPlugin extends plugin {
       /** 功能名称 */
       name: "Epic免费游戏信息",
       /** 功能描述 */
-      dsc: "获取Epic免费游戏信息，并定时推送",
+      dsc: "获取Epic免费游戏信息,并定时推送",
       /** https://oicqjs.github.io/oicq/#events */
       event: "message",
-      /** 优先级，数字越小等级越高 */
+      /** 优先级,数字越小等级越高 */
       priority: 1200,
       rule: [
         {

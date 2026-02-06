@@ -4,18 +4,31 @@
 {{/block}}
 
 {{block 'main'}}
-<div class="ai-news-container">
-  <h1>{{newsTitle}}</h1>
-  <ul class="news-list">
+<div class="ai-news-wrap">
+  <header class="ai-news-hero">
+    <div class="hero-tag">AI Daily Brief</div>
+    <div class="hero-title">{{newsTitle}}</div>
+    <div class="hero-meta">
+      <span class="meta-pill">Top {{news.length}}</span>
+      <span class="meta-pill">Auto Digest</span>
+    </div>
+    <div class="hero-glow"></div>
+  </header>
+
+  <section class="ai-news-list">
     {{each news item index}}
-          <li class="news-item">
-            <span class="news-index">{{index + 1}}</span>
-            <div class="news-content">
-              <h2>{{item.title}}</h2>
-            </div>
-          </li>
+      <article class="ai-news-card">
+        <div class="card-index">{{index + 1}}</div>
+        <div class="card-body">
+          <div class="card-title">{{item.title}}</div>
+        </div>
+      </article>
     {{/each}}
-  </ul>
-  <div class="copyright">{{copyright}}</div>
+  </section>
+
+  <footer class="ai-news-footer">
+    <div class="footer-line"></div>
+    <div class="footer-text">{{copyright}}</div>
+  </footer>
 </div>
 {{/block}}

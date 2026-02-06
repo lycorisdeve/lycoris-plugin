@@ -20,11 +20,11 @@ class WorkDb {
         );`;
         db.exec(createStatsTable);
 
-        // 尝试添加 wonefei 列（如果不存在）
+        // 尝试添加 wonefei 列(如果不存在)
         try {
             db.exec('ALTER TABLE work_stats ADD COLUMN wonefei INTEGER DEFAULT 0');
         } catch (error) {
-            // 列已存在，忽略错误
+            // 列已存在,忽略错误
         }
 
         // 每日打卡记录表
@@ -54,7 +54,7 @@ class WorkDb {
      */
     updateUserStats(userId, rewards, checkInDate = null) {
         const user = this.getUserStats(userId);
-        const wonefei = rewards.wonefei || 0; // 如果没有 wonefei 也就是签到，则为 0
+        const wonefei = rewards.wonefei || 0; // 如果没有 wonefei 也就是签到,则为 0
 
         if (user) {
             const updateSql = `
@@ -92,7 +92,7 @@ class WorkDb {
     }
 
     /**
-     * 更新打卡记录（下班）
+     * 更新打卡记录(下班)
      */
     updateLog(userId, date, endTime) {
         const sql = 'UPDATE work_log SET end_time = ?, status = 1 WHERE user_id = ? AND date = ?';

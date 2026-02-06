@@ -11,7 +11,7 @@ const SITE_CONFIG = {
   SITE: 'https://www.xiuren.net',
   // 超时设置
   TIMEOUT: 15000,
-  // 随机延迟范围（毫秒）
+  // 随机延迟范围(毫秒)
   DELAY_MIN: 500,
   DELAY_MAX: 2000
 }
@@ -125,7 +125,7 @@ export class XiuRen extends plugin {
 
       logger.info(`开始下载图片: ${url}`);
 
-      // 创建自定义的HTTPS代理，禁用证书验证
+      // 创建自定义的HTTPS代理,禁用证书验证
       // Note: Native fetch doesn't support httpsAgent directly. 
       // We rely on global fetch. If SSL issues arise, we might need a workaround.
       // For now, we try standard fetch. If it fails due to SSL, we might need 'undici' or similar.
@@ -187,7 +187,7 @@ export class XiuRen extends plugin {
 
   // 获取首页内容
   async getHomePage(e) {
-    await e.reply("正在获取秀人网首页内容，请稍候...");
+    await e.reply("正在获取秀人网首页内容,请稍候...");
 
     try {
       // 获取首页内容
@@ -195,14 +195,14 @@ export class XiuRen extends plugin {
       return this.parseAndSendGalleryList(e, html, "首页图集");
     } catch (err) {
       logger.error(`秀人网首页请求失败: ${err.message}`);
-      await e.reply(`获取首页内容失败，请稍后重试。错误信息: ${err.message}`);
+      await e.reply(`获取首页内容失败,请稍后重试。错误信息: ${err.message}`);
       return false;
     }
   }
 
   // 获取热门内容
   async getHotPage(e) {
-    await e.reply("正在获取秀人网热门内容，请稍候...");
+    await e.reply("正在获取秀人网热门内容,请稍候...");
 
     try {
       // 获取热门页内容
@@ -210,7 +210,7 @@ export class XiuRen extends plugin {
       return this.parseAndSendGalleryList(e, html, "热门图集");
     } catch (err) {
       logger.error(`秀人网热门页请求失败: ${err.message}`);
-      await e.reply(`获取热门内容失败，请稍后重试。错误信息: ${err.message}`);
+      await e.reply(`获取热门内容失败,请稍后重试。错误信息: ${err.message}`);
       return false;
     }
   }
@@ -236,7 +236,7 @@ export class XiuRen extends plugin {
       }
     }
 
-    await e.reply(`正在搜索"${keyword}"，页码: ${pageNum}，请稍候...`);
+    await e.reply(`正在搜索"${keyword}",页码: ${pageNum},请稍候...`);
 
     try {
       // 构建搜索URL
@@ -252,12 +252,12 @@ export class XiuRen extends plugin {
       if (result) {
         return true;
       } else {
-        await e.reply(`搜索"${keyword}"未找到结果，请尝试其他关键词`);
+        await e.reply(`搜索"${keyword}"未找到结果,请尝试其他关键词`);
         return false;
       }
     } catch (err) {
       logger.warn(`搜索失败: ${err.message}`);
-      await e.reply(`搜索"${keyword}"失败，请尝试其他关键词或稍后再试`);
+      await e.reply(`搜索"${keyword}"失败,请尝试其他关键词或稍后再试`);
       return false;
     }
   }
@@ -277,7 +277,7 @@ export class XiuRen extends plugin {
       return false;
     }
 
-    await e.reply(`正在获取图集详情，请稍候...`);
+    await e.reply(`正在获取图集详情,请稍候...`);
 
     // 清理之前的临时文件
     this.cleanTempDir();
@@ -303,7 +303,7 @@ export class XiuRen extends plugin {
         }
       });
 
-      // 如果没有找到图片，尝试其他选择器
+      // 如果没有找到图片,尝试其他选择器
       if (images.length === 0) {
         $('img').each((i, ele) => {
           const imgSrc = $(ele).attr('data-src') || $(ele).attr('data-original') || $(ele).attr('src');
@@ -317,15 +317,15 @@ export class XiuRen extends plugin {
       }
 
       if (images.length === 0) {
-        await e.reply("未找到图集中的图片，可能是网站结构已变化");
+        await e.reply("未找到图集中的图片,可能是网站结构已变化");
         return false;
       }
 
-      // 限制图片数量，避免消息过大
-      const maxImages = Math.min(images.length, 10); // 减少图片数量，避免消息过大
+      // 限制图片数量,避免消息过大
+      const maxImages = Math.min(images.length, 10); // 减少图片数量,避免消息过大
 
-      // 尝试单独发送图片，而不是使用合并转发
-      await e.reply(`【${title}】\n共${images.length}张图片，显示前${maxImages}张`);
+      // 尝试单独发送图片,而不是使用合并转发
+      await e.reply(`【${title}】\n共${images.length}张图片,显示前${maxImages}张`);
 
       // 添加图片消息
       const downloadedFiles = [];
@@ -341,7 +341,7 @@ export class XiuRen extends plugin {
             await e.reply(`[图片${i + 1}下载失败]`);
           }
 
-          // 添加随机延迟，避免请求过快
+          // 添加随机延迟,避免请求过快
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
           logger.error(`图片处理失败: ${error.message}`);
@@ -359,7 +359,7 @@ export class XiuRen extends plugin {
       return true;
     } catch (err) {
       logger.error(`获取图集详情失败: ${err.message}`);
-      await e.reply(`获取图集详情失败，请稍后重试。错误信息: ${err.message}`);
+      await e.reply(`获取图集详情失败,请稍后重试。错误信息: ${err.message}`);
       // 清理临时文件
       this.cleanTempDir();
       return false;
@@ -409,7 +409,7 @@ export class XiuRen extends plugin {
       }
     });
 
-    // 如果常规方法失败，尝试查找所有带链接的图片
+    // 如果常规方法失败,尝试查找所有带链接的图片
     if (msgInfos.length === 0) {
       $('a').each((i, ele) => {
         let href = $(ele).attr('href');
@@ -489,7 +489,7 @@ export class XiuRen extends plugin {
       }
 
       if (validCount === 0) {
-        await e.reply("未找到有效的图集，请尝试其他关键词");
+        await e.reply("未找到有效的图集,请尝试其他关键词");
         // 清理临时文件
         for (const file of downloadedFiles) {
           this.deleteFile(file);
@@ -497,7 +497,7 @@ export class XiuRen extends plugin {
         return false;
       }
 
-      // 更新xiurenResult数组，确保索引与显示的编号一致
+      // 更新xiurenResult数组,确保索引与显示的编号一致
       const newXiurenResult = [];
       for (let i = 0; i < msgInfos.length; i++) {
         if (!msgInfos[i].imgSrc || msgInfos[i].imgSrc.includes('/logo.png') || msgInfos[i].imgSrc.includes('/template/')) {
@@ -541,9 +541,9 @@ export class XiuRen extends plugin {
 
       return await response.text();
     } catch (error) {
-      // 如果失败且未超过最大重试次数，则重试
+      // 如果失败且未超过最大重试次数,则重试
       if (retryCount < 2) {
-        logger.warn(`请求失败，正在重试(${retryCount + 1}/3): ${error.message}`);
+        logger.warn(`请求失败,正在重试(${retryCount + 1}/3): ${error.message}`);
         // 添加随机延迟
         await new Promise(resolve => setTimeout(resolve, this.getRandomDelay() * 2));
         return this.fetchWithRetry(url, retryCount + 1);

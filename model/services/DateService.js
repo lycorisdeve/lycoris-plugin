@@ -49,7 +49,7 @@ class DateService {
                 lunar: `${lunarDate.getMonthInChinese()}月${lunarDate.getDayInChinese()}`,
                 toSaturday: Number(toSaturday),
                 toSunday: Number(toSunday),
-                // 如果是 0，说明今天就是周末
+                // 如果是 0,说明今天就是周末
                 isSat: toSaturday === 0,
                 isSun: toSunday === 0
             };
@@ -60,7 +60,7 @@ class DateService {
             return {
                 today,
                 next: upcomingFestivals[0] || null,
-                others: upcomingFestivals.slice(1, 10) // 增加到最多 12 个，填满右侧
+                others: upcomingFestivals.slice(1, 10) // 增加到最多 12 个,填满右侧
             };
         } catch (error) {
             logger.error('[DateService] 获取日历数据失败:', error);
@@ -110,7 +110,7 @@ class DateService {
                     names.push(jieQi);
                 }
 
-                // 如果有节日，添加到列表
+                // 如果有节日,添加到列表
                 if (names.length > 0) {
                     const targetMoment = moment(solar.toYmd(), 'YYYY-MM-DD');
                     const diff = targetMoment.diff(moment(startDate).startOf('day'), 'days');
@@ -129,7 +129,7 @@ class DateService {
                     }
                 }
 
-                // 如果已经找够了 10 个节日，且时间跨度超过 30 天，提前结束
+                // 如果已经找够了 10 个节日,且时间跨度超过 30 天,提前结束
                 if (festivals.length >= 10 && i > 30) break;
             }
 

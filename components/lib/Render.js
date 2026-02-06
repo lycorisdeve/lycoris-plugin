@@ -7,7 +7,7 @@ import puppeteer from "../../../../lib/puppeteer/puppeteer.js";
 async function rednering(path, params, cfg) {
   let { e } = cfg;
   if (!e.runtime) {
-    console.log("未找到e.runtime，请升级至最新版Yunzai");
+    console.log("未找到e.runtime,请升级至最新版Yunzai");
   }
   return e.runtime.render("lycoris-plugin", path, params, {
     retType: cfg.retMsgId ? "msgId" : "default",
@@ -54,7 +54,7 @@ const Render = {
    * @param {string} path html模板路径
    * @param {*} params 模板参数
    * @param {*} cfg 渲染参数
-   * @param {boolean} multiPage 是否分页截图，默认false
+   * @param {boolean} multiPage 是否分页截图,默认false
    * @returns
    */
   async render(path, params) {

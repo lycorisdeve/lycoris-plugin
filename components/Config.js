@@ -37,7 +37,7 @@ class Config {
       if (!fs.existsSync(`${path}${file}`)) {
         fs.copyFileSync(`${pathDef}${file}`, `${path}${file}`)
       } else {
-        // 检查是否有新字段需要合并（但不覆盖现有配置）
+        // 检查是否有新字段需要合并(但不覆盖现有配置)
         const config = YAML.parse(fs.readFileSync(`${path}${file}`, 'utf8'))
         const defConfig = YAML.parse(fs.readFileSync(`${pathDef}${file}`, 'utf8'))
         const { differences, result } = this.mergeObjectsWithPriority(config, defConfig)
@@ -51,7 +51,7 @@ class Config {
               const currentValue = userConfig[key]
 
               if (currentValue === undefined) {
-                // 用户配置中不存在，添加默认值
+                // 用户配置中不存在,添加默认值
                 const fullKey = prefix ? `${prefix}.${key}` : key
                 doc.setIn(fullKey.split('.'), value)
               } else if (_.isPlainObject(value) && _.isPlainObject(currentValue)) {
@@ -97,7 +97,7 @@ class Config {
 
       return oldCfg
     } catch (error) {
-      logger.error(`[${pluginName}] 配置文件转换失败：${error.message}`)
+      logger.error(`[${pluginName}] 配置文件转换失败:${error.message}`)
       return {}
     }
   }
@@ -139,7 +139,7 @@ class Config {
 
   /**
    * 获取配置yaml
-   * @param type 默认跑配置-defSet，用户配置-config
+   * @param type 默认跑配置-defSet,用户配置-config
    * @param name 名称
    */
   getYaml(type, name) {
@@ -183,7 +183,7 @@ class Config {
     const content = fs.readFileSync(path, 'utf8')
     const document = YAML.parseDocument(content)
     if (_.isEqual(document.get(key), value)) {
-      return // 值未变化，不修改
+      return // 值未变化,不修改
     }
     document.set(key, value)
     fs.writeFileSync(path, document.toString({ lineWidth: -1, noCompatMode: true, simpleKeys: true }), 'utf8')
@@ -216,7 +216,7 @@ class Config {
   }
 
   /**
-   * 更新 YAML 配置（保留注释）
+   * 更新 YAML 配置(保留注释)
    * @param {string} filePath YAML 文件路径
    * @param {object} updates 要更新的配置对象
    */
@@ -245,7 +245,7 @@ class Config {
     }), 'utf8')
   }
 
-  /** 设置配置（保留注释） */
+  /** 设置配置(保留注释) */
   setConfig(config) {
     const path = `${pluginRootPath}/config/config/config.yaml`
     this.updateYamlConfig(path, config)

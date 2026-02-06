@@ -46,7 +46,7 @@ export class DatePlugin extends plugin {
         if (img) {
             await e.reply(img);
         } else {
-            await e.reply('日历渲染失败，请稍后再试～');
+            await e.reply('日历渲染失败,请稍后再试~');
         }
     }
 

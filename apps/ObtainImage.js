@@ -82,7 +82,7 @@ export class Photo extends plugin {
         const hasAlert = await redis.get(key);
         if (!hasAlert) {
             // 发送警告消息给主人
-            Bot.pickUser(this.masterQQ).sendMsg(`警告：API ${apiName} 已失联，请检查`);
+            Bot.pickUser(this.masterQQ).sendMsg(`警告:API ${apiName} 已失联,请检查`);
             // 设置一周的过期时间
             await redis.set(key, '1', { EX: CONSTANTS.API_ALERT_EXPIRE });
         }
@@ -165,7 +165,7 @@ export class Photo extends plugin {
             let res = e.reply(segment.image(imageUrl))
             if (res) return true;
 
-            // 主API失败，记录并通知
+            // 主API失败,记录并通知
             await this.checkAndSendApiAlert(apiName);
 
             // 尝试备用API
@@ -179,10 +179,10 @@ export class Photo extends plugin {
                     const isBackupR18 = this.isR18Image('BACKUP', backupResponse);
 
                     if (isBackupR18) {
-                        // 如果是R18图片，生成二维码
+                        // 如果是R18图片,生成二维码
                         const qrcodeUrl = this.generateQRCode(backupUrl);
                         const msg = [
-                            segment.text('图片内容已转换为二维码，请自行扫码查看\n'),
+                            segment.text('图片内容已转换为二维码,请自行扫码查看\n'),
                             segment.image(qrcodeUrl)
                         ];
                         return await e.reply(msg);
@@ -193,7 +193,7 @@ export class Photo extends plugin {
                         return true;
                     }
                 } catch (sendError) {
-                    logger.warn(`${apiName}备用图片发送失败，尝试使用合并转发方式`, sendError);
+                    logger.warn(`${apiName}备用图片发送失败,尝试使用合并转发方式`, sendError);
                 }
             }
             return false;

@@ -202,7 +202,7 @@ export class DimTownPlugin extends plugin {
       }
     } catch (error) {
       logger.error(error);
-      e.reply("获取失败，请稍后重试");
+      e.reply("获取失败,请稍后重试");
     }
   }
 

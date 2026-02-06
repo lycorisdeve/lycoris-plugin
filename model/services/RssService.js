@@ -33,7 +33,7 @@ class RssService {
 
     /**
      * 获取所有订阅源列表
-     * @returns {Promise<Array>} 订阅源列表，包含 rsshubUrls
+     * @returns {Promise<Array>} 订阅源列表,包含 rsshubUrls
      */
     async getFeeds() {
         const list = this.config.subscribe_list || [];
@@ -48,13 +48,13 @@ class RssService {
      * 获取单个订阅源的内容
      * 支持 RSSHub 多实例自动切换
      * @param {Object} item - 订阅源配置项
-     * @returns {Promise<Object|null>} 解析后的 feed 对象，失败返回 null
+     * @returns {Promise<Object|null>} 解析后的 feed 对象,失败返回 null
      */
     async fetchFeed(item) {
         let url = item.url;
         const rsshubUrls = item.rsshubUrls || ['https://rsshub.app'];
 
-        // 如果是 RSSHub URL，尝试使用多个实例
+        // 如果是 RSSHub URL,尝试使用多个实例
         if (url.includes('${rsshub_url}')) {
             for (const baseUrl of rsshubUrls) {
                 const targetUrl = url.replace('${rsshub_url}', baseUrl);
@@ -62,11 +62,11 @@ class RssService {
                     const feed = await parser.parseURL(targetUrl);
                     if (feed) return feed;
                 } catch (error) {
-                    logger.warn(`[RSS] RSSHub 实例失败：${baseUrl} - ${error.message}`);
+                    logger.warn(`[RSS] RSSHub 实例失败:${baseUrl} - ${error.message}`);
                     continue;
                 }
             }
-            logger.error(`[RSS] 所有 RSSHub 实例均失败：${url}`);
+            logger.error(`[RSS] 所有 RSSHub 实例均失败:${url}`);
             return null;
         } else {
             // 普通 RSS URL
@@ -82,7 +82,7 @@ class RssService {
     /**
      * 检查订阅源中的新条目
      * @param {Object} feed - 订阅源对象
-     * @param {string} localId - 订阅源的唯一标识（通常是 URL）
+     * @param {string} localId - 订阅源的唯一标识(通常是 URL)
      * @returns {Promise<Array>} 新条目列表
      */
     async checkNewItems(feed, localId) {
@@ -92,7 +92,7 @@ class RssService {
         const count = RssHistory.count(localId);
 
         if (count === 0) {
-            // 首次订阅：将当前所有条目保存到历史记录，防止推送旧内容
+            // 首次订阅:将当前所有条目保存到历史记录,防止推送旧内容
             const bulkData = feed.items.map(item => ({
                 feedUrl: localId,
                 guid: item.guid || item.link || item.title,
@@ -109,7 +109,7 @@ class RssService {
         for (const item of feed.items) {
             const id = item.guid || item.link || item.title;
 
-            // 跳过已处理的 ID（防止同一次检查中的重复）
+            // 跳过已处理的 ID(防止同一次检查中的重复)
             if (seenIds.has(id)) continue;
             seenIds.add(id);
 
@@ -121,7 +121,7 @@ class RssService {
             }
         }
 
-        // 反转数组，按时间顺序推送（从旧到新）
+        // 反转数组,按时间顺序推送(从旧到新)
         return newItems.reverse();
     }
 
@@ -140,8 +140,8 @@ class RssService {
     }
 
     /**
-     * RSS 订阅检查任务（定时任务入口）
-     * @param {boolean} force - 是否强制推送（忽略历史记录）
+     * RSS 订阅检查任务(定时任务入口)
+     * @param {boolean} force - 是否强制推送(忽略历史记录)
      * @returns {Promise<Object>} 返回统计信息 { total: 订阅总数, pushed: 推送条数 }
      */
     async task(force = false) {
@@ -157,10 +157,10 @@ class RssService {
 
             let newItems = [];
             if (force) {
-                // 强制模式：获取最近 3 条（避免过多刷屏）
+                // 强制模式:获取最近 3 条(避免过多刷屏)
                 newItems = feed.items.slice(0, 3).reverse();
             } else {
-                // 正常模式：检查新条目
+                // 正常模式:检查新条目
                 newItems = await this.checkNewItems(feed, sub.url);
             }
 
@@ -170,7 +170,7 @@ class RssService {
                     // 执行推送并获取推送状态
                     const pushSuccess = await this.broadcast(sub, feed, item);
 
-                    // 只有推送成功才记录到数据库（防止失败后重复推送）
+                    // 只有推送成功才记录到数据库(防止失败后重复推送)
                     if (pushSuccess && !force) {
                         await this.recordItem(sub.url, item);
                     }
@@ -196,7 +196,7 @@ class RssService {
 
         for (const userId of notifyList) {
             await Bot.pickFriend(userId).sendMsg(msg)
-                .catch(e => logger.error(`[RSS] 通知管理员失败：${e}`));
+                .catch(e => logger.error(`[RSS] 通知管理员失败:${e}`));
         }
     }
 
@@ -223,9 +223,9 @@ class RssService {
                         groupSuccess = true;
                     })
                     .catch(async err => {
-                        logger.error(`[RSS] 图片发送失败：${err.message}`);
+                        logger.error(`[RSS] 图片发送失败:${err.message}`);
 
-                        // 图片发送失败，尝试降级为文本消息 (检查配置)
+                        // 图片发送失败,尝试降级为文本消息 (检查配置)
                         if (this.config.text_push !== false) {
                             const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
                             await Bot.sendGroupMsg(groupId, textMsg)
@@ -234,7 +234,7 @@ class RssService {
                                     groupSuccess = true;
                                 })
                                 .catch(async err2 => {
-                                    logger.error(`[RSS] 文本发送也失败：${err2.message}`);
+                                    logger.error(`[RSS] 文本发送也失败:${err2.message}`);
                                     await this.notifyOwnerFailure(sub, groupId, err2);
                                 });
                         } else {
@@ -242,7 +242,7 @@ class RssService {
                         }
                     });
             } else {
-                // 渲染失败，直接发送文本消息 (检查配置)
+                // 渲染失败,直接发送文本消息 (检查配置)
                 if (this.config.text_push !== false) {
                     const textMsg = `【RSS推送】${sub.name}\n${item.title}\n${item.link}`;
                     await Bot.sendGroupMsg(groupId, textMsg)
@@ -250,24 +250,24 @@ class RssService {
                             groupSuccess = true;
                         })
                         .catch(async err => {
-                            logger.error(`[RSS] 文本发送失败：${err.message}`);
+                            logger.error(`[RSS] 文本发送失败:${err.message}`);
                             await this.notifyOwnerFailure(sub, groupId, err);
                         });
                 } else {
-                    logger.warn(`[RSS] ${sub.name} 渲染失败且文本推送已关闭，跳过推送`);
+                    logger.warn(`[RSS] ${sub.name} 渲染失败且文本推送已关闭,跳过推送`);
                 }
             }
 
-            // 只要有一个群组成功，就标记为成功
+            // 只要有一个群组成功,就标记为成功
             if (groupSuccess) {
                 anySuccess = true;
             }
 
-            // 延迟，避免发送过快
+            // 延迟,避免发送过快
             await Data.sleep(1000);
         }
 
-        // 返回推送结果，用于决定是否记录到数据库
+        // 返回推送结果,用于决定是否记录到数据库
         return anySuccess;
     }
 
@@ -276,7 +276,7 @@ class RssService {
      * @param {Object} sub - 订阅源配置
      * @param {Object} feed - 订阅源对象
      * @param {Object} item - 条目对象
-     * @returns {Promise<Buffer|null>} 图片 Buffer，失败返回 null
+     * @returns {Promise<Buffer|null>} 图片 Buffer,失败返回 null
      */
     async render(sub, feed, item) {
         try {
@@ -318,7 +318,7 @@ class RssService {
                             const urlObj = new URL(baseUrl);
                             imgUrl = urlObj.origin + imgUrl;
                         } catch (e) {
-                            // URL 解析失败，保留原样
+                            // URL 解析失败,保留原样
                         }
                     }
                     // 处理不包含协议的路径 img/1.jpg
@@ -328,7 +328,7 @@ class RssService {
                             const path = urlObj.pathname.split('/').slice(0, -1).join('/') + '/';
                             imgUrl = urlObj.origin + path + imgUrl;
                         } catch (e) {
-                            // URL 解析失败，保留原样
+                            // URL 解析失败,保留原样
                         }
                     }
 
@@ -351,7 +351,7 @@ class RssService {
                 }
             });
 
-            // 2. 删除所有图片和视频标签，因为我们已经提取并准备单独显示
+            // 2. 删除所有图片和视频标签,因为我们已经提取并准备单独显示
             $('img, video').remove();
 
             // 3. 清理空标签 (递归删除没有文本且没有子标签的内容)
@@ -388,7 +388,7 @@ class RssService {
                 }
             });
         } catch (error) {
-            logger.error(`[RSS] 渲染错误：${error.message}`);
+            logger.error(`[RSS] 渲染错误:${error.message}`);
             return null;
         }
     }
