@@ -344,7 +344,7 @@ class RssService {
                         }
                     }
 
-                    if (images.length < 20 && !seenImages.has(imgUrl)) {
+                    if (images.length < 100 && !seenImages.has(imgUrl)) {
                         seenImages.add(imgUrl);
                         images.push(imgUrl);
                     }
