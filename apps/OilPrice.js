@@ -24,7 +24,7 @@ const API_SOURCES = [
             oil95: data.data.p95,
             oil98: data.data.p98,
             oil0: data.data.p0,
-            updateTime: data.data.time
+            updateTime: data.data.next_update_time
         })
     },
     {
