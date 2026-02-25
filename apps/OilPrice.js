@@ -27,19 +27,7 @@ const API_SOURCES = [
             updateTime: data.data.next_update_time
         })
     },
-    {
-        name: 'LOLIMI',
-        url: province => `https://api.lolimi.cn/API/youjia/api?msg=${province}`,
-        parse: data => ({
-            province: data.data.region,
-            oil89: '暂无数据',
-            oil92: data.data['92h'],
-            oil95: data.data['95h'],
-            oil98: data.data['98h'],
-            oil0: data.data['0h'],
-            updateTime: '实时数据'
-        })
-    },
+
     {
         name: 'NXVAV',
         url: province => `https://api.nxvav.cn/api/fuel-price/?region=${province}`,
@@ -51,19 +39,6 @@ const API_SOURCES = [
             oil98: data.data.p98,
             oil0: data.data.p0,
             updateTime: data.data.updated_at
-        })
-    },
-    {
-        name: 'VMY',
-        url: province => `https://api.52vmy.cn/api/query/oil?city=${province}`,
-        parse: data => ({
-            province: data.data.city,
-            oil89: '暂无数据',
-            oil92: data.data['92'],
-            oil95: data.data['95'],
-            oil98: data.data['98'],
-            oil0: data.data['0'],
-            updateTime: '实时数据'
         })
     },
     {
@@ -79,6 +54,33 @@ const API_SOURCES = [
             updateTime: data.data.update_time
         })
     },
+    {
+        name: 'LOLIMI',
+        url: province => `https://api.lolimi.cn/API/youjia/api?msg=${province}`,
+        parse: data => ({
+            province: data.data.region,
+            oil89: '暂无数据',
+            oil92: data.data['92h'],
+            oil95: data.data['95h'],
+            oil98: data.data['98h'],
+            oil0: data.data['0h'],
+            updateTime: '实时数据'
+        })
+    },
+    {
+        name: 'VMY',
+        url: province => `https://api.52vmy.cn/api/query/oil?city=${province}`,
+        parse: data => ({
+            province: data.data.city,
+            oil89: '暂无数据',
+            oil92: data.data['92'],
+            oil95: data.data['95'],
+            oil98: data.data['98'],
+            oil0: data.data['0'],
+            updateTime: '实时数据'
+        })
+    },
+
     {
         name: 'QQSUU',
         url: province => `https://api.qqsuu.cn/api/dm-oilprice?prov=${province}&apiKey=fc07b3a2f4091e6ee21cea6785e6abf5`,
@@ -168,18 +170,22 @@ export class OilPricePlugin extends plugin {
 
     // 格式化输出
     formatOilPrice(data, isGroup = false) {
-        const header = isGroup ? `📍 ${data.provinces.join('、')}油价信息` : `📍 ${data.province} 🚘油价信息`
-        const time = isGroup ? data.info.updateTime : data.updateTime
+        const province = isGroup ? data.provinces.join('、') : data.province
         const info = isGroup ? data.info : data
+        const updateTime = isGroup ? data.info.updateTime : data.updateTime
 
         return [
-            header,
-            `⛽89号汽油:${info.oil89}元/升`,
-            `⛽92号汽油:${info.oil92}元/升`,
-            `⛽95号汽油:${info.oil95}元/升`,
-            `⛽98号汽油:${info.oil98}元/升`,
-            `⛽0号柴油:${info.oil0}元/升`,
-            `⏰更新时间:${time}`
+            `┏━━━━━ 📍 ${province} ━━━━━┓`,
+            `┃ 🚗 今日油价信息概览`,
+            `┣━━━━━━━━━━━━━━━━━━━━━`,
+            `┃ ⛽ 89# 汽油：${info.oil89} 元/升`,
+            `┃ ⛽ 92# 汽油：${info.oil92} 元/升`,
+            `┃ ⛽ 95# 汽油：${info.oil95} 元/升`,
+            `┃ ⛽ 98# 汽油：${info.oil98} 元/升`,
+            `┃ ⛽ 0#  柴油：${info.oil0} 元/升`,
+            `┣━━━━━━━━━━━━━━━━━━━━━`,
+            `┃ ⏰ 更新时间：${updateTime}`,
+            `┗━━━━━━━━━━━━━━━━━━━━━┛`
         ].join('\n')
     }
 
