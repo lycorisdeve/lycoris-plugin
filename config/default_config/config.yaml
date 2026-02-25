@@ -40,7 +40,7 @@ aiNews:
     hour: "8"
     minute: "30"
     second: "0"
-  num: 10
+  num: 20
   group_ids: []
   private_ids: []
 # Translation API config

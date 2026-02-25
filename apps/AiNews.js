@@ -1,6 +1,5 @@
 import Config from '../components/Config.js';
 import Render from '../components/lib/Render.js';
-import { pluginName } from '../components/lib/Path.js';
 import Parser from 'rss-parser';
 
 const config = Config.getConfig('config').aiNews || {
@@ -10,7 +9,7 @@ const config = Config.getConfig('config').aiNews || {
     minute: '30',
     second: '0'
   },
-  num: 10,
+  num: 20,
   group_ids: [],
   private_ids: []
 };
@@ -53,7 +52,7 @@ export class AiNews extends plugin {
     const data = {
       newsTitle: `AI新闻_${date}`,
       news: newsList.map(title => ({ title })),
-      copyright: `${pluginName}`,
+      copyright: ``,
       sys: {
         scale: 100,
         width: 1200,
@@ -89,18 +88,25 @@ export class AiNews extends plugin {
       const parser = new Parser();
       const feed = await parser.parseString(xmlText);
       const items = Array.isArray(feed.items) ? feed.items : [];
-      const titles = [];
-      for (const item of items) {
-        if (item && item.title) {
-          const t = this.normalizeLine(item.title);
-          if (t) titles.push(t);
-        }
-        if (titles.length >= limit) break;
-      }
-      const first = items[0] || {};
+      if (items.length === 0) return { date: new Date().toISOString().slice(0, 10), newsList: [] };
+
+      // 只取第一条（最新一天）的日刊
+      const first = items[0];
       const dateStr = first.isoDate || first.pubDate || '';
       const date = this.safeDate(dateStr) || new Date().toISOString().slice(0, 10);
-      return { date, newsList: titles.slice(0, limit) };
+
+      const content = first.contentSnippet || first['content:encoded'] || first.content || '';
+
+      // 按行切割并过滤短文本或无关紧要的描述
+      const lines = content
+        .replace(/<\/?[^>]+(>|$)/g, '\n') // 去除可能的 HTML 标签
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 5 && !s.includes('问题反馈') && !s.includes('前往官网') && !s.includes('查看完整版'));
+
+      // 去重并限制数量
+      const uniqueNews = [...new Set(lines)];
+      return { date, newsList: uniqueNews.slice(0, limit) };
     } catch (err) {
       return { date: new Date().toISOString().slice(0, 10), newsList: [] };
     }

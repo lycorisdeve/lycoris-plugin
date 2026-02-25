@@ -1,28 +1,27 @@
-{{extend defaultLayout}}
-{{block 'css'}}
-<link rel="stylesheet" type="text/css" href="{{_res_path}}/html/aiNews/aiNews.css" />
-{{/block}}
-
-{{block 'main'}}
+{{extend defaultLayout}} {{block 'css'}}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{_res_path}}/html/aiNews/aiNews.css" />
+{{/block}} {{block 'main'}}
 <div class="ai-news-wrap">
   <header class="ai-news-hero">
-    <div class="hero-tag">AI Daily Brief</div>
+    <div class="hero-tag">AI 日报</div>
     <div class="hero-title">{{newsTitle}}</div>
     <div class="hero-meta">
       <span class="meta-pill">Top {{news.length}}</span>
-      <span class="meta-pill">Auto Digest</span>
     </div>
     <div class="hero-glow"></div>
   </header>
 
   <section class="ai-news-list">
     {{each news item index}}
-      <article class="ai-news-card">
-        <div class="card-index">{{index + 1}}</div>
-        <div class="card-body">
-          <div class="card-title">{{item.title}}</div>
-        </div>
-      </article>
+    <article class="ai-news-card">
+      <div class="card-index">{{index + 1}}</div>
+      <div class="card-body">
+        <div class="card-title">{{item.title}}</div>
+      </div>
+    </article>
     {{/each}}
   </section>
 
