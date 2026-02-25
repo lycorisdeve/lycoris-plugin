@@ -1,4 +1,4 @@
-import Config from "./components/Config.js";
+﻿import Config from "./components/Config.js";
 import _ from "lodash";
 
 export function supportGuoba() {
@@ -28,12 +28,12 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.isPush",
-          label: \"是否推送\",
+          label: "是否推送",
           component: "Switch",
         },
         {
           field: "epicGames.schedule.month",
-          label: \"月份\",
+          label: "月份",
           component: "Input",
           componentProps: {
             placeholder: '每月',
@@ -41,7 +41,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.schedule.dayOfWeek",
-          label: \"星期\",
+          label: "星期",
           component: "Input",
           componentProps: {
             placeholder: '周五,周日',
@@ -49,7 +49,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.schedule.hour",
-          label: \"小时\",
+          label: "小时",
           component: "Input",
           componentProps: {
             placeholder: '12',
@@ -57,7 +57,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.schedule.minute",
-          label: \"分钟\",
+          label: "分钟",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -65,7 +65,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.schedule.second",
-          label: \"秒\",
+          label: "秒",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -73,7 +73,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.group_ids",
-          label: \"推送群组\",
+          label: "推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -82,7 +82,7 @@ export function supportGuoba() {
         },
         {
           field: "epicGames.private_ids",
-          label: \"推送私聊\",
+          label: "推送私聊",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -99,12 +99,12 @@ export function supportGuoba() {
         },
         {
           field: "read60s.isPush",
-          label: \"是否推送\",
+          label: "是否推送",
           component: "Switch",
         },
         {
           field: "read60s.schedule.hour",
-          label: \"小时\",
+          label: "小时",
           component: "Input",
           componentProps: {
             placeholder: '8',
@@ -112,7 +112,7 @@ export function supportGuoba() {
         },
         {
           field: "read60s.schedule.minute",
-          label: \"分钟\",
+          label: "分钟",
           component: "Input",
           componentProps: {
             placeholder: '20',
@@ -120,7 +120,7 @@ export function supportGuoba() {
         },
         {
           field: "read60s.schedule.second",
-          label: \"秒\",
+          label: "秒",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -128,7 +128,7 @@ export function supportGuoba() {
         },
         {
           field: "read60s.group_ids",
-          label: \"推送群组\",
+          label: "推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -137,7 +137,7 @@ export function supportGuoba() {
         },
         {
           field: "read60s.private_ids",
-          label: \"推送私聊\",
+          label: "推送私聊",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -154,12 +154,12 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.isPush",
-          label: \"是否推送\",
+          label: "是否推送",
           component: "Switch",
         },
         {
           field: "aiNews.schedule.hour",
-          label: \"小时\",
+          label: "小时",
           component: "Input",
           componentProps: {
             placeholder: '8',
@@ -167,7 +167,7 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.schedule.minute",
-          label: \"分钟\",
+          label: "分钟",
           component: "Input",
           componentProps: {
             placeholder: '30',
@@ -175,7 +175,7 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.schedule.second",
-          label: \"秒\",
+          label: "秒",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -183,7 +183,7 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.num",
-          label: \"条数\",
+          label: "条数",
           component: "InputNumber",
           componentProps: {
             min: 1,
@@ -193,7 +193,7 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.group_ids",
-          label: \"推送群组\",
+          label: "推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -202,7 +202,7 @@ export function supportGuoba() {
         },
         {
           field: "aiNews.private_ids",
-          label: \"推送私聊\",
+          label: "推送私聊",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -219,7 +219,7 @@ export function supportGuoba() {
         },
         {
           field: "translate.baidu.id",
-          label: \"百度翻译 APP ID\",
+          label: "百度翻译 APP ID",
           component: "Input",
           componentProps: {
             placeholder: '请输入 APP ID',
@@ -227,7 +227,7 @@ export function supportGuoba() {
         },
         {
           field: "translate.baidu.key",
-          label: \"百度翻译密钥\",
+          label: "百度翻译密钥",
           component: "Input",
           componentProps: {
             placeholder: '请输入密钥',
@@ -235,7 +235,7 @@ export function supportGuoba() {
         },
         {
           field: "translate.youdao.id",
-          label: \"有道翻译 APP ID\",
+          label: "有道翻译 APP ID",
           component: "Input",
           componentProps: {
             placeholder: '请输入 APP ID',
@@ -243,7 +243,7 @@ export function supportGuoba() {
         },
         {
           field: "translate.youdao.key",
-          label: \"有道翻译密钥\",
+          label: "有道翻译密钥",
           component: "Input",
           componentProps: {
             placeholder: '请输入密钥',
@@ -259,12 +259,12 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.isPush",
-          label: \"是否推送\",
+          label: "是否推送",
           component: "Switch",
         },
         {
           field: "oilPrice.schedule.year",
-          label: \"年\",
+          label: "年",
           component: "Input",
           componentProps: {
             placeholder: '*',
@@ -272,7 +272,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.schedule.month",
-          label: \"月\",
+          label: "月",
           component: "Input",
           componentProps: {
             placeholder: '*',
@@ -280,7 +280,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.schedule.week",
-          label: \"周\",
+          label: "周",
           component: "Input",
           componentProps: {
             placeholder: '5',
@@ -288,7 +288,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.schedule.hour",
-          label: \"小时\",
+          label: "小时",
           component: "Input",
           componentProps: {
             placeholder: '8',
@@ -296,7 +296,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.schedule.minute",
-          label: \"分钟\",
+          label: "分钟",
           component: "Input",
           componentProps: {
             placeholder: '30',
@@ -304,7 +304,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.schedule.second",
-          label: \"秒\",
+          label: "秒",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -312,7 +312,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.group_ids",
-          label: \"推送群组\",
+          label: "推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -321,7 +321,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.private_ids",
-          label: \"推送私聊\",
+          label: "推送私聊",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -330,7 +330,7 @@ export function supportGuoba() {
         },
         {
           field: "oilPrice.provinces",
-          label: \"推送省份\",
+          label: "推送省份",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -347,7 +347,7 @@ export function supportGuoba() {
         },
         {
           field: "warframe.server",
-          label: \"服务器\",
+          label: "服务器",
           component: "Select",
           componentProps: {
             options: [
@@ -366,12 +366,12 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.fullScreen",
-          label: \"全屏截图\",
+          label: "全屏截图",
           component: "Switch",
         },
         {
           field: "screenshot.quality",
-          label: \"质量\",
+          label: "质量",
           component: "InputNumber",
           componentProps: {
             min: 1,
@@ -381,7 +381,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.minWidth",
-          label: \"最小宽度\",
+          label: "最小宽度",
           component: "InputNumber",
           componentProps: {
             min: 1,
@@ -390,7 +390,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.maxWidth",
-          label: \"最大宽度\",
+          label: "最大宽度",
           component: "InputNumber",
           componentProps: {
             min: 1,
@@ -399,7 +399,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.padding",
-          label: \"内边距\",
+          label: "内边距",
           component: "InputNumber",
           componentProps: {
             min: 0,
@@ -408,7 +408,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.timeout.page",
-          label: \"页面超时\",
+          label: "页面超时",
           component: "InputNumber",
           componentProps: {
             min: 0,
@@ -417,7 +417,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.timeout.resource",
-          label: \"资源超时\",
+          label: "资源超时",
           component: "InputNumber",
           componentProps: {
             min: 0,
@@ -426,7 +426,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.timeout.render",
-          label: \"渲染超时\",
+          label: "渲染超时",
           component: "InputNumber",
           componentProps: {
             min: 0,
@@ -435,7 +435,7 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.proxyApi.url",
-          label: \"代理 API URL\",
+          label: "代理 API URL",
           component: "Input",
           componentProps: {
             placeholder: 'https://proxyapi.example.com/',
@@ -443,12 +443,12 @@ export function supportGuoba() {
         },
         {
           field: "screenshot.proxyApi.enabled",
-          label: \"启用代理 API\",
+          label: "启用代理 API",
           component: "Switch",
         },
         {
           field: "renderScale",
-          label: \"HTML 渲染精度\",
+          label: "HTML 渲染精度",
           component: "InputNumber",
           componentProps: {
             min: 50,
@@ -466,7 +466,7 @@ export function supportGuoba() {
         },
         {
           field: "rss.cron",
-          label: \"检查频率\",
+          label: "检查频率",
           component: "Input",
           componentProps: {
             placeholder: '*/30 * * * *',
@@ -474,7 +474,7 @@ export function supportGuoba() {
         },
         {
           field: "rss.default_group",
-          label: \"默认推送群组\",
+          label: "默认推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -483,12 +483,12 @@ export function supportGuoba() {
         },
         {
           field: "rss.notify_owner",
-          label: \"失败通知主人\",
+          label: "失败通知主人",
           component: "Switch",
         },
         {
           field: "rss.rsshub_url",
-          label: \"RSSHub 节点列表\",
+          label: "RSSHub 节点列表",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -497,7 +497,7 @@ export function supportGuoba() {
         },
         {
           field: "rss.background",
-          label: \"推送背景图\",
+          label: "推送背景图",
           component: "Input",
           componentProps: {
             placeholder: '请输入背景图 URL',
@@ -513,12 +513,12 @@ export function supportGuoba() {
         },
         {
           field: "bt.proxy.enable",
-          label: \"启用代理\",
+          label: "启用代理",
           component: "Switch",
         },
         {
           field: "bt.proxy.url",
-          label: \"代理 URL\",
+          label: "代理 URL",
           component: "Input",
           componentProps: {
             placeholder: 'http://127.0.0.1:7890',
@@ -526,12 +526,12 @@ export function supportGuoba() {
         },
         {
           field: "bt.proxyApi.enable",
-          label: \"启用代理 API\",
+          label: "启用代理 API",
           component: "Switch",
         },
         {
           field: "bt.proxyApi.url",
-          label: \"代理 API URL\",
+          label: "代理 API URL",
           component: "Input",
           componentProps: {
             placeholder: 'https://proxyapi.example.com/{{url}}',
@@ -547,12 +547,12 @@ export function supportGuoba() {
         },
         {
           field: "dateReminder.isPush",
-          label: \"是否推送\",
+          label: "是否推送",
           component: "Switch",
         },
         {
           field: "dateReminder.schedule.hour",
-          label: \"小时\",
+          label: "小时",
           component: "Input",
           componentProps: {
             placeholder: '8',
@@ -560,7 +560,7 @@ export function supportGuoba() {
         },
         {
           field: "dateReminder.schedule.minute",
-          label: \"分钟\",
+          label: "分钟",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -568,7 +568,7 @@ export function supportGuoba() {
         },
         {
           field: "dateReminder.schedule.second",
-          label: \"秒\",
+          label: "秒",
           component: "Input",
           componentProps: {
             placeholder: '0',
@@ -576,7 +576,7 @@ export function supportGuoba() {
         },
         {
           field: "dateReminder.group_ids",
-          label: \"推送群组\",
+          label: "推送群组",
           component: "GTags",
           componentProps: {
             allowAdd: true,
@@ -585,7 +585,7 @@ export function supportGuoba() {
         },
         {
           field: "dateReminder.private_ids",
-          label: \"推送私聊\",
+          label: "推送私聊",
           component: "GTags",
           componentProps: {
             allowAdd: true,

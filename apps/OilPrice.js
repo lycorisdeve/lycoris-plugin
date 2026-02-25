@@ -4,26 +4,102 @@ import fs from 'fs'
 import yaml from 'yaml'
 
 /*
- * @description: 全国油价查询推送
+ * @description: 全国油价查询推送 (重构版)
  * @author: lycoris
- * @date: undefined
  */
+
 const config = Config.getConfig('config')
-
-const API_CONFIG = {
-    DEFAULT: 'https://api.qqsuu.cn/api/dm-oilprice?prov=广东',
-    BACKUP1: 'https://www.iamwawa.cn/oilprice/api?area=广东'
-}
-
 const plugin_config = config.oilPrice
-const CRON_EXPRESSION = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * ${plugin_config.schedule.week}`;
+const ISTERO_TOKEN = 'YlicDEqnkViPylOKPfCIrqhAaXYFoImw'
+
+const API_SOURCES = [
+    {
+        name: 'IAMWAWA',
+        url: province => `https://www.iamwawa.cn/oilprice/api?area=${province}`,
+        headers: { 'User-Agent': 'iamwawa-open-api' },
+        parse: data => ({
+            province: data.data.name,
+            oil89: '暂无数据',
+            oil92: data.data.p92,
+            oil95: data.data.p95,
+            oil98: data.data.p98,
+            oil0: data.data.p0,
+            updateTime: data.data.time
+        })
+    },
+    {
+        name: 'LOLIMI',
+        url: province => `https://api.lolimi.cn/API/youjia/api?msg=${province}`,
+        parse: data => ({
+            province: data.data.region,
+            oil89: '暂无数据',
+            oil92: data.data['92h'],
+            oil95: data.data['95h'],
+            oil98: data.data['98h'],
+            oil0: data.data['0h'],
+            updateTime: '实时数据'
+        })
+    },
+    {
+        name: 'NXVAV',
+        url: province => `https://api.nxvav.cn/api/fuel-price/?region=${province}`,
+        parse: data => ({
+            province: data.data.region,
+            oil89: '暂无数据',
+            oil92: data.data.p92,
+            oil95: data.data.p95,
+            oil98: data.data.p98,
+            oil0: data.data.p0,
+            updateTime: data.data.updated_at
+        })
+    },
+    {
+        name: 'VMY',
+        url: province => `https://api.52vmy.cn/api/query/oil?city=${province}`,
+        parse: data => ({
+            province: data.data.city,
+            oil89: '暂无数据',
+            oil92: data.data['92'],
+            oil95: data.data['95'],
+            oil98: data.data['98'],
+            oil0: data.data['0'],
+            updateTime: '实时数据'
+        })
+    },
+    {
+        name: 'ISTERO',
+        url: province => `https://api.istero.com/resource/v1/oilprice?province=${province}&token=${ISTERO_TOKEN}`,
+        parse: data => ({
+            province: data.data.name,
+            oil89: '暂无数据',
+            oil92: data.data.p92,
+            oil95: data.data.p95,
+            oil98: data.data.p98,
+            oil0: data.data.p0,
+            updateTime: data.data.update_time
+        })
+    },
+    {
+        name: 'QQSUU',
+        url: province => `https://api.qqsuu.cn/api/dm-oilprice?prov=${province}&apiKey=fc07b3a2f4091e6ee21cea6785e6abf5`,
+        parse: data => ({
+            province: data.data.prov,
+            oil89: data.data.p89,
+            oil92: data.data.p92,
+            oil95: data.data.p95,
+            oil98: data.data.p98,
+            oil0: data.data.p0,
+            updateTime: data.data.time
+        })
+    }
+]
+
 const VALID_PROVINCES = [
     "安徽", "北京", "福建", "甘肃", "广东", "广西", "贵州", "海南",
     "河北", "河南", "黑龙江", "湖北", "湖南", "吉林", "江苏", "江西",
     "辽宁", "内蒙古", "宁夏", "青海", "山东", "山西", "陕西", "上海",
     "四川", "天津", "西藏", "新疆", "云南", "浙江", "重庆"
-];
-const isPush = config.oilPrice.isPush
+]
 
 export class OilPricePlugin extends plugin {
     constructor() {
@@ -33,248 +109,136 @@ export class OilPricePlugin extends plugin {
             event: 'message',
             priority: 1200,
             rule: [
-                {
-                    reg: '^#油价$|^油价查询$',
-                    fnc: 'getOilPrice'
-                },
-                {
-                    reg: '^#油价\\s*(.*)$',
-                    fnc: 'getOilPriceByProvince'
-                },
-                {
-                    reg: '^#添加(.*)油价推送$',
-                    fnc: 'addOilPriceProvince'
-                }
+                { reg: '^#油价$|^油价查询$', fnc: 'getOilPrice' },
+                { reg: '^#油价\\s*(.*)$', fnc: 'getOilPriceByProvince' },
+                { reg: '^#添加(.*)油价推送$', fnc: 'addOilPriceProvince' }
             ]
         })
-        this.task = {
-            name: '油价定时推送',
-            fnc: () => this.sendOilPriceInfo(),
-            cron: CRON_EXPRESSION
-        }
+        const cron = `${plugin_config.schedule.second} ${plugin_config.schedule.minute} ${plugin_config.schedule.hour} * * ${plugin_config.schedule.week}`;
+        this.task = { name: '油价定时推送', fnc: () => this.sendOilPriceInfo(), cron }
     }
 
-
-
-    // 验证省份是否有效
-    validateProvince(province) {
-        return VALID_PROVINCES.includes(province);
-    }
-
-    // 通用的油价信息获取和回复方法
-    async handleOilPriceRequest(e, province = '江苏') {
-        if (!this.validateProvince(province)) {
-            await e.reply(`请输入正确的省份名称,支持以下省份:\n${VALID_PROVINCES.join('、')}`);
-            return false;
-        }
-
-        try {
-            const oilInfo = await this.getOilPriceInfo(province);
-            if (oilInfo) {
-                await e.reply(this.formatOilPriceInfo(oilInfo));
-                return true;
-            }
-        } catch (error) {
-            logger.error('获取油价信息失败:', error);
-        }
-        await e.reply("获取油价信息失败,请稍后重试!");
-        return false;
-    }
-
-    // 默认查询(江苏油价)
+    // 默认查询
     async getOilPrice(e) {
-        return this.handleOilPriceRequest(e);
+        return this.handleOilPriceRequest(e, '江苏')
     }
 
     // 指定省份查询
     async getOilPriceByProvince(e) {
-        const province = e.msg.replace(/^#油价\s*/, '').trim();
-        return this.handleOilPriceRequest(e, province);
+        const province = e.msg.replace(/^#油价\s*/, '').trim()
+        return this.handleOilPriceRequest(e, province)
     }
 
-    // 获取油价信息
+    // 核心请求处理逻辑
+    async handleOilPriceRequest(e, province) {
+        if (!VALID_PROVINCES.includes(province)) {
+            return e.reply(`请输入正确的省份名称, 支持:\n${VALID_PROVINCES.join('、')}`)
+        }
+
+        try {
+            const oilInfo = await this.getOilPriceInfo(province)
+            if (oilInfo) return e.reply(this.formatOilPrice(oilInfo))
+        } catch (error) {
+            logger.error('[油价查询] 失败:', error)
+        }
+        return e.reply("获取油价信息失败, 请稍后重试!")
+    }
+
+    // 循环尝试 API 源
     async getOilPriceInfo(province) {
-        const apis = [
-            {
-                url: API_CONFIG.DEFAULT.replace('广东', province),
-                process: data => ({
-                    province: data.data.prov,
-                    oil89: data.data.p89,
-                    oil92: data.data.p92,
-                    oil95: data.data.p95,
-                    oil98: data.data.p98,
-                    oil0: data.data.p0,
-                    updateTime: data.data.time
-                })
-            },
-            {
-                url: API_CONFIG.BACKUP1.replace('广东', province),
-                headers: {
-                    'User-Agent': 'iamwawa-open-api'
-                },
-                process: data => ({
-                    province: data.data.name,
-                    oil89: '暂无数据',
-                    oil92: data.data.p92,
-                    oil95: data.data.p95,
-                    oil98: data.data.p98,
-                    oil0: data.data.p0,
-                    updateTime: data.data.next_update_time
-                })
-            }
-        ];
-
-        for (const api of apis) {
+        for (const api of API_SOURCES) {
             try {
-                const response = await fetch(api.url, {
-                    method: "GET",
-                    headers: api.headers || {}
-                });
+                const response = await fetch(api.url(province), { headers: api.headers || {} })
+                if (!response.ok) continue
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                const data = await response.json()
+                const result = api.parse(data)
+
+                // 验证核心数据完整性, 防止获取到空数据
+                if (result && result.province && result.oil92 && result.oil92 !== '暂无数据') {
+                    return result
                 }
-
-                const data = await response.json();
-                return api.process(data);
-
+                logger.debug(`[油价查询] API ${api.name} 返回数据不完整, 尝试下一个源`)
             } catch (error) {
-                logger.error(`API ${api.url} failed:`, error);
+                logger.debug(`[油价查询] API ${api.name} 失败: ${error.message}`)
             }
-
         }
-        throw new Error('All APIs failed');
+        return null
     }
 
-    // 格式化油价信息
-    formatOilPriceInfo(data) {
-        return `
-📍 ${data.province} 🚘油价信息
-⛽89号汽油:${data.oil89}元/升
-⛽92号汽油:${data.oil92}元/升
-⛽95号汽油:${data.oil95}元/升
-⛽98号汽油:${data.oil98}元/升
-⛽0号柴油:${data.oil0}元/升
-⏰更新时间:${data.updateTime}
-        `;
+    // 格式化输出
+    formatOilPrice(data, isGroup = false) {
+        const header = isGroup ? `📍 ${data.provinces.join('、')}油价信息` : `📍 ${data.province} 🚘油价信息`
+        const time = isGroup ? data.info.updateTime : data.updateTime
+        const info = isGroup ? data.info : data
+
+        return [
+            header,
+            `⛽89号汽油:${info.oil89}元/升`,
+            `⛽92号汽油:${info.oil92}元/升`,
+            `⛽95号汽油:${info.oil95}元/升`,
+            `⛽98号汽油:${info.oil98}元/升`,
+            `⛽0号柴油:${info.oil0}元/升`,
+            `⏰更新时间:${time}`
+        ].join('\n')
     }
 
-    // 添加新的省份到推送列表
+    // 添加省份到配置
     async addOilPriceProvince(e) {
-        const province = e.msg.replace(/^#添加|油价推送$/g, '').trim();
-
-        // 验证省份名称
-        if (!this.validateProvince(province)) {
-            await e.reply(`请输入正确的省份名称,支持以下省份:\n${VALID_PROVINCES.join('、')}`);
-            return false;
+        const province = e.msg.replace(/^#添加|油价推送$/g, '').trim()
+        if (!VALID_PROVINCES.includes(province)) {
+            return e.reply(`省份名称错误, 支持:\n${VALID_PROVINCES.join('、')}`)
         }
 
         try {
-            // 验证省份是否有效
-            const oilInfo = await this.getOilPriceInfo(province);
-            if (!oilInfo) {
-                await e.reply("添加失败:无法获取该省份的油价信息");
-                return false;
-            }
+            const info = await this.getOilPriceInfo(province)
+            if (!info) return e.reply("无法获取该省份油价, 暂不支持添加")
 
-            // 读取当前配置(使用 parseDocument 保留注释)
-            const configPath = 'config/config.yaml';
-            const configContent = fs.readFileSync(configPath, 'utf8');
-            const document = yaml.parseDocument(configContent);
+            const configPath = 'config/config.yaml'
+            const document = yaml.parseDocument(fs.readFileSync(configPath, 'utf8'))
+            let provinces = document.getIn(['oilPrice', 'provinces']) || []
 
-            // 获取当前的 provinces 数组
-            let provinces = document.getIn(['oilPrice', 'provinces']) || [];
+            if (provinces.includes(province)) return e.reply(`${province}已在推送列表中`)
 
-            // 检查是否已存在
-            if (provinces.includes(province)) {
-                await e.reply(`${province}已在推送列表中`);
-                return false;
-            }
+            provinces.push(province)
+            document.setIn(['oilPrice', 'provinces'], provinces)
+            fs.writeFileSync(configPath, document.toString({ lineWidth: -1, noCompatMode: true, simpleKeys: true }), 'utf8')
 
-            // 添加新省份
-            provinces.push(province);
-
-            // 更新配置(保留注释)
-            document.setIn(['oilPrice', 'provinces'], provinces);
-            fs.writeFileSync(configPath, document.toString({
-                lineWidth: -1,
-                noCompatMode: true,
-                simpleKeys: true
-            }), 'utf8');
-
-            await e.reply(`成功添加${province}到油价推送列表`);
-            return true;
+            return e.reply(`成功添加${province}到推送列表`)
         } catch (error) {
-            logger.error('添加油价推送省份失败:', error);
-            await e.reply("添加失败,请稍后重试");
-            return false;
+            logger.error('[油价查询] 添加失败:', error)
+            return e.reply("添加失败, 请检查控制台日志")
         }
     }
 
-    // 修改定时推送方法,支持相同油价合并发送
+    // 定时推送逻辑
     async sendOilPriceInfo() {
-        if (!isPush) {
-            return;
-        }
+        if (!plugin_config.isPush) return
+
         try {
-            const provinces = plugin_config.provinces || ['广东'];
-            const priceGroups = new Map(); // 用于存储相同油价的省份
+            const provinces = plugin_config.provinces || ['广东']
+            const priceGroups = new Map()
 
-            // 获取所有省份的油价信息
-            for (const province of provinces) {
-                try {
-                    const oilInfo = await this.getOilPriceInfo(province);
-                    // 创建价格键(不包含省份和时间)
-                    const priceKey = `${oilInfo.oil89}-${oilInfo.oil92}-${oilInfo.oil95}-${oilInfo.oil98}-${oilInfo.oil0}`;
+            for (const prov of provinces) {
+                const info = await this.getOilPriceInfo(prov)
+                if (!info) continue
 
-                    if (!priceGroups.has(priceKey)) {
-                        priceGroups.set(priceKey, {
-                            provinces: [],
-                            info: oilInfo
-                        });
-                    }
-                    priceGroups.get(priceKey).provinces.push(province);
-                } catch (error) {
-                    logger.error(`获取${province}油价信息失败:`, error);
-                }
+                const key = `${info.oil89}-${info.oil92}-${info.oil95}-${info.oil98}-${info.oil0}`
+                if (!priceGroups.has(key)) priceGroups.set(key, { provinces: [], info })
+                priceGroups.get(key).provinces.push(prov)
             }
 
-            // 发送消息
-            for (const [_, group] of priceGroups) {
-                let message;
-                if (group.provinces.length === 1) {
-                    message = this.formatOilPriceInfo(group.info);
-                } else {
-                    message = this.formatGroupOilPriceInfo(group);
-                }
+            for (const group of priceGroups.values()) {
+                const msg = group.provinces.length === 1
+                    ? this.formatOilPrice(group.info)
+                    : this.formatOilPrice(group, true)
 
-                const sendPromises = [
-                    ...plugin_config.private_ids.map(qq =>
-                        Bot.sendPrivateMsg(qq, message).catch(err => logger.error(err))
-                    ),
-                    ...plugin_config.group_ids.map(qqGroup =>
-                        Bot.sendGroupMsg(qqGroup, message).catch(err => logger.error(err))
-                    )
-                ];
-                await Promise.all(sendPromises);
+                const send = (ids, type) => ids.forEach(id => Bot[`send${type}Msg`](id, msg).catch(e => logger.error(e)))
+                send(plugin_config.private_ids, 'Private')
+                send(plugin_config.group_ids, 'Group')
             }
         } catch (error) {
-            logger.error('Error sending oil price messages:', error);
+            logger.error('[油价查询] 定时推送错误:', error)
         }
-    }
-
-    // 添加新的格式化方法,用于多省份相同油价的情况
-    formatGroupOilPriceInfo(group) {
-        const { provinces, info } = group;
-        return `
-        📍 ${provinces.join('、')}油价信息
-        ⏰ 更新时间:${info.updateTime}
-        
-        89号汽油:${info.oil89}元/升
-        92号汽油:${info.oil92}元/升
-        95号汽油:${info.oil95}元/升
-        98号汽油:${info.oil98}元/升
-        0号柴油:${info.oil0}元/升
-        `;
     }
 }
