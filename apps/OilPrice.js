@@ -174,15 +174,20 @@ export class OilPricePlugin extends plugin {
         const info = isGroup ? data.info : data
         const updateTime = isGroup ? data.info.updateTime : data.updateTime
 
+        const formatLine = (label, value) => {
+            const displayValue = value === '暂无数据' ? value : `${value} 元/升`
+            return `┃ ${label}：${displayValue}`
+        }
+
         return [
             `┏━━━━━ 📍 ${province} ━━━━━┓`,
             `┃ 🚗 今日油价信息概览`,
             `┣━━━━━━━━━━━━━━━━━━━━━`,
-            `┃ ⛽ 89# 汽油：${info.oil89} 元/升`,
-            `┃ ⛽ 92# 汽油：${info.oil92} 元/升`,
-            `┃ ⛽ 95# 汽油：${info.oil95} 元/升`,
-            `┃ ⛽ 98# 汽油：${info.oil98} 元/升`,
-            `┃ ⛽ 0#  柴油：${info.oil0} 元/升`,
+            formatLine('⛽ 89# 汽油', info.oil89),
+            formatLine('⛽ 92# 汽油', info.oil92),
+            formatLine('⛽ 95# 汽油', info.oil95),
+            formatLine('⛽ 98# 汽油', info.oil98),
+            formatLine('⛽ 0#  柴油', info.oil0),
             `┣━━━━━━━━━━━━━━━━━━━━━`,
             `┃ ⏰ 更新时间：${updateTime}`,
             `┗━━━━━━━━━━━━━━━━━━━━━┛`
