@@ -85,7 +85,11 @@ export class AiNews extends plugin {
 
   async parseRss(xmlText, limit) {
     try {
-      const parser = new Parser();
+      const parser = new Parser({
+        customFields: {
+          item: ['content:encoded', 'description']
+        }
+      });
       const feed = await parser.parseString(xmlText);
       const items = Array.isArray(feed.items) ? feed.items : [];
       if (items.length === 0) return { date: new Date().toISOString().slice(0, 10), newsList: [] };
@@ -95,7 +99,7 @@ export class AiNews extends plugin {
       const dateStr = first.isoDate || first.pubDate || '';
       const date = this.safeDate(dateStr) || new Date().toISOString().slice(0, 10);
 
-      const content = first.contentSnippet || first['content:encoded'] || first.content || '';
+      const content = first['content:encoded'] || first.content || first.description || '';
 
       // 按行切割并过滤短文本或无关紧要的描述
       const lines = content
