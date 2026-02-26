@@ -47,11 +47,16 @@ export class AiNews extends plugin {
   }
 
   async getAiNewsImg() {
-    const { date, newsList } = await this.getAiNewsFromRss();
-    if (!newsList.length) return null;
+    const { date, categories } = await this.getAiNewsFromRss();
+    if (!categories.length) return null;
+
+    // Calculate total news items to show in the meta tag
+    const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
+
     const data = {
       newsTitle: `AI新闻_${date}`,
-      news: newsList.map(title => ({ title })),
+      totalItems,
+      categories,
       copyright: ``,
       sys: {
         scale: 100,
@@ -101,18 +106,35 @@ export class AiNews extends plugin {
 
       const content = first['content:encoded'] || first.content || first.description || '';
 
-      // 按行切割并过滤短文本或无关紧要的描述
-      const lines = content
-        .replace(/<\/?[^>]+(>|$)/g, '\n') // 去除可能的 HTML 标签
-        .split('\n')
-        .map(s => s.trim())
-        .filter(s => s.length > 5 && !s.includes('问题反馈') && !s.includes('前往官网') && !s.includes('查看完整版'));
+      const categories = [];
+      const categoryRegex = /<h3>(.*?)<\/h3>[\s\S]*?<ol>([\s\S]*?)<\/ol>/g;
+      let match;
 
-      // 去重并限制数量
-      const uniqueNews = [...new Set(lines)];
-      return { date, newsList: uniqueNews.slice(0, limit) };
+      while ((match = categoryRegex.exec(content)) !== null) {
+        const title = match[1].trim();
+        const itemsHtml = match[2];
+        const newsItems = [];
+
+        const itemRegex = /<li>(.*?)<\/li>/g;
+        let itemMatch;
+        while ((itemMatch = itemRegex.exec(itemsHtml)) !== null) {
+          // 清除 <li> 内部的 a 标签等 html 实体
+          const text = itemMatch[1].replace(/<[^>]*>?/gm, '').trim();
+          if (text) newsItems.push(text);
+        }
+
+        if (newsItems.length > 0) {
+          // Flatten items down to config limit if necessary, but visually it's best to show all items in the daily digest, so let's keep all parsed items for this day.
+          categories.push({
+            title: title,
+            items: newsItems
+          });
+        }
+      }
+
+      return { date, categories };
     } catch (err) {
-      return { date: new Date().toISOString().slice(0, 10), newsList: [] };
+      return { date: new Date().toISOString().slice(0, 10), categories: [] };
     }
   }
 
@@ -144,3 +166,4 @@ export class AiNews extends plugin {
     await Promise.all(sendPromises);
   }
 }
+

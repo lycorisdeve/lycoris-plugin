@@ -9,19 +9,23 @@
     <div class="hero-tag">AI 日报</div>
     <div class="hero-title">{{newsTitle}}</div>
     <div class="hero-meta">
-      <span class="meta-pill">Top {{news.length}}</span>
+      <span class="meta-pill">Top {{totalItems}}</span>
     </div>
     <div class="hero-glow"></div>
   </header>
 
   <section class="ai-news-list">
-    {{each news item index}}
-    <article class="ai-news-card">
-      <div class="card-index">{{index + 1}}</div>
-      <div class="card-body">
-        <div class="card-title">{{item.title}}</div>
-      </div>
-    </article>
+    {{each categories category}}
+    <div class="category-block">
+      <h3 class="category-title">{{category.title}}</h3>
+      <ol class="category-items">
+        {{each category.items item}}
+        <li class="category-item">
+          <span class="item-text">{{item}}</span>
+        </li>
+        {{/each}}
+      </ol>
+    </div>
     {{/each}}
   </section>
 
