@@ -21,6 +21,55 @@ const parser = new Parser({
  */
 class RssService {
     constructor() {
+        this.taskRunning = false;
+    }
+
+    normalizeLink(link) {
+        if (!_.isString(link)) return '';
+
+        const raw = link.trim();
+        if (!raw) return '';
+
+        if (!/^https?:\/\//i.test(raw)) {
+            return raw;
+        }
+
+        try {
+            const urlObj = new URL(raw);
+            urlObj.hash = '';
+
+            const trackingParams = [
+                'utm_source',
+                'utm_medium',
+                'utm_campaign',
+                'utm_term',
+                'utm_content',
+                'spm',
+                'from',
+                'source'
+            ];
+
+            trackingParams.forEach(param => urlObj.searchParams.delete(param));
+            return urlObj.toString().replace(/\/$/, '');
+        } catch (error) {
+            return raw;
+        }
+    }
+
+    getItemId(item = {}) {
+        const linkId = this.normalizeLink(item.link);
+        if (linkId) return `link:${linkId}`;
+
+        const guid = _.toString(item.guid || '').trim();
+        if (guid) return `guid:${guid}`;
+
+        const title = _.toString(item.title || '').trim();
+        if (title) {
+            const pubDate = _.toString(item.pubDate || item.isoDate || '').trim();
+            return pubDate ? `title:${title}|date:${pubDate}` : `title:${title}`;
+        }
+
+        return '';
     }
 
     /**
@@ -95,10 +144,12 @@ class RssService {
             // 首次订阅:将当前所有条目保存到历史记录,防止推送旧内容
             const bulkData = feed.items.map(item => ({
                 feedUrl: localId,
-                guid: item.guid || item.link || item.title,
+                guid: this.getItemId(item),
                 title: item.title
-            }));
-            RssHistory.bulkCreate(bulkData);
+            })).filter(item => item.guid);
+            if (bulkData.length > 0) {
+                RssHistory.bulkCreate(bulkData);
+            }
             return [];
         }
 
@@ -107,7 +158,8 @@ class RssService {
 
         // 对比数据库检查每个条目
         for (const item of feed.items) {
-            const id = item.guid || item.link || item.title;
+            const id = this.getItemId(item);
+            if (!id) continue;
 
             // 跳过已处理的 ID(防止同一次检查中的重复)
             if (seenIds.has(id)) continue;
@@ -131,7 +183,8 @@ class RssService {
      * @param {Object} item - 条目对象
      */
     async recordItem(localId, item) {
-        const id = item.guid || item.link || item.title;
+        const id = this.getItemId(item);
+        if (!id) return;
         RssHistory.create({
             feedUrl: localId,
             guid: id,
@@ -145,7 +198,14 @@ class RssService {
      * @returns {Promise<Object>} 返回统计信息 { total: 订阅总数, pushed: 推送条数 }
      */
     async task(force = false) {
-        const feeds = await this.getFeeds();
+        if (this.taskRunning) {
+            logger.warn(`[RSS] 上一次任务仍在执行,跳过本次检查(强制=${force})`);
+            return { total: 0, pushed: 0, skipped: true };
+        }
+
+        this.taskRunning = true;
+        try {
+            const feeds = await this.getFeeds();
         if (!feeds.length) return { total: 0, pushed: 0 };
 
         logger.info(`[RSS] 开始检查 ${feeds.length} 个订阅 (强制=${force})...`);
@@ -178,7 +238,10 @@ class RssService {
                 pushedCount += newItems.length;
             }
         }
-        return { total: feeds.length, pushed: pushedCount };
+            return { total: feeds.length, pushed: pushedCount };
+        } finally {
+            this.taskRunning = false;
+        }
     }
 
     /**
@@ -210,7 +273,11 @@ class RssService {
     async broadcast(sub, feed, item) {
         // 渲染图片消息
         const img = await this.render(sub, feed, item);
-        const groups = sub.group || this.config.default_group || [];
+        const targetGroups = (Array.isArray(sub.group) && sub.group.length > 0)
+            ? sub.group
+            : (this.config.default_group || []);
+        const groups = _.uniq(targetGroups.map(groupId => `${groupId}`.trim()).filter(Boolean));
+        if (!groups.length) return false;
         let anySuccess = false; // 标记是否有任何群组推送成功
 
         for (const groupId of groups) {

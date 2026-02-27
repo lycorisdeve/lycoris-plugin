@@ -83,15 +83,16 @@ export class DatePlugin extends plugin {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
 
-                const response = await fetch("https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924&type=json", {
+                const response = await fetch("https://api.lolimi.cn/API/cosplay/api", {
                     signal: controller.signal
                 }).then(res => res.json());
 
                 clearTimeout(timeoutId);
 
-                if (response.code === 200 && response.url) {
-                    background = response.url;
-                    logger.info('[DateReminder] 获取随机背景图成功:\n', response);
+                if (response.code === "1" && response.data?.data?.length > 0) {
+                    const imgList = response.data.data;
+                    background = imgList[Math.floor(Math.random() * imgList.length)];
+                    logger.info('[DateReminder] 获取随机背景图成功, 选取的图片是: ', background);
                 }
             } catch (e) {
                 if (e.name === 'AbortError') {
