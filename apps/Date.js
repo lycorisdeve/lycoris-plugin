@@ -1,4 +1,9 @@
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { pluginResources } from '../components/lib/Path.js';
+
 import service from '../model/services/DateService.js';
 import Render from '../components/lib/Render.js';
 import Config from '../components/Config.js';
@@ -79,6 +84,7 @@ export class DatePlugin extends plugin {
 
             // 获取随机背景图
             let background = "";
+            let tempFile = null;
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
@@ -97,18 +103,27 @@ export class DatePlugin extends plugin {
                     }
                     
                     try {
+                        const tempDir = path.join(pluginResources, 'temp');
+                        if (!fs.existsSync(tempDir)) {
+                            fs.mkdirSync(tempDir, { recursive: true });
+                        }
+                        const imgName = `date_bg_${Date.now()}.jpg`;
+                        tempFile = path.join(tempDir, imgName);
+
                         const imgController = new AbortController();
-                        const imgTimeoutId = setTimeout(() => imgController.abort(), 10000); // 10秒超时下载图片
+                        const imgTimeoutId = setTimeout(() => imgController.abort(), 15000); // 15秒超时下载图片
                         
                         const imgRes = await fetch(bgUrl, { signal: imgController.signal });
+                        if (!imgRes.ok) throw new Error(`HTTP 状态码: ${imgRes.status}`);
+
                         const arrayBuffer = await imgRes.arrayBuffer();
                         clearTimeout(imgTimeoutId);
 
                         const buffer = Buffer.from(arrayBuffer);
-                        const base64 = buffer.toString('base64');
-                        const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
-                        background = `data:${mimeType};base64,${base64}`;
-                        logger.info('[DateReminder] 获取并转换为base64随机背景图成功');
+                        await fs.promises.writeFile(tempFile, buffer);
+                        
+                        background = pathToFileURL(tempFile).href;
+                        logger.info(`[DateReminder] 下载图片到临时文件成功: ${imgName}`);
                     } catch (err) {
                         logger.error('[DateReminder] 下载图片失败，降级使用外接URL链接:', err);
                         background = bgUrl;
@@ -122,7 +137,7 @@ export class DatePlugin extends plugin {
                 }
             }
 
-            return await Render.render('html/date/date', {
+            const res = await Render.render('html/date/date', {
                 ...data,
                 background: background,
                 copyright: "", // 隐藏底部插件信息
@@ -131,6 +146,14 @@ export class DatePlugin extends plugin {
                     waitUntil: 'networkidle2'
                 }
             });
+
+            if (tempFile && fs.existsSync(tempFile)) {
+                fs.promises.unlink(tempFile).catch(err => {
+                    logger.error('[DateReminder] 删除临时背景图失败:', err);
+                });
+            }
+
+            return res;
         } catch (err) {
             logger.error('Date Reminder Error:', err);
             return null;
