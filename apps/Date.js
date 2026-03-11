@@ -91,11 +91,28 @@ export class DatePlugin extends plugin {
 
                 if (response.code === "1" && response.data?.data?.length > 0) {
                     const imgList = response.data.data;
-                    background = imgList[Math.floor(Math.random() * imgList.length)];
-                    if (background && background.startsWith('http://')) {
-                        background = background.replace('http://', 'https://');
+                    let bgUrl = imgList[Math.floor(Math.random() * imgList.length)];
+                    if (bgUrl && bgUrl.startsWith('http://')) {
+                        bgUrl = bgUrl.replace('http://', 'https://');
                     }
-                    logger.info('[DateReminder] 获取随机背景图成功, 选取的图片是: ', background);
+                    
+                    try {
+                        const imgController = new AbortController();
+                        const imgTimeoutId = setTimeout(() => imgController.abort(), 10000); // 10秒超时下载图片
+                        
+                        const imgRes = await fetch(bgUrl, { signal: imgController.signal });
+                        const arrayBuffer = await imgRes.arrayBuffer();
+                        clearTimeout(imgTimeoutId);
+
+                        const buffer = Buffer.from(arrayBuffer);
+                        const base64 = buffer.toString('base64');
+                        const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+                        background = `data:${mimeType};base64,${base64}`;
+                        logger.info('[DateReminder] 获取并转换为base64随机背景图成功');
+                    } catch (err) {
+                        logger.error('[DateReminder] 下载图片失败，降级使用外接URL链接:', err);
+                        background = bgUrl;
+                    }
                 }
             } catch (e) {
                 if (e.name === 'AbortError') {
