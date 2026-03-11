@@ -83,7 +83,7 @@ export class DatePlugin extends plugin {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
 
-                const response = await fetch("https://api.lolimi.cn/API/cosplay/api", {
+                const response = await fetch("https://api.lolimi.cn/API/cosplay/api?type=value", {
                     signal: controller.signal
                 }).then(res => res.json());
 
@@ -92,6 +92,9 @@ export class DatePlugin extends plugin {
                 if (response.code === "1" && response.data?.data?.length > 0) {
                     const imgList = response.data.data;
                     background = imgList[Math.floor(Math.random() * imgList.length)];
+                    if (background && background.startsWith('http://')) {
+                        background = background.replace('http://', 'https://');
+                    }
                     logger.info('[DateReminder] 获取随机背景图成功, 选取的图片是: ', background);
                 }
             } catch (e) {
@@ -106,7 +109,7 @@ export class DatePlugin extends plugin {
                 ...data,
                 background: background,
                 copyright: "", // 隐藏底部插件信息
-                waitTime: 5000,
+                waitTime: 50000,
                 pageGotoParams: {
                     waitUntil: 'networkidle2'
                 }
