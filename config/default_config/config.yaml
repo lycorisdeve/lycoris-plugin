@@ -106,3 +106,15 @@ dateReminder:
     second: "0"
   group_ids: []
   private_ids: []
+
+# AI model rank push
+arenaRank:
+  isPush: true
+  schedule:
+    dayOfWeek: "1"
+    hour: "8"
+    minute: "0"
+    second: "0"
+  num: 20
+  group_ids: []
+  private_ids: []

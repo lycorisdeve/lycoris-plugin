@@ -85,55 +85,85 @@ export class DatePlugin extends plugin {
             // 获取随机背景图
             let background = "";
             let tempFile = null;
+            let bgUrl = null;
+
             try {
+                // 首先尝试 dwo.cc API
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
 
-                const response = await fetch("https://api.lolimi.cn/API/cosplay/api?type=value", {
+                const response = await fetch("https://openapi.dwo.cc/api/meinv", {
                     signal: controller.signal
                 }).then(res => res.json());
 
                 clearTimeout(timeoutId);
 
-                if (response.code === "1" && response.data?.data?.length > 0) {
-                    const imgList = response.data.data;
-                    let bgUrl = imgList[Math.floor(Math.random() * imgList.length)];
-                    if (bgUrl && bgUrl.startsWith('http://')) {
-                        bgUrl = bgUrl.replace('http://', 'https://');
-                    }
-                    
-                    try {
-                        const tempDir = path.join(pluginResources, 'temp');
-                        if (!fs.existsSync(tempDir)) {
-                            fs.mkdirSync(tempDir, { recursive: true });
-                        }
-                        const imgName = `date_bg_${Date.now()}.jpg`;
-                        tempFile = path.join(tempDir, imgName);
-
-                        const imgController = new AbortController();
-                        const imgTimeoutId = setTimeout(() => imgController.abort(), 15000); // 15秒超时下载图片
-                        
-                        const imgRes = await fetch(bgUrl, { signal: imgController.signal });
-                        if (!imgRes.ok) throw new Error(`HTTP 状态码: ${imgRes.status}`);
-
-                        const arrayBuffer = await imgRes.arrayBuffer();
-                        clearTimeout(imgTimeoutId);
-
-                        const buffer = Buffer.from(arrayBuffer);
-                        await fs.promises.writeFile(tempFile, buffer);
-                        
-                        background = pathToFileURL(tempFile).href;
-                        logger.info(`[DateReminder] 下载图片到临时文件成功: ${imgName}`);
-                    } catch (err) {
-                        logger.error('[DateReminder] 下载图片失败，降级使用外接URL链接:', err);
-                        background = bgUrl;
-                    }
+                if (response.image_url) {
+                    bgUrl = response.image_url;
                 }
             } catch (e) {
                 if (e.name === 'AbortError') {
-                    logger.error('[DateReminder] 获取随机背景图超时 (5s)');
+                    logger.error('[DateReminder] 获取 dwo.cc 随机背景图超时 (5s)');
                 } else {
-                    logger.error('[DateReminder] 获取随机背景图失败:', e);
+                    logger.error('[DateReminder] 获取 dwo.cc 随机背景图失败:', e);
+                }
+            }
+
+            // 如果 dwo.cc API 失败，尝试备用 API
+            if (!bgUrl) {
+                try {
+                    const fallbackController = new AbortController();
+                    const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 5000); // 5秒超时
+
+                    const fallbackResponse = await fetch("https://api.lolimi.cn/API/cosplay/api?type=value", {
+                        signal: fallbackController.signal
+                    }).then(res => res.json());
+
+                    clearTimeout(fallbackTimeoutId);
+
+                    if (fallbackResponse.code === "1" && fallbackResponse.data?.data?.length > 0) {
+                        const imgList = fallbackResponse.data.data;
+                        bgUrl = imgList[Math.floor(Math.random() * imgList.length)];
+                    }
+                } catch (e) {
+                    if (e.name === 'AbortError') {
+                        logger.error('[DateReminder] 获取备用背景图超时 (5s)');
+                    } else {
+                        logger.error('[DateReminder] 获取备用背景图失败:', e);
+                    }
+                }
+            }
+
+            if (bgUrl) {
+                if (bgUrl.startsWith('http://')) {
+                    bgUrl = bgUrl.replace('http://', 'https://');
+                }
+
+                try {
+                    const tempDir = path.join(pluginResources, 'temp');
+                    if (!fs.existsSync(tempDir)) {
+                        fs.mkdirSync(tempDir, { recursive: true });
+                    }
+                    const imgName = `date_bg_${Date.now()}.jpg`;
+                    tempFile = path.join(tempDir, imgName);
+
+                    const imgController = new AbortController();
+                    const imgTimeoutId = setTimeout(() => imgController.abort(), 15000); // 15秒超时下载图片
+
+                    const imgRes = await fetch(bgUrl, { signal: imgController.signal });
+                    if (!imgRes.ok) throw new Error(`HTTP 状态码: ${imgRes.status}`);
+
+                    const arrayBuffer = await imgRes.arrayBuffer();
+                    clearTimeout(imgTimeoutId);
+
+                    const buffer = Buffer.from(arrayBuffer);
+                    await fs.promises.writeFile(tempFile, buffer);
+
+                    background = pathToFileURL(tempFile).href;
+                    logger.info(`[DateReminder] 下载图片到临时文件成功: ${imgName}`);
+                } catch (err) {
+                    logger.error('[DateReminder] 下载图片失败，降级使用外接URL链接:', err);
+                    background = bgUrl;
                 }
             }
 
@@ -141,7 +171,7 @@ export class DatePlugin extends plugin {
                 ...data,
                 background: background,
                 copyright: "", // 隐藏底部插件信息
-                waitTime: 50000,
+                waitTime: 5000,
                 pageGotoParams: {
                     waitUntil: 'networkidle2'
                 }
