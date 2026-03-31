@@ -56,7 +56,8 @@ export class ArenaRank extends plugin {
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--no-zygote'
+          '--no-zygote',
+          '--disable-blink-features=AutomationControlled'
         ],
         ignoreHTTPSErrors: true,
         timeout: 60000,
@@ -64,13 +65,21 @@ export class ArenaRank extends plugin {
       });
 
       const page = await browser.newPage();
-      await page.setDefaultNavigationTimeout(30000);
-      await page.setDefaultTimeout(30000);
+      
+      // Inject standard User-Agent and evasions to bypass Cloudflare
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+      await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+      });
+      await page.setViewport({ width: 1920, height: 1080 });
+
+      await page.setDefaultNavigationTimeout(60000);
+      await page.setDefaultTimeout(60000);
 
       logger.info('[AI排行榜] 正在加载页面...');
       await page.goto(ARENA_URL, {
-        waitUntil: ['load', 'networkidle0'],
-        timeout: 30000
+        waitUntil: 'networkidle2', // Use networkidle2 to account for lingering API calls
+        timeout: 60000
       });
 
       logger.info('[AI排行榜] 页面加载完成，正在截图...');
