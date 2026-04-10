@@ -15,9 +15,9 @@ const config = Config.getConfig('config').arenaRank || {
 };
 
 const CRON_EXPRESSION = `${config.schedule.second} ${config.schedule.minute} ${config.schedule.hour} * * ${config.schedule.dayOfWeek}`;
-const ARENA_URL = 'https://arena.ai/leaderboard/';
+const ARENA_URL = 'https://artificialanalysis.ai/';
 
-export class ArenaRank extends plugin {
+export class AiRank extends plugin {
   constructor() {
     super({
       name: 'AI排行榜',
@@ -82,14 +82,27 @@ export class ArenaRank extends plugin {
         timeout: 60000
       });
 
-      logger.info('[AI排行榜] 页面加载完成，正在截图...');
+      logger.info('[AI排行榜] 页面加载完成，正在处理页面元素...');
+
+      // 隐藏不需要的元素（如导航栏、页脚、Cookie提示框等）
+      await page.evaluate(() => {
+        const hideSelectors = ['nav', 'header', 'footer', '[role="dialog"]', '.cookie', '[id*="cookie"]'];
+        hideSelectors.forEach(selector => {
+          document.querySelectorAll(selector).forEach(el => {
+            if (el) el.style.display = 'none';
+          });
+        });
+      });
+
+      logger.info('[AI排行榜] 正在截图...');
       
       tempFile = `./temp/arena_rank_${Date.now()}.png`;
-      await page.screenshot({
+
+      // 选取页面的主要内容部分进行截图，而不是整个长页面
+      const mainElement = await page.$('main') || await page.$('body');
+      await mainElement.screenshot({
         path: tempFile,
-        type: 'png',
-        fullPage: true,
-        omitBackground: false
+        type: 'png'
       });
 
       logger.info(`[AI排行榜] 截图已保存: ${tempFile}`);
