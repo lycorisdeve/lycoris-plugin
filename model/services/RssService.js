@@ -206,38 +206,38 @@ class RssService {
         this.taskRunning = true;
         try {
             const feeds = await this.getFeeds();
-        if (!feeds.length) return { total: 0, pushed: 0 };
+            if (!feeds.length) return { total: 0, pushed: 0 };
 
-        logger.info(`[RSS] 开始检查 ${feeds.length} 个订阅 (强制=${force})...`);
-        let pushedCount = 0;
+            logger.info(`[RSS] 开始检查 ${feeds.length} 个订阅 (强制=${force})...`);
+            let pushedCount = 0;
 
-        for (const sub of feeds) {
-            const feed = await this.fetchFeed(sub);
-            if (!feed) continue;
+            for (const sub of feeds) {
+                const feed = await this.fetchFeed(sub);
+                if (!feed) continue;
 
-            let newItems = [];
-            if (force) {
-                // 强制模式:获取最近 3 条(避免过多刷屏)
-                newItems = feed.items.slice(0, 3).reverse();
-            } else {
-                // 正常模式:检查新条目
-                newItems = await this.checkNewItems(feed, sub.url);
-            }
-
-            if (newItems.length > 0) {
-                logger.info(`[RSS] 正在推送 ${sub.name} 的 ${newItems.length} 条更新`);
-                for (const item of newItems) {
-                    // 执行推送并获取推送状态
-                    const pushSuccess = await this.broadcast(sub, feed, item);
-
-                    // 只有推送成功才记录到数据库(防止失败后重复推送)
-                    if (pushSuccess && !force) {
-                        await this.recordItem(sub.url, item);
-                    }
+                let newItems = [];
+                if (force) {
+                    // 强制模式:获取最近 3 条(避免过多刷屏)
+                    newItems = feed.items.slice(0, 3).reverse();
+                } else {
+                    // 正常模式:检查新条目
+                    newItems = await this.checkNewItems(feed, sub.url);
                 }
-                pushedCount += newItems.length;
+
+                if (newItems.length > 0) {
+                    logger.info(`[RSS] 正在推送 ${sub.name} 的 ${newItems.length} 条更新`);
+                    for (const item of newItems) {
+                        // 执行推送并获取推送状态
+                        const pushSuccess = await this.broadcast(sub, feed, item);
+
+                        // 只有推送成功才记录到数据库(防止失败后重复推送)
+                        if (pushSuccess && !force) {
+                            await this.recordItem(sub.url, item);
+                        }
+                    }
+                    pushedCount += newItems.length;
+                }
             }
-        }
             return { total: feeds.length, pushed: pushedCount };
         } finally {
             this.taskRunning = false;
@@ -449,6 +449,7 @@ class RssService {
             // 使用模板引擎渲染
             return await Render.render('html/rss/rss', {
                 ...data,
+                copyright: '',
                 waitTime: 6000,
                 pageGotoParams: {
                     waitUntil: 'networkidle2'
