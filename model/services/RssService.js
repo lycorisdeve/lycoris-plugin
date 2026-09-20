@@ -304,8 +304,26 @@ class RssService {
             if (img) {
                 // 优先尝试发送图片消息
                 await Bot.sendGroupMsg(groupId, img)
-                    .then(() => {
+                    .then(async result => {
+                        if (result === false || result === null) throw new Error('图片发送失败');
                         groupSuccess = true;
+                        if (this.config.text_push !== false) {
+                            if (!result?.message_id) {
+                                logger.warn('[RSS] 图片已发送，但发送接口未返回消息 ID，跳过引用文字');
+                                return;
+                            }
+                            // 图片已成功，附带文字失败不能触发整条内容的重发。
+                            try {
+                                const reply = await Bot.sendGroupMsg(groupId, [
+                                    { type: 'reply', id: result.message_id, text: '[图片]' },
+                                    `【RSS推送】${sub.name}\n${item.title || ''}\n${item.link || ''}`
+                                ]);
+                                if (reply === false || reply === null) throw new Error('引用文字发送失败');
+                            } catch (error) {
+                                logger.error(`[RSS] 图片已发送，引用文字发送失败:${error.message}`);
+                                await this.notifyOwnerFailure(sub, groupId, error);
+                            }
+                        }
                     })
                     .catch(async err => {
                         logger.error(`[RSS] 图片发送失败:${err.message}`);
@@ -394,14 +412,32 @@ class RssService {
             }
             const send = async textOnly => {
                 const group = Bot.pickGroup?.(groupId);
-                const nodes = groupEntries.map(entry => {
+                const nodes = [];
+                const textNodes = [];
+                const time = Math.floor(Date.now() / 1000);
+                for (const entry of groupEntries) {
                     const { text, img } = prepared.get(entry);
-                    return {
+                    const sender = {
                         user_id: group?.bot?.uin || Bot.uin,
-                        nickname: entry.sub.name || entry.feed.title || 'RSS订阅',
-                        message: !textOnly && img ? [text, ...(Array.isArray(img) ? img : [img])] : text
+                        nickname: entry.sub.name || entry.feed.title || 'RSS订阅'
                     };
-                });
+                    if (!textOnly && img) {
+                        // 显式设置节点序号，供末尾文字引用对应图片节点。
+                        const source = { user_id: sender.user_id, time, seq: nodes.length + 1, rand: 0 };
+                        nodes.push({ ...sender, ...source, message: img });
+                        if (textEnabled) {
+                            textNodes.push({ ...sender, message: [
+                                { type: 'quote', ...source, message: '[图片]' }, text
+                            ] });
+                        }
+                    } else {
+                        textNodes.push({ ...sender, message: text });
+                    }
+                }
+                const imageCount = nodes.length;
+                nodes.push(...textNodes.map((node, index) => ({
+                    ...node, time, seq: imageCount + index + 1, rand: 0
+                })));
                 const forward = group?.makeForwardMsg
                     ? await group.makeForwardMsg(nodes)
                     : await Bot.makeForwardMsg(nodes);

@@ -59,8 +59,17 @@ for (const count of [1, 3]) {
         const result = await h.service.task();
         assert.equal(h.sent.length, 1);
         assert.equal(h.sent[0].message.type, 'forward');
-        assert.equal(h.sent[0].message.nodes.length, count);
-        assert.match(h.sent[0].message.nodes[0].message[0], new RegExp(`游戏${count - 1}`));
+        const nodes = h.sent[0].message.nodes;
+        assert.equal(nodes.length, count * 2);
+        assert.ok(nodes.slice(0, count).every(n => n.message.type === 'image'));
+        assert.match(nodes[count].message[1], new RegExp(`游戏${count - 1}`));
+        for (let i = 0; i < count; i++) {
+            const quote = nodes[count + i].message[0];
+            assert.equal(quote.type, 'quote');
+            assert.equal(quote.seq, nodes[i].seq);
+            assert.equal(quote.time, nodes[i].time);
+            assert.equal(quote.user_id, nodes[i].user_id);
+        }
         assert.equal(h.records.length, count);
         assert.equal(result.pushed, count);
     });
@@ -69,7 +78,7 @@ for (const count of [1, 3]) {
 test('disabled or missing switches preserve individual delivery, independently per subscription', async () => {
     const h = await harness({ subs: [subscription, { ...subscription, url: 'https://example.com/other', merge_forward: false }, { ...subscription, url: 'https://example.com/legacy', merge_forward: undefined }] });
     await h.service.task();
-    assert.equal(h.sent.length, 5);
+    assert.equal(h.sent.length, 9);
     assert.equal(h.sent.filter(s => s.message.type === 'forward').length, 1);
     assert.equal(h.sent.filter(s => s.message.type === 'image').length, 4);
 });
@@ -85,7 +94,7 @@ test('separate subscriptions never share a forward', async () => {
 test('image send failures retry as a text-only forward, never as ordinary messages', async () => {
     const h = await harness({ send: (id, message) => {
         assert.equal(message.type, 'forward');
-        if (message.nodes.some(n => Array.isArray(n.message))) throw new Error('image failed');
+        if (message.nodes.some(n => n.message.type === 'image')) throw new Error('image failed');
         return true;
     } });
     const result = await h.service.task();
@@ -123,7 +132,7 @@ test('first subscription seeds history; forced push still sends latest three wit
     assert.equal(h.initial.length, 4);
     assert.equal(h.sent.length, 0);
     assert.equal((await h.service.task(true)).pushed, 3);
-    assert.equal(h.sent[0].message.nodes.length, 3);
+    assert.equal(h.sent[0].message.nodes.length, 6);
     assert.equal(h.records.length, 0);
 });
 
@@ -159,7 +168,7 @@ test('global mode combines all subscriptions even when their individual switches
     ] });
     const result = await h.service.task();
     assert.equal(h.sent.length, 1);
-    assert.equal(h.sent[0].message.nodes.length, 4);
+    assert.equal(h.sent[0].message.nodes.length, 8);
     assert.equal(new Set(h.sent[0].message.nodes.map(n => n.nickname)).size, 2);
     assert.equal(result.pushed, 4);
     assert.equal(h.records.length, 4);
@@ -176,16 +185,16 @@ test('global mode routes by group, renders each item once, and counts multi-grou
     assert.equal((await h.service.task()).pushed, 6);
     assert.equal(renders, 6);
     assert.equal(h.sent.length, 3);
-    assert.equal(h.sent.find(s => s.id === '123').message.nodes.length, 4);
+    assert.equal(h.sent.find(s => s.id === '123').message.nodes.length, 8);
     assert.ok(h.sent.find(s => s.id === '456').message.nodes.every(n => n.nickname === 'Steam史低'));
     assert.ok(h.sent.find(s => s.id === '789').message.nodes.every(n => n.nickname === '默认群'));
     assert.equal(h.records.length, 6);
 });
 
-test('global mode sends a one-node forward but no message for an empty check', async () => {
+test('global mode sends one image and its quoted text but no message for an empty check', async () => {
     const h = await harness({ config: { merge_forward: true }, entries: items.slice(0, 1) });
     await h.service.task();
-    assert.equal(h.sent[0].message.nodes.length, 1);
+    assert.equal(h.sent[0].message.nodes.length, 2);
     const empty = await harness({ config: { merge_forward: true }, entries: [] });
     assert.equal((await empty.service.task()).pushed, 0);
     assert.equal(empty.sent.length, 0);
@@ -206,7 +215,7 @@ test('forced global checks merge three items per source without recording histor
     ] });
     assert.equal((await h.service.task(true)).pushed, 6);
     assert.equal(h.sent.length, 1);
-    assert.equal(h.sent[0].message.nodes.length, 6);
+    assert.equal(h.sent[0].message.nodes.length, 12);
     assert.equal(h.records.length, 0);
 });
 
@@ -246,4 +255,88 @@ test('missing, unknown and ambiguous subscription selectors never modify config'
     await h.app.mergeSwitch(h.event('#rss 开启合并推送 Steam史低'));
     assert.equal(h.writes.length, 0);
     assert.match(h.replies.at(-1), /重复/);
+});
+
+test('ordinary push sends an image first and quotes its returned message ID in the following text', async () => {
+    const h = await harness({ subs: [{ ...subscription, merge_forward: false }], entries: items.slice(0, 1) });
+    assert.equal((await h.service.task()).pushed, 1);
+    assert.equal(h.sent.length, 2);
+    assert.equal(h.sent[0].message.type, 'image');
+    assert.equal(h.sent[1].message[0].type, 'reply');
+    assert.equal(h.sent[1].message[0].id, 'ok');
+    assert.match(h.sent[1].message[1], /游戏0/);
+});
+
+test('failed quoted text does not repeat an already successful image', async () => {
+    const h = await harness({ subs: [{ ...subscription, merge_forward: false }], entries: items.slice(0, 1),
+        send: (id, message) => {
+            if (Array.isArray(message)) throw new Error('text rejected');
+            return { message_id: 'image-id' };
+        }
+    });
+    assert.equal((await h.service.task()).pushed, 1);
+    assert.equal(h.sent.length, 2);
+    assert.equal(h.records.length, 1);
+});
+
+test('ordinary adapter without a receipt ID does not invent an image reference', async () => {
+    const h = await harness({ subs: [{ ...subscription, merge_forward: false }], entries: items.slice(0, 1), send: () => true });
+    assert.equal((await h.service.task()).pushed, 1);
+    assert.equal(h.sent.length, 1);
+    assert.equal(h.sent[0].message.type, 'image');
+});
+
+test('text disabled produces only images for ordinary, subscription and global merge modes', async () => {
+    for (const mode of ['ordinary', 'subscription', 'global']) {
+        const h = await harness({
+            config: { text_push: false, merge_forward: mode === 'global' },
+            subs: [{ ...subscription, merge_forward: mode === 'subscription' }]
+        });
+        assert.equal((await h.service.task()).pushed, 2);
+        if (mode === 'ordinary') {
+            assert.equal(h.sent.length, 2);
+            assert.ok(h.sent.every(s => s.message.type === 'image'));
+        } else {
+            assert.equal(h.sent.length, 1);
+            assert.equal(h.sent[0].message.nodes.length, 2);
+            assert.ok(h.sent[0].message.nodes.every(n => n.message.type === 'image'));
+        }
+    }
+});
+
+test('image-only merge never retries failed delivery as text', async () => {
+    const h = await harness({ config: { text_push: false }, send: () => { throw new Error('failed'); } });
+    assert.equal((await h.service.task()).pushed, 0);
+    assert.equal(h.sent.length, 1);
+    assert.ok(h.sent[0].message.nodes.every(n => n.message.type === 'image'));
+    assert.equal(h.records.length, 0);
+});
+
+test('mixed render results keep all text last and quote only the matching successful image', async () => {
+    const h = await harness({ config: { merge_forward: true }, entries: items.slice(0, 3) });
+    h.service.render = async (sub, feed, item) => item === items[1] ? null : { type: 'image', title: item.title };
+    assert.equal((await h.service.task()).pushed, 3);
+    const nodes = h.sent[0].message.nodes;
+    assert.equal(nodes.length, 5);
+    assert.equal(nodes[0].message.title, '游戏2');
+    assert.equal(nodes[1].message.title, '游戏0');
+    assert.equal(nodes[2].message[0].seq, nodes[0].seq);
+    assert.match(nodes[2].message[1], /游戏2/);
+    assert.equal(typeof nodes[3].message, 'string');
+    assert.match(nodes[3].message, /游戏1/);
+    assert.equal(nodes[4].message[0].seq, nodes[1].seq);
+    assert.match(nodes[4].message[1], /游戏0/);
+    assert.equal(new Set(nodes.map(n => n.seq)).size, nodes.length);
+});
+
+test('text command saves the unified setting without changing merge preferences', async () => {
+    const h = await commandHarness();
+    const before = JSON.stringify(h.rss.subscribe_list);
+    await h.app.textSwitch(h.event('#rss 关闭文本推送'));
+    assert.equal(h.rss.text_push, false);
+    assert.match(h.replies.at(-1), /仅发送图片/);
+    await h.app.textSwitch(h.event('#rss 开启文本推送'));
+    assert.equal(h.rss.text_push, true);
+    assert.match(h.replies.at(-1), /引用图片/);
+    assert.equal(JSON.stringify(h.rss.subscribe_list), before);
 });

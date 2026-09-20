@@ -64,6 +64,10 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 
 总开关关闭时，仅合并同一订阅的一轮更新。图片失败时遵循 `rss.text_push` 设置，文本回退仍使用合并消息。首次订阅只建立历史、强制推送每个源最近三条的规则不变；推送计数按成功发送的内容条数计算。历史仍沿用“至少一个目标群成功即记录”的规则。
 
+`rss.text_push` 统一控制附带文字，默认 `true`：普通推送先发图片，再引用该图片发送标题和链接；合并消息先列出所有图片节点，再在末尾放置引用对应图片的文字节点。原生引用的显示效果取决于机器人适配器和 QQ 客户端。
+
+使用 `#rss 关闭文本推送`（或设置 `rss.text_push: false`）可只发送图片，同时关闭图片失败后的文本回退；`#rss 开启文本推送` 恢复文字。此开关不删除渲染图片里已有的标题和正文。
+
 #### BT 搜索
 
 使用 [Nyaa RSS](https://nyaa.si/?page=rss&q=Ubuntu)、[动漫花园 RSS](https://share.dmhy.org/topics/rss/rss.xml?keyword=Ubuntu) 和 [蜜柑计划 RSS](https://mikanani.me/RSS/Search?searchstr=Ubuntu)。2026-09-20 已验证三者返回有效 RSS；这些来源以动漫资源为主，搜索不保证覆盖所有类型。

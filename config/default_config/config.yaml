@@ -2,7 +2,7 @@
 rss:
   push: true
   notify_owner: false
-  text_push: true
+  text_push: true # 图片后的引用文字及失败后的文本回退；false 为仅图片
   merge_forward: false # 总开关：同一次检查中所有订阅按目标群合并，优先于订阅开关
   cron: "*/10 * * * *"
   rsshub_url:

@@ -109,7 +109,8 @@ export const helpList = [{
         { icon: 27, title: '#rss 开启合并推送 1', desc: '按订阅合并，单条也合并；关闭用 #rss 关闭合并推送 1' },
         { icon: 27, title: '#rss 开启全局合并推送', desc: '本轮所有订阅按群合并；#rss 关闭全局合并推送 恢复' },
         { icon: 27, title: '#rss push', desc: '检查更新；#rss 强制推送 重发近期内容' },
-        { icon: 27, title: '#rss 开启 / #rss 关闭', desc: '文本回退：#rss 开启文本推送' },
+        { icon: 27, title: '#rss 开启 / #rss 关闭', desc: '开启或关闭定时 RSS 推送' },
+        { icon: 27, title: '#rss 关闭文本推送', desc: '仅发送图片；#rss 开启文本推送 恢复图片后的引用文字' },
         { icon: 27, title: '#rss cron */10 * * * *', desc: '设置 RSS 检查频率' },
         { icon: 65, title: '#截图开启 / #截图关闭', desc: '#截图切换 切换模式；#截图设置 查看配置' },
         { icon: 26, title: '#添加江苏油价推送', desc: '添加要推送油价的省份' }
