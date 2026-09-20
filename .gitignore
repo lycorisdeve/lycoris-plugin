@@ -1,6 +1,32 @@
 #personalize
 config/config/*
 
+# Local legacy config and migration backup
+/config/config.json
+/config/config.json.backup
+
+# Runtime database, including SQLite journal / WAL / SHM files
+/data/sqlite3/
+
+# Generated screenshots and downloaded temporary images
+/temp/
+/resources/temp/
+/resources/xiuren/temp/
+
+# Local help overrides
+/resources/help/help-cfg.js
+/resources/help/help-list.js
+
+# OS and editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+/.idea/
+*.code-workspace
+
 # Logs
 logs
 *.log
@@ -74,6 +100,9 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.test
+.env.*
+!.env.example
+!.env.sample
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

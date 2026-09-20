@@ -182,10 +182,54 @@ class Config {
     const path = `${pluginRootPath}/config/${type}/${name}.yaml`
     const content = fs.readFileSync(path, 'utf8')
     const document = YAML.parseDocument(content)
-    if (_.isEqual(document.get(key), value)) {
+    if (document.errors.length) throw document.errors[0]
+    const current = document.get(key, true)
+    if (_.isEqual(current?.toJSON(), value)) {
       return // 值未变化,不修改
     }
-    document.set(key, value)
+    // 注释属于 YAML 节点，原位更新已有节点，避免替换整块配置时丢失。
+    const updateNode = (node, next) => {
+      if (_.isEqual(node?.toJSON(), next)) return node
+      if (YAML.isMap(node) && _.isPlainObject(next)) {
+        for (const pair of [...node.items]) {
+          if (!Object.hasOwn(next, pair.key.value)) node.delete(pair.key.value)
+        }
+        for (const [name, item] of Object.entries(next)) {
+          node.set(name, updateNode(node.get(name, true), item))
+        }
+        return node
+      }
+      if (YAML.isSeq(node) && Array.isArray(next)) {
+        const previous = [...node.items]
+        const used = new Set()
+        node.items = next.map((item, index) => {
+          // RSS 订阅按 URL 对齐，删除或重排后注释仍跟随原订阅。
+          const hasUrl = _.isPlainObject(item) && typeof item.url === 'string'
+          let existing = previous.find(candidate => !used.has(candidate) && (
+            hasUrl ? YAML.isMap(candidate) && candidate.get('url') === item.url
+              : _.isEqual(candidate?.toJSON(), item)
+          ))
+          if (!existing && !hasUrl && previous.length === next.length && !used.has(previous[index])) {
+            existing = previous[index]
+          }
+          if (existing) used.add(existing)
+          return updateNode(existing, item)
+        })
+        return node
+      }
+      if (YAML.isScalar(node) && !_.isObject(next)) {
+        node.value = next
+        return node
+      }
+      const replacement = document.createNode(next)
+      if (node) {
+        replacement.comment = node.comment
+        replacement.commentBefore = node.commentBefore
+        replacement.spaceBefore = node.spaceBefore
+      }
+      return replacement
+    }
+    document.set(key, updateNode(current, value))
     fs.writeFileSync(path, document.toString({ lineWidth: -1, noCompatMode: true, simpleKeys: true }), 'utf8')
     delete this.config[`${type}.${name}`]
   }
