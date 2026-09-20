@@ -1,199 +1,122 @@
-
-import * as cheerio from 'cheerio';
+import Parser from 'rss-parser';
 import Config from '../../components/Config.js';
 import { ProxyAgent } from 'undici';
 
-/**
- * 将字节格式化为人类可读的字符串
- * @param {number} bytes 
- * @returns {string}
- */
+// 2026-09-20 实测返回有效 RSS，各来源并行搜索。
+const SOURCES = [
+    { name: 'Nyaa', url: 'https://nyaa.si/', params: { page: 'rss' }, query: 'q' },
+    { name: '动漫花园', url: 'https://share.dmhy.org/topics/rss/rss.xml', query: 'keyword' },
+    { name: 'Mikan', url: 'https://mikanani.me/RSS/Search', query: 'searchstr' }
+];
+const REQUEST_TIMEOUT = 10000;
+const parser = new Parser({
+    customFields: { item: ['nyaa:infoHash', 'nyaa:size', 'nyaa:category', 'torrent'] }
+});
+
 function formatSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const value = Number(bytes);
+    if (!Number.isFinite(value) || value < 1) return '未知';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+    return `${parseFloat((value / 1024 ** index).toFixed(2))} ${units[index]}`;
 }
 
-/**
- * 带超时的 fetch 请求
- * @param {string} url 
- * @param {number} timeout 
- * @returns {Promise<Response>}
- */
-async function fetchWithTimeout(url, timeout = 10000) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
+function parseItem(item, source) {
+    const name = item.title?.trim();
+    const hash = item['nyaa:infoHash']?.trim();
+    let magnet = '';
+    if (/^[a-f0-9]{40}$/i.test(hash || '')) {
+        magnet = `magnet:?xt=urn:btih:${hash.toLowerCase()}&dn=${encodeURIComponent(name || '')}`;
+    } else {
+        const links = [item.enclosure?.url, item.link];
+        magnet = links.find(link => /^magnet:\?[^\s]*xt=urn:btih:(?:[a-f0-9]{40}|[a-z2-7]{32})(?:&|$)/i.test(link || ''))
+            || links.find(link => /^https?:\/\/[^\s]+\.torrent(?:\?|$)/i.test(link || '')) || '';
+    }
+    if (!name || !magnet) return null;
 
-    // 获取配置
-    const config = Config.getDefOrConfig('config');
-    const btConfig = config.bt || {};
+    const date = new Date(item.isoDate || item.pubDate || item.torrent?.pubDate?.[0] || '');
+    const sizeInText = (item.contentSnippet || name).match(/\[\s*(\d+(?:\.\d+)?\s*[KMGT]i?B)\s*\]/i)?.[1];
+    // 动漫花园的 enclosure.length 常为占位值 1，不代表实际大小。
+    const size = item['nyaa:size'] || sizeInText
+        || (source === 'Mikan' ? formatSize(item.enclosure?.length) : '未知');
+    return {
+        name,
+        magnet,
+        time: Number.isNaN(date.getTime()) ? '未知' : date.toLocaleString('zh-CN'),
+        type: item['nyaa:category'] || 'BT',
+        size,
+        source
+    };
+}
 
-    let dispatcher = null;
-    let fetchUrl = url;
+function resultKey(item) {
+    const hash = item.magnet.match(/xt=urn:btih:([a-f0-9]{40}|[a-z2-7]{32})(?:&|$)/i)?.[1];
+    return hash ? hash.toLowerCase() : item.magnet;
+}
 
-    // 优先使用 proxyApi
-    if (btConfig.proxyApi && btConfig.proxyApi.enable && btConfig.proxyApi.url) {
-        fetchUrl = btConfig.proxyApi.url.replace('{{url}}', encodeURIComponent(url));
-    } else if (btConfig.proxy && btConfig.proxy.enable && btConfig.proxy.url) {
+async function fetchFeed(url, dispatcher) {
+    const options = {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT),
+        headers: { Accept: 'application/rss+xml, application/xml, text/xml' }
+    };
+    if (dispatcher) options.dispatcher = dispatcher;
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        await response.body?.cancel();
+        throw new Error(`HTTP ${response.status}`);
+    }
+    // 超时信号覆盖响应体读取，避免收到响应头后无限等待。
+    const text = await response.text();
+    if (!/<rss[\s>]/i.test(text)) throw new Error('返回内容不是 RSS');
+    return parser.parseString(text);
+}
+
+async function searchSource(source, keyword, config, dispatcher) {
+    const url = new URL(source.url);
+    url.search = new URLSearchParams({ ...source.params, [source.query]: keyword }).toString();
+    let feed;
+    if (config.proxyApi?.enable && config.proxyApi.url) {
         try {
-            dispatcher = new ProxyAgent(btConfig.proxy.url);
-        } catch (err) {
-            logger.error(`[BT搜索] 代理配置错误: ${err.message}`);
+            const proxyUrl = config.proxyApi.url.replace('{{url}}', encodeURIComponent(url.href));
+            feed = await fetchFeed(proxyUrl, dispatcher);
+        } catch (error) {
+            logger.warn(`[BT搜索][${source.name}] 代理 API 失败，尝试原站: ${error.message}`);
         }
     }
-
-    try {
-        const response = await fetch(fetchUrl, {
-            signal: controller.signal,
-            dispatcher: dispatcher
-        });
-        clearTimeout(id);
-        return response;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
-    }
+    feed ||= await fetchFeed(url.href, dispatcher);
+    return (feed.items || []).map(item => parseItem(item, source.name)).filter(Boolean);
 }
 
-/**
- * 搜索 Sukebei Nyaa (RSS)
- * @param {string} keyword 
- * @returns {Promise<Array>}
- */
-async function searchSukebei(keyword) {
+/** 返回去重后的搜索结果；来源失败且没有结果时抛出错误，与无匹配结果区分。 */
+export async function btApi(keyword) {
+    keyword = String(keyword || '').trim();
+    if (!keyword) return [];
+    const config = Config.getDefOrConfig('config').bt || {};
+    const dispatcher = config.proxy?.enable && config.proxy.url ? new ProxyAgent(config.proxy.url) : undefined;
     try {
-        const url = `https://sukebei.nyaa.si/?page=rss&q=${keyword}`;
-        const response = await fetchWithTimeout(url);
-        const text = await response.text();
-        const $ = cheerio.load(text, { xmlMode: true });
-
+        const searches = await Promise.allSettled(SOURCES.map(source => searchSource(source, keyword, config, dispatcher)));
         const results = [];
-        $('item').each((i, elem) => {
-            const title = $(elem).find('title').text();
-            const infoHash = $(elem).find('nyaa\\:infoHash').text() || $(elem).find('infoHash').text();
-            const size = $(elem).find('nyaa\\:size').text() || $(elem).find('size').text();
-            const pubDate = $(elem).find('pubDate').text();
-            const category = $(elem).find('nyaa\\:category').text() || $(elem).find('category').text();
-
-            if (infoHash) {
-                results.push({
-                    name: title,
-                    magnet: `${infoHash}`,
-                    time: new Date(pubDate).toLocaleString(),
-                    type: category,
-                    size: size,
-                    source: 'Sukebei'
-                });
+        const seen = new Set();
+        const errors = [];
+        searches.forEach((search, index) => {
+            if (search.status === 'rejected') {
+                errors.push(search.reason);
+                logger.warn(`[BT搜索][${SOURCES[index].name}] ${search.reason.message}`);
+                return;
             }
-        });
-        return results;
-    } catch (err) {
-        logger.error(`[Sukebei] Search failed: ${err.message}`);
-        return [];
-    }
-}
-
-/**
- * 搜索 Nyaa (RSS)
- * @param {string} keyword 
- * @returns {Promise<Array>}
- */
-async function searchNyaa(keyword) {
-    try {
-        const url = `https://nyaa.si/?page=rss&q=${keyword}`;
-        const response = await fetchWithTimeout(url);
-        const text = await response.text();
-        const $ = cheerio.load(text, { xmlMode: true });
-
-        const results = [];
-        $('item').each((i, elem) => {
-            const title = $(elem).find('title').text();
-            const infoHash = $(elem).find('nyaa\\:infoHash').text() || $(elem).find('infoHash').text();
-            const size = $(elem).find('nyaa\\:size').text() || $(elem).find('size').text();
-            const pubDate = $(elem).find('pubDate').text();
-            const category = $(elem).find('nyaa\\:category').text() || $(elem).find('category').text();
-
-            if (infoHash) {
-                results.push({
-                    name: title,
-                    magnet: `${infoHash}`,
-                    time: new Date(pubDate).toLocaleString(),
-                    type: category,
-                    size: size,
-                    source: 'Nyaa'
-                });
-            }
-        });
-        return results;
-    } catch (err) {
-        logger.error(`[Nyaa] Search failed: ${err.message}`);
-        return [];
-    }
-}
-
-/**
- * 搜索 Mikan Project (RSS)
- * @param {string} keyword 
- * @returns {Promise<Array>}
- */
-async function searchMikan(keyword) {
-    try {
-        const url = `https://mikanani.me/RSS/Search?searchstr=${keyword}`;
-        const response = await fetchWithTimeout(url);
-        const text = await response.text();
-        const $ = cheerio.load(text, { xmlMode: true });
-
-        const results = [];
-        $('item').each((i, elem) => {
-            const title = $(elem).find('title').text();
-            const link = $(elem).find('link').text();
-            const description = $(elem).find('description').text();
-            const pubDate = $(elem).find('pubDate').text();
-            const enclosure = $(elem).find('enclosure').attr('url');
-
-            // Extract size from description if possible
-            let size = 'N/A';
-            if (description) {
-                const parts = description.split('<br />');
-                for (const part of parts) {
-                    if (part.trim().startsWith('Size:')) {
-                        size = part.replace('Size:', '').trim();
-                    }
+            for (const item of search.value) {
+                const key = resultKey(item);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    results.push(item);
                 }
             }
-
-            results.push({
-                name: title,
-                magnet: enclosure || link, // Fallback to torrent file URL
-                time: new Date(pubDate).toLocaleString(),
-                type: 'Anime',
-                size: size,
-                source: 'Mikan'
-            });
         });
+        if (!results.length && errors.length) {
+            throw new AggregateError(errors, '搜索来源不可用或未完整返回结果');
+        }
         return results;
-    } catch (err) {
-        logger.error(`[Mikan] Search failed: ${err.message}`);
-        return [];
+    } finally {
+        await dispatcher?.close();
     }
-}
-
-/**
- * 使用多源搜索种子
- * @param {string} keyword - 搜索关键字
- * @returns {Promise<Array<{name: string, magnet: string, time: string, type: string, size: string, source: string}>>}
- */
-export async function btApi(keyword) {
-    // Run searches in parallel
-    const [sukebeiResults, nyaaResults, mikanResults] = await Promise.all([
-        searchSukebei(keyword),
-        searchNyaa(keyword),
-        searchMikan(keyword)
-    ]);
-
-    let results = [...sukebeiResults, ...nyaaResults, ...mikanResults];
-
-    return results;
 }

@@ -1,123 +1,66 @@
-/**
- * @Description bt搜索
- * @author lycoris
- * @time 2023-03-31 23:57
- */
 import { btApi } from '../model/services/BtService.js';
 
-/* 
-    免责声明
-请注意,使用本代码的用户必须遵守所有适用的法律、规定和政策。本代码仅供参考和教育目的,不应用于任何商业或实际应用。使用本代码造成的任何损失或损害,开发者不承担任何责任。
-本代码并不保证其完整性、准确性或可靠性。使用本代码所产生的结果,开发者不对其质量或效果作任何保证或承诺。用户应自行承担任何因使用本代码而导致的后果或风险。
-请注意,使用本代码可能会涉及到第三方知识产权或其他权利。用户应确保他们拥有使用所有相关资料的合法权利,并遵守所有适用的法律、规定和政策。本代码开发者不对用户在此方面的行为承担任何责任。
-最后,请注意本代码可能存在缺陷或错误,如有任何问题,请联系开发者进行修正。
-感谢您的使用。
-*/
-
-const IS_GROUPS = true // 是否开启群聊搜索
+const MAX_RESULTS = 10;
 
 export class bt extends plugin {
     constructor() {
         super({
-            /** 功能名称 */
             name: 'bt搜索',
-            /** 功能描述 */
-            dsc: 'bt搜索',
-            /** https://oicqjs.github.io/oicq/#events */
+            dsc: '多源 BT 搜索',
             event: 'message',
-            /** 优先级,数字越小等级越高 */
             priority: 5000,
-            rule: [
-                {
-                    /** 命令正则匹配 */
-                    reg: '^(#)?bt搜索(.*)$',
-                    /** 执行方法 */
-                    fnc: 'search',
-                },
-                {
-                    /** 命令正则匹配 */
-                    reg: '^bt(.*)$',
-                    /** 执行方法 */
-                    fnc: 'search',
-                }
-            ]
-        })
+            rule: [{
+                reg: '^#?bt(?:搜索)?(.*)$',
+                fnc: 'search'
+            }]
+        });
     }
 
-    /**
-     * @param e oicq传递的事件参数e
-     */
     async search(e) {
-        if (e.isGroup) {
-            if (!IS_GROUPS) {
-                e.reply('群聊搜索已关闭,请联系机主开通!')
-                return
-            }
-        }
-        
-        // 清理关键字
-        let keyword = e.msg.replace(/^(#)?bt(搜索)?/g, "").trim();
-        
+        const keyword = e.msg.replace(/^#?bt(?:搜索)?/, '').trim();
         if (!keyword) {
-            return; // 忽略空关键字
+            await e.reply('请输入搜索关键词，例如：#bt搜索 Ubuntu');
+            return true;
         }
 
-        logger.info('[BT搜索] 用户命令:', keyword);
-        
-        // 使用新的 API 服务
-        let results = await btApi(keyword);
-        
-        let userInfo = {
-            nickname: this.e.sender.card || this.e.user_id,
-            user_id: this.e.user_id,
+        let results;
+        try {
+            results = await btApi(keyword);
+        } catch (error) {
+            logger.error(`[BT搜索] 搜索失败: ${error.message}`);
+            await e.reply('BT 搜索来源暂时不可用，请稍后重试或检查 bt 代理配置。');
+            return true;
         }
-        let msgList = []
-        
-        if (!results || results.length === 0) {
-            await this.e.reply(`没有搜索到: ${keyword}`);
-            return
+        if (!results.length) {
+            await e.reply(`没有搜索到: ${keyword}，请尝试其他关键词。`);
+            return true;
         }
 
-        // 限制结果数量以避免消息过长
-        const MAX_RESULTS = 10;
+        const userInfo = {
+            nickname: String(e.sender?.card || e.sender?.nickname || e.nickname || e.user_id),
+            user_id: e.user_id
+        };
         const displayResults = results.slice(0, MAX_RESULTS);
+        const messages = [{
+            ...userInfo,
+            message: `搜索到 ${results.length} 条结果（显示前 ${displayResults.length} 条）：\n请复制磁力链接或种子地址到下载工具。`
+        }, ...displayResults.map(item => ({
+            ...userInfo,
+            message: `[${item.source}] ${item.name}\n大小: ${item.size}\n时间: ${item.time}\n${item.magnet.startsWith('magnet:') ? '磁力' : '种子'}: ${item.magnet}`
+        }))];
 
-        msgList.push({
-            ...userInfo, 
-            message: `搜索到 ${results.length} 条结果 (显示前${displayResults.length}条):\n请自行复制磁力链接下载。`
-        });
-
-        for (let i = 0; i < displayResults.length; i++) {
-            let item = displayResults[i];
-            let msg = `[${item.source}] ${item.name}\n大小: ${item.size}\n时间: ${item.time}\n磁力: ${item.magnet}`;
-            msgList.push({ ...userInfo, message: msg })
+        try {
+            const forward = e.group?.makeForwardMsg
+                ? await e.group.makeForwardMsg(messages)
+                : e.friend?.makeForwardMsg
+                    ? await e.friend.makeForwardMsg(messages)
+                    : await Bot.makeForwardMsg(messages);
+            const response = await e.reply(forward, false, { recallMsg: -1 });
+            if (!response) throw new Error('合并转发未发送成功');
+        } catch (error) {
+            logger.error(`[BT搜索] 发送失败: ${error.message}`);
+            await e.reply('搜索结果发送失败，请稍后重试或换一个关键词。');
         }
-
-        const res = await this.e.reply(await Bot.makeForwardMsg(msgList), false, {
-            recallMsg: -1,
-        });
-        
-        this.handleReplyResult(res);
-    }
-
-    handleReplyResult(res) {
-        if (!res) {
-            if (this.e.group && this.e.group.is_admin) {
-                if (
-                    Number(Math.random().toFixed(2)) * 100 <
-                    (this.mysterySetData ? this.mysterySetData.mute : 0)
-                ) {
-                    let duration = Math.floor(Math.random() * 600) + 1;
-                    this.e.group.muteMember(this.e.sender.user_id, duration);
-                    this.e.reply(
-                        `不用等了,不用等了,搜索失败,请重试~~ 并随手将你禁锢${duration}秒`
-                    );
-                } else {
-                    this.reply(`不用等了,搜索失败,请重试~ `);
-                }
-            } else {
-                this.reply(`不用等了,搜索失败,请重试~ `);
-            }
-        }
+        return true;
     }
 }

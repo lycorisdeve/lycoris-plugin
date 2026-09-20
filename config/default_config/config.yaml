@@ -94,7 +94,7 @@ bt:
     enable: false
     url: "http://127.0.0.1:7890"
   proxyApi:
-    enable: true
+    enable: false
     url: "https://proxyapi.198143.xyz/{{url}}"
 
 # Daily date reminder
