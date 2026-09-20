@@ -52,6 +52,16 @@ export class Rss extends plugin {
                     permission: 'master'
                 },
                 {
+                    reg: '^#rss\\s*(开启|关闭)全局合并推送$',
+                    fnc: 'globalMergeSwitch',
+                    permission: 'master'
+                },
+                {
+                    reg: '^#rss\\s*(开启|关闭)合并推送(?:\\s+.*)?$',
+                    fnc: 'mergeSwitch',
+                    permission: 'master'
+                },
+                {
                     reg: '^#rss\\s*(命令|帮助)$',
                     fnc: 'help'
                 }
@@ -147,6 +157,7 @@ export class Rss extends plugin {
         const newItem = {
             url,
             name,
+            merge_forward: false,
             group: [e.group_id || ''] // 默认添加到当前群,如果是私聊则为空
         };
         // 过滤空group
@@ -171,9 +182,9 @@ export class Rss extends plugin {
             return;
         }
 
-        let msg = ['当前RSS订阅列表:'];
+        let msg = [`全局合并推送: ${config.rss.merge_forward === true ? '开启（优先于订阅开关）' : '关闭'}`, '当前RSS订阅列表:'];
         list.forEach((item, index) => {
-            msg.push(`${index + 1}. ${item.name}\n${item.url}`);
+            msg.push(`${index + 1}. ${item.name}\n${item.url}\n合并推送: ${item.merge_forward === true ? '开启' : '关闭'}`);
         });
 
         await e.reply(msg.join('\n'));
@@ -243,6 +254,38 @@ export class Rss extends plugin {
         await e.reply(`RSS文本推送已${isClose ? '关闭' : '开启'}`);
     }
 
+    async globalMergeSwitch(e) {
+        const enabled = e.msg.includes('开启');
+        const rssConfig = Config.getConfig('config').rss || {};
+        Config.modify('config', 'rss', { ...rssConfig, merge_forward: enabled });
+        await e.reply(`RSS全局合并推送已${enabled ? '开启：同一次检查的所有订阅按目标群合并，单条也合并。' : '关闭：恢复各订阅自己的推送设置。'}\n下次检查生效，无需重启。`);
+    }
+
+    async mergeSwitch(e) {
+        const match = e.msg.match(/^#rss\s*(开启|关闭)合并推送(?:\s+(.+))?$/);
+        const target = match?.[2]?.trim();
+        if (!target) {
+            await e.reply('请指定订阅序号、名称或 URL，例如：#rss 开启合并推送 Steam史低');
+            return;
+        }
+        const rssConfig = Config.getConfig('config').rss || {};
+        const list = rssConfig.subscribe_list || [];
+        const matches = /^\d+$/.test(target)
+            ? list.filter((item, index) => index === Number(target) - 1)
+            : list.filter(item => item.url === target || item.name === target);
+        if (matches.length !== 1) {
+            await e.reply(matches.length ? '订阅名称重复，请使用序号或 URL 指定。' : '未找到指定RSS订阅，请先使用 #rss list 查看列表。');
+            return;
+        }
+        const enabled = match[1] === '开启';
+        const selected = matches[0];
+        Config.modify('config', 'rss', {
+            ...rssConfig,
+            subscribe_list: list.map(item => item === selected ? { ...item, merge_forward: enabled } : item)
+        });
+        await e.reply(`${selected.name} 合并推送已${enabled ? '开启（单条内容也合并发送）' : '关闭'}，下次推送生效。`);
+    }
+
     async help(e) {
         let msg = [
             '【RSS订阅命令说明】',
@@ -250,6 +293,10 @@ export class Rss extends plugin {
             '#rss add <URL> [名称] : 添加订阅',
             '#rss list : 查看订阅列表',
             '#rss del <序号/URL> : 删除订阅',
+            '#rss 开启全局合并推送 : 同一次检查中所有订阅按目标群合并',
+            '#rss 关闭全局合并推送 : 恢复各订阅自己的推送设置',
+            '#rss 开启合并推送 <序号/名称/URL> : 按订阅合并发送，单条也合并',
+            '#rss 关闭合并推送 <序号/名称/URL> : 恢复逐条发送',
             '#rss push : 手动触发更新检查',
             '#rss 强制推送 : 强制触发最近内容推送',
             '#rss 开启/关闭 : 开启或关闭RSS推送',

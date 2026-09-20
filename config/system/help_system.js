@@ -106,6 +106,8 @@ export const helpList = [{
         { icon: 95, title: '#彼岸花更新', desc: '强制更新：#彼岸花强制更新' },
         { icon: 27, title: '#rss add URL 名称', desc: '添加订阅；#rss list 查看列表' },
         { icon: 27, title: '#rss del 1', desc: '按列表序号或 URL 删除订阅' },
+        { icon: 27, title: '#rss 开启合并推送 1', desc: '按订阅合并，单条也合并；关闭用 #rss 关闭合并推送 1' },
+        { icon: 27, title: '#rss 开启全局合并推送', desc: '本轮所有订阅按群合并；#rss 关闭全局合并推送 恢复' },
         { icon: 27, title: '#rss push', desc: '检查更新；#rss 强制推送 重发近期内容' },
         { icon: 27, title: '#rss 开启 / #rss 关闭', desc: '文本回退：#rss 开启文本推送' },
         { icon: 27, title: '#rss cron */10 * * * *', desc: '设置 RSS 检查频率' },

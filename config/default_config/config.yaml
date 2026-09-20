@@ -3,6 +3,7 @@ rss:
   push: true
   notify_owner: false
   text_push: true
+  merge_forward: false # 总开关：同一次检查中所有订阅按目标群合并，优先于订阅开关
   cron: "*/10 * * * *"
   rsshub_url:
     - https://rsshub.app
@@ -11,6 +12,7 @@ rss:
   subscribe_list:
     - url: ${rsshub_url}/yxdzqb/low
       name: Steam史低
+      merge_forward: false # 开启后，同一轮更新合并转发，单条也合并
       group: []
 
 # Epic Games free games push

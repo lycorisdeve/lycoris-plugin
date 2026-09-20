@@ -47,6 +47,23 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 
 秀人插件已移除。手动覆盖更新时请删除旧的 `apps/Xiuren.js`，避免旧指令继续加载。
 
+#### RSS 合并推送
+
+每个 `rss.subscribe_list` 订阅可独立设置 `merge_forward: true`；省略或设为 `false` 时保持逐条推送。
+
+另有总开关 `rss.merge_forward`，默认关闭：
+
+- `#rss 开启全局合并推送`：同一次定时或手动检查中所有订阅的新内容，按目标群汇总成一份合并消息；只有一条也合并。
+- `#rss 关闭全局合并推送`：恢复各订阅的独立开关，不修改各订阅原来的设置。
+
+总开关优先于订阅开关。“一个时间段”指现有 `rss.cron` 的一次检查，不额外设置等待窗口。不同群只收到分配给自己的订阅内容。开关下次检查生效；`#rss list` 显示总开关状态。
+
+- `#rss 开启合并推送 Steam史低`：开启该订阅的合并转发，只有一条更新也发送合并消息。
+- `#rss 关闭合并推送 1`：恢复列表中第一个订阅的逐条发送。
+- 支持按序号、完整名称或 URL 指定订阅；`#rss list` 查看开关状态。以上设置操作限主人，下次推送生效，无需重启。
+
+总开关关闭时，仅合并同一订阅的一轮更新。图片失败时遵循 `rss.text_push` 设置，文本回退仍使用合并消息。首次订阅只建立历史、强制推送每个源最近三条的规则不变；推送计数按成功发送的内容条数计算。历史仍沿用“至少一个目标群成功即记录”的规则。
+
 #### BT 搜索
 
 使用 [Nyaa RSS](https://nyaa.si/?page=rss&q=Ubuntu)、[动漫花园 RSS](https://share.dmhy.org/topics/rss/rss.xml?keyword=Ubuntu) 和 [蜜柑计划 RSS](https://mikanani.me/RSS/Search?searchstr=Ubuntu)。2026-09-20 已验证三者返回有效 RSS；这些来源以动漫资源为主，搜索不保证覆盖所有类型。

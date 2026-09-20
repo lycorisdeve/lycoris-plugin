@@ -210,6 +210,8 @@ class RssService {
 
             logger.info(`[RSS] 开始检查 ${feeds.length} 个订阅 (强制=${force})...`);
             let pushedCount = 0;
+            const mergeAll = this.config.merge_forward === true;
+            const pending = [];
 
             for (const sub of feeds) {
                 const feed = await this.fetchFeed(sub);
@@ -226,16 +228,32 @@ class RssService {
 
                 if (newItems.length > 0) {
                     logger.info(`[RSS] 正在推送 ${sub.name} 的 ${newItems.length} 条更新`);
-                    for (const item of newItems) {
+                    if (mergeAll) {
+                        pending.push(...newItems.map(item => ({ sub, feed, item })));
+                        continue;
+                    }
+                    const batches = sub.merge_forward === true ? [newItems] : newItems.map(item => [item]);
+                    for (const items of batches) {
                         // 执行推送并获取推送状态
-                        const pushSuccess = await this.broadcast(sub, feed, item);
+                        const pushSuccess = sub.merge_forward === true
+                            ? await this.broadcastMerged(sub, feed, items)
+                            : await this.broadcast(sub, feed, items[0]);
 
-                        // 只有推送成功才记录到数据库(防止失败后重复推送)
-                        if (pushSuccess && !force) {
-                            await this.recordItem(sub.url, item);
+                        // 保留原有至少一个目标群成功即记录的语义；失败留待下次重试。
+                        if (pushSuccess) {
+                            pushedCount += items.length;
+                            if (!force) {
+                                for (const item of items) await this.recordItem(sub.url, item);
+                            }
                         }
                     }
-                    pushedCount += newItems.length;
+                }
+            }
+            if (mergeAll) {
+                const successful = await this.broadcastMergedEntries(pending);
+                pushedCount = successful.size;
+                if (!force) {
+                    for (const { sub, item } of successful) await this.recordItem(sub.url, item);
                 }
             }
             return { total: feeds.length, pushed: pushedCount };
@@ -336,6 +354,85 @@ class RssService {
 
         // 返回推送结果,用于决定是否记录到数据库
         return anySuccess;
+    }
+
+    /** 同一订阅本轮更新合并转发，即使只有一条也不退回普通消息。 */
+    async broadcastMerged(sub, feed, items) {
+        const successful = await this.broadcastMergedEntries(items.map(item => ({ sub, feed, item })));
+        return successful.size > 0;
+    }
+
+    /** 按目标群合并本轮条目，返回至少在一个目标群发送成功的条目。 */
+    async broadcastMergedEntries(entries) {
+        const byGroup = new Map();
+        const prepared = new Map();
+        const successful = new Set();
+        const textEnabled = this.config.text_push !== false;
+        for (const entry of entries) {
+            const { sub } = entry;
+            const targets = Array.isArray(sub.group) && sub.group.length
+                ? sub.group : (this.config.default_group || []);
+            const groups = _.uniq(targets.map(id => `${id}`.trim()).filter(Boolean));
+            for (const groupId of groups) {
+                if (!byGroup.has(groupId)) byGroup.set(groupId, []);
+                byGroup.get(groupId).push(entry);
+            }
+        }
+
+        for (const [groupId, groupEntries] of byGroup) {
+            for (const entry of groupEntries) {
+                if (prepared.has(entry)) continue;
+                const { sub, feed, item } = entry;
+                const text = `【RSS推送】${sub.name}\n${item.title || ''}\n${item.link || ''}`;
+                const img = await this.render(sub, feed, item);
+                prepared.set(entry, { text, img });
+            }
+            // 任一条无法发送时保留该群整批内容，不把漏发条目标记为成功。
+            if (!textEnabled && groupEntries.some(entry => !prepared.get(entry).img)) {
+                logger.warn(`[RSS] 群 ${groupId} 合并内容渲染失败且文本推送已关闭，保留待重试`);
+                continue;
+            }
+            const send = async textOnly => {
+                const group = Bot.pickGroup?.(groupId);
+                const nodes = groupEntries.map(entry => {
+                    const { text, img } = prepared.get(entry);
+                    return {
+                        user_id: group?.bot?.uin || Bot.uin,
+                        nickname: entry.sub.name || entry.feed.title || 'RSS订阅',
+                        message: !textOnly && img ? [text, ...(Array.isArray(img) ? img : [img])] : text
+                    };
+                });
+                const forward = group?.makeForwardMsg
+                    ? await group.makeForwardMsg(nodes)
+                    : await Bot.makeForwardMsg(nodes);
+                if (!forward) throw new Error('构造合并消息失败');
+                const result = await Bot.sendGroupMsg(groupId, forward);
+                if (result === false || result === null) throw new Error('合并消息发送失败');
+            };
+            let failure;
+            try {
+                await send(false);
+            } catch (error) {
+                failure = error;
+                if (textEnabled && groupEntries.some(entry => prepared.get(entry).img)) {
+                    try {
+                        await send(true);
+                        failure = null;
+                    } catch (fallbackError) {
+                        failure = fallbackError;
+                    }
+                }
+            }
+            if (failure) {
+                logger.error(`[RSS] 合并推送失败:${failure.message}`);
+                const subs = new Set(groupEntries.map(entry => entry.sub));
+                for (const sub of subs) await this.notifyOwnerFailure(sub, groupId, failure);
+            } else {
+                for (const entry of groupEntries) successful.add(entry);
+            }
+            await Data.sleep(1000);
+        }
+        return successful;
     }
 
     /**
