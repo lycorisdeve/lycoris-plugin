@@ -28,11 +28,11 @@ async function fetchJSON(api_url, options = {}) {
         });
         if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
         return await resp.json();
-    } catch (err) {
-        console.error(`[fetchJSON] 请求失败: ${api_url}`, err);
-        throw err;
+    } catch {
+        throw new Error("Warframe 数据请求失败");
     } finally {
         clearTimeout(timeoutId);
+        await dispatcher.close();
     }
 }
 

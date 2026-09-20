@@ -12,12 +12,16 @@
 
 ## 模块约定
 
+- 图片、回复、错误提示及日志不得泄露 API 地址、接口路径、密钥或原始请求错误；接口信息仅用于内部请求，展示内容须过滤接口信息。
+
 - `index.js` 自动扫描 `apps/*.js`，每个文件只注册第一个导出类；一个入口文件应只导出一个插件类。
 - `apps/Ai.js` 包含 AI 新闻、模型排行榜；保留 `aiNews`、`arenaRank` 两份配置及各自定时任务。
 - `apps/DailyLife.js` 包含日期提醒、饮食推荐与菜单管理；保留 `dateReminder` 配置。
 - 合并功能时保留指令正则、权限、优先级、配置键和数据存储方式。
 
 ## 常用检查
+
+- 每次提交、推送代码前必须同步更新根目录 `CHANGELOG.md`，记录本次实际变更和必要的使用说明；保持现有 `# 版本号`、`* 条目` 格式，以兼容版本页面。不得遗漏日志后直接提交或推送。
 
 - 单文件语法检查：`node --check apps/Ai.js`。
 - PowerShell 检查全部入口：`Get-ChildItem apps/*.js | ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { throw $_.FullName } }`。

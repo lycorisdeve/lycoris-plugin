@@ -33,103 +33,32 @@ export const helpCfg = {
 // 帮助菜单内容
 export const helpList = [
   {
-    group: "常规查询",
+    group: "世界状态 · 图片简报",
     list: [
-      {
-        icon: 80,
-        title: "警报信息",
-        desc: "#警报信息 / 警报",
-      },
-      {
-        icon: 82,
-        title: "裂隙信息",
-        desc: "#裂隙信息 / 裂隙",
-      },
-      {
-        icon: 46,
-        title: "活动事件",
-        desc: "#事件 #活动 尸鬼、热美亚裂隙等活动",
-      },
-      {
-        icon: 55,
-        title: "突击任务",
-        desc: "#突击任务",
-      },
-      {
-        icon: 57,
-        title: "入侵任务",
-        desc: "#入侵任务 #入侵",
-      },
-      {
-        icon: 58,
-        title: "新闻公告",
-        desc: "#wf新闻",
-      },
-      {
-        icon: 59,
-        title: "电波任务",
-        desc: "#电波任务 #电波",
-      },
+      { icon: 80, title: "警报任务", desc: "#wf警报" },
+      { icon: 82, title: "虚空裂隙", desc: "#wf裂隙" },
+      { icon: 46, title: "活动追踪", desc: "#wf活动" },
+      { icon: 55, title: "今日突击", desc: "#wf突击" },
+      { icon: 57, title: "入侵战况", desc: "#wf入侵" },
+      { icon: 58, title: "飞船新闻", desc: "#wf新闻" },
+      { icon: 59, title: "午夜电波", desc: "#wf电波" },
+      { icon: 95, title: "各地区赏金", desc: "#wf赏金 · 奖励自动分页" },
     ],
   },
   {
-    group: "时间查询",
+    group: "周期与交易",
     list: [
-      {
-        icon: 30,
-        title: "奸商",
-        desc: "#奸商",
-      },
-      {
-        icon: 33,
-        title: "地球时间",
-        desc: "#地球时间",
-      },
-      {
-        icon: 31,
-        title: "平原时间",
-        desc: "平原时间 / #平原时间",
-      },
-      {
-        icon: 23,
-        title: "地球平原",
-        desc: "#地球平原",
-      },
-      {
-        icon: 24,
-        title: "金星平原",
-        desc: "#金星平原",
-      },
-      {
-        icon: 25,
-        title: "火卫二平原",
-        desc: "#火卫二",
-      },
+      { icon: 33, title: "地球周期", desc: "#wf地球时间" },
+      { icon: 23, title: "赛特斯平原", desc: "#wf地球平原" },
+      { icon: 24, title: "金星平原", desc: "#wf金星平原" },
+      { icon: 30, title: "虚空商人", desc: "#wf商人 · 到访时间与商品" },
+      { icon: 31, title: "每日特惠", desc: "#wf特惠" },
     ],
   },
   {
-    group: "赏金任务",
+    group: "奥迪斯通讯",
     list: [
-      {
-        icon: 95,
-        title: "赏金列表",
-        desc: "#赏金 / 赏金列表",
-      },
-      {
-        icon: 97,
-        title: "地球赏金",
-        desc: "#地球赏金",
-      },
-      {
-        icon: 98,
-        title: "金星赏金",
-        desc: "#金星赏金",
-      },
-      {
-        icon: 99,
-        title: "火卫二赏金",
-        desc: "#火卫二赏金",
-      },
+      { icon: 99, title: "问答查询", desc: "奥迪斯 阴阳双子 · 图片回复" },
     ],
   },
 ];

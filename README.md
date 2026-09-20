@@ -45,6 +45,8 @@ git clone https://github.com/nighamare/lycoris-plugin.git ./plugins/lycoris-plug
 | 工具 | 网页截图、GitHub 趋势 | 直接发送 https:// 开头的网址 / #gittr |
 | 订阅 | RSS 使用说明 | #rss 帮助（订阅管理限主人） |
 
+Warframe 查询以深蓝金色任务简报图片发送，内容较多时自动分页。支持 `#wf警报`、`#wf活动`、`#wf新闻`、`#wf地球时间`、`#wf地球平原`、`#wf金星平原`、`#wf赏金`、`#wf裂隙`、`#wf商人`、`#wf突击`、`#wf入侵`、`#wf特惠`、`#wf电波`，以及 `奥迪斯 查询内容`。使用原有 `warframe.server` 配置选择 `ZHCN`（国服）或 `ZH`（国际服），修改后下次查询生效。图片中的时间使用北京时间；接口周期已过期时提示等待刷新。
+
 秀人插件已移除。手动覆盖更新时请删除旧的 `apps/Xiuren.js`，避免旧指令继续加载。
 
 #### RSS 合并推送
