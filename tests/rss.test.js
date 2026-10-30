@@ -25,23 +25,25 @@ const subscription = { name: 'Steam史低', url: 'https://example.com/rss', grou
 
 async function harness({ subs = [subscription], entries = items.slice(0, 2), config = {}, first = false, send } = {}) {
     const sent = [], records = [], initial = [];
+    let elapsed = 0;
     const rss = { subscribe_list: structuredClone(subs), ...config };
     const Bot = {
         uin: 999,
         pickGroup: () => ({ makeForwardMsg: async nodes => ({ type: 'forward', nodes }) }),
         sendGroupMsg: async (id, message) => {
-            sent.push({ id, message });
+            sent.push({ id, message, elapsed });
             return send ? send(id, message) : { message_id: 'ok' };
         }
     };
     const module = await load('../model/services/RssService.js', {
         'rss-parser': { default: class {} },
         '../../components/Config.js': { default: { getConfig: () => ({ rss }) } },
-        '../../components/Data.js': { default: { sleep: async () => {} } },
+        '../../components/Data.js': { default: { sleep: async ms => { elapsed += ms; } } },
         'moment': { default: () => {} },
         'lodash': { default: lodash },
         '../sqlite3/RssDb.js': { RssHistory: {
-            count: () => first ? 0 : 1, findOne: () => false,
+            count: () => first ? 0 : 1,
+            findOne: (feedUrl, guid) => records.some(record => record.feedUrl === feedUrl && record.guid === guid),
             create: record => records.push(record), bulkCreate: rows => initial.push(...rows)
         } },
         '../../components/lib/Render.js': { default: {} },
@@ -52,6 +54,83 @@ async function harness({ subs = [subscription], entries = items.slice(0, 2), con
     service.render = async (sub, feed, item) => ({ type: 'image', title: item.title });
     return { service, sent, records, initial, rss, Bot };
 }
+
+for (const globalMerge of [false, true]) {
+    test(`backlog is sent in paced batches and checkpointed (global=${globalMerge})`, async () => {
+        const entries = Array.from({ length: 13 }, (_, i) => ({ title: `Entry${i}`, link: `https://example.com/backlog/${i}` }));
+        const h = await harness({ entries, config: { merge_forward: globalMerge }, send: (id, message) => {
+            if (message.nodes.length > 10) throw new Error('request timeout: oversized forward');
+            return true;
+        } });
+        let rendered = 0;
+        h.service.render = async (sub, feed, item) => {
+            if (rendered === 5) assert.equal(h.records.length, 5, 'save first batch before rendering the next');
+            rendered++;
+            return { type: 'image', title: item.title };
+        };
+        assert.equal((await h.service.task()).pushed, 13);
+        assert.deepEqual(h.sent.map(s => s.message.nodes.length), [10, 10, 6]);
+        assert.ok(h.sent.slice(1).every((s, i) => s.elapsed - h.sent[i].elapsed >= 10000));
+        assert.deepEqual(h.sent.flatMap(s => Array.from(s.message.nodes.filter(n => n.message.type === 'image'), n => n.message.title)), [...entries].reverse().map(item => item.title));
+        for (const { message } of h.sent) {
+            const images = message.nodes.filter(n => n.message.type === 'image');
+            const texts = message.nodes.slice(images.length);
+            texts.forEach((node, i) => assert.equal(node.message[0].seq, images[i].seq));
+        }
+        assert.equal(h.records.length, 13);
+        assert.equal((await h.service.task()).pushed, 0);
+    });
+
+    test(`only failed backlog batches are retried (global=${globalMerge})`, async () => {
+        const entries = Array.from({ length: 12 }, (_, i) => ({ title: `Entry${i}`, link: `https://example.com/retry/${i}` }));
+        let fail = true;
+        const h = await harness({ entries, config: { merge_forward: globalMerge, text_push: false }, send: (id, message) => {
+            return !(fail && message.nodes.some(n => n.message.title === 'Entry6'));
+        } });
+        assert.equal((await h.service.task()).pushed, 7);
+        assert.equal(h.records.length, 7);
+        fail = false;
+        assert.equal((await h.service.task()).pushed, 5);
+        assert.equal(h.records.length, 12);
+        assert.equal(h.service.taskRunning, false);
+    });
+}
+
+test('text fallback waits before retrying a failed image forward', async () => {
+    const h = await harness({ send: (id, message) => !message.nodes.some(n => n.message.type === 'image') });
+    assert.equal((await h.service.task()).pushed, 2);
+    assert.equal(h.sent.length, 2);
+    assert.ok(h.sent[1].elapsed - h.sent[0].elapsed >= 10000);
+});
+
+test('large image-only backlog avoids oversized forward timeouts', async () => {
+    const entries = Array.from({ length: 100 }, (_, i) => ({ title: `Entry${i}`, link: `https://example.com/large/${i}` }));
+    const h = await harness({ entries, config: { merge_forward: true, text_push: false }, send: (id, message) => {
+        if (message.nodes.length > 5) throw new Error('request timeout: oversized forward');
+        return true;
+    } });
+    assert.equal((await h.service.task()).pushed, 100);
+    assert.equal(h.sent.length, 20);
+    assert.equal(h.records.length, 100);
+});
+
+test('overlapping checks cannot resend a running backlog', async () => {
+    let release, started;
+    const sending = new Promise(resolve => { started = resolve; });
+    const gate = new Promise(resolve => { release = resolve; });
+    const h = await harness({ send: async () => { started(); await gate; return true; } });
+    const running = h.service.task();
+    await sending;
+    try {
+        assert.equal((await h.service.task()).skipped, true);
+        assert.equal((await h.service.task(true)).skipped, true);
+        assert.equal(h.sent.length, 1);
+    } finally {
+        release();
+        await running;
+    }
+    assert.equal(h.service.taskRunning, false);
+});
 
 for (const count of [1, 3]) {
     test(`${count} new items produce one forward and retain item ordering`, async () => {
@@ -184,10 +263,11 @@ test('global mode routes by group, renders each item once, and counts multi-grou
     h.service.render = async () => { renders++; return { type: 'image' }; };
     assert.equal((await h.service.task()).pushed, 6);
     assert.equal(renders, 6);
-    assert.equal(h.sent.length, 3);
+    assert.equal(h.sent.length, 4);
     assert.equal(h.sent.find(s => s.id === '123').message.nodes.length, 8);
     assert.ok(h.sent.find(s => s.id === '456').message.nodes.every(n => n.nickname === 'Steam史低'));
     assert.ok(h.sent.find(s => s.id === '789').message.nodes.every(n => n.nickname === '默认群'));
+    assert.equal(h.sent.filter(s => s.id === '789').length, 2);
     assert.equal(h.records.length, 6);
 });
 
@@ -214,8 +294,8 @@ test('forced global checks merge three items per source without recording histor
         subscription, { ...subscription, name: '其他', url: 'https://example.com/other' }
     ] });
     assert.equal((await h.service.task(true)).pushed, 6);
-    assert.equal(h.sent.length, 1);
-    assert.equal(h.sent[0].message.nodes.length, 12);
+    assert.equal(h.sent.length, 2);
+    assert.deepEqual(h.sent.map(s => s.message.nodes.length), [10, 2]);
     assert.equal(h.records.length, 0);
 });
 

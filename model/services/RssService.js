@@ -9,6 +9,9 @@ import { RssHistory } from '../sqlite3/RssDb.js';
 import Render from '../../components/lib/Render.js';
 import * as cheerio from 'cheerio';
 
+const MERGE_BATCH_SIZE = 5;
+const MERGE_INTERVAL_MS = 10000;
+
 const parser = new Parser({
     headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -232,7 +235,8 @@ class RssService {
                         pending.push(...newItems.map(item => ({ sub, feed, item })));
                         continue;
                     }
-                    const batches = sub.merge_forward === true ? [newItems] : newItems.map(item => [item]);
+                    // 在渲染前切批，限制每份合并消息及同时保留的图片数量。
+                    const batches = _.chunk(newItems, sub.merge_forward === true ? MERGE_BATCH_SIZE : 1);
                     for (const items of batches) {
                         // 执行推送并获取推送状态
                         const pushSuccess = sub.merge_forward === true
@@ -250,10 +254,12 @@ class RssService {
                 }
             }
             if (mergeAll) {
-                const successful = await this.broadcastMergedEntries(pending);
-                pushedCount = successful.size;
-                if (!force) {
-                    for (const { sub, item } of successful) await this.recordItem(sub.url, item);
+                for (const batch of _.chunk(pending, MERGE_BATCH_SIZE)) {
+                    const successful = await this.broadcastMergedEntries(batch);
+                    pushedCount += successful.size;
+                    if (!force) {
+                        for (const { sub, item } of successful) await this.recordItem(sub.url, item);
+                    }
                 }
             }
             return { total: feeds.length, pushed: pushedCount };
@@ -452,6 +458,7 @@ class RssService {
                 failure = error;
                 if (textEnabled && groupEntries.some(entry => prepared.get(entry).img)) {
                     try {
+                        await Data.sleep(MERGE_INTERVAL_MS);
                         await send(true);
                         failure = null;
                     } catch (fallbackError) {
@@ -460,13 +467,13 @@ class RssService {
                 }
             }
             if (failure) {
-                logger.error(`[RSS] 合并推送失败:${failure.message}`);
+                logger.error('[RSS] 本批合并推送失败，未成功条目保留待下次检查重试');
                 const subs = new Set(groupEntries.map(entry => entry.sub));
-                for (const sub of subs) await this.notifyOwnerFailure(sub, groupId, failure);
+                for (const sub of subs) await this.notifyOwnerFailure(sub, groupId, new Error('本批合并消息发送失败，保留待重试'));
             } else {
                 for (const entry of groupEntries) successful.add(entry);
             }
-            await Data.sleep(1000);
+            await Data.sleep(MERGE_INTERVAL_MS);
         }
         return successful;
     }
